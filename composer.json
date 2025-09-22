@@ -1,0 +1,29 @@
+{
+    "name": "maan511/openapi-to-laravel",
+    "description": "Bringing API-first development to Laravel",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Maan511\\OpenapiToLaravel\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Martin Andersen",
+            "email": "Maan511@users.noreply.github.com"
+        }
+    ],
+    "require": {
+        "php": "*"
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.1",
+        "laravel/pint": "^1.25"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
