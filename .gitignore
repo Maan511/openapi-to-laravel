@@ -10,4 +10,5 @@ composer.lock
 .pest/
 coverage/
 .coverage/
-
+.specify/
+.claude/
