@@ -24,8 +24,7 @@ class GenerateFormRequestsCommand extends Command
                             {--output=./app/Http/Requests : Output directory for generated FormRequest classes}
                             {--namespace=App\\Http\\Requests : PHP namespace for generated classes}
                             {--force : Overwrite existing FormRequest files}
-                            {--dry-run : Show what would be generated without creating files}
-                            {--verbose : Enable verbose output}';
+                            {--dry-run : Show what would be generated without creating files}';
 
     /**
      * The console command description.
@@ -42,7 +41,7 @@ class GenerateFormRequestsCommand extends Command
         $namespace = $this->option('namespace');
         $force = $this->option('force');
         $dryRun = $this->option('dry-run');
-        $verbose = $this->option('verbose');
+        $verbose = $this->getOutput()->isVerbose();
 
         try {
             // Initialize services

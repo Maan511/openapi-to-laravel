@@ -301,10 +301,10 @@ describe('GenerateFormRequestsCommand', function () {
             $inputMock->shouldReceive('getOption')->with('namespace')->andReturn('App\\Http\\Requests');
             $inputMock->shouldReceive('getOption')->with('force')->andReturn(false);
             $inputMock->shouldReceive('getOption')->with('dry-run')->andReturn(false);
-            $inputMock->shouldReceive('getOption')->with('verbose')->andReturn(false);
 
             $outputMock->shouldReceive('writeln')->andReturn(null);
             $outputMock->shouldReceive('write')->andReturn(null);
+            $outputMock->shouldReceive('isVerbose')->andReturn(false);
 
             $this->command->setInput($inputMock);
             $this->command->setOutput($outputMock);
@@ -331,10 +331,10 @@ describe('GenerateFormRequestsCommand', function () {
             $inputMock->shouldReceive('getOption')->with('namespace')->andReturn('App\\Http\\Requests');
             $inputMock->shouldReceive('getOption')->with('force')->andReturn(false);
             $inputMock->shouldReceive('getOption')->with('dry-run')->andReturn(false);
-            $inputMock->shouldReceive('getOption')->with('verbose')->andReturn(false);
 
             $outputMock->shouldReceive('writeln')->andReturn(null);
             $outputMock->shouldReceive('write')->andReturn(null);
+            $outputMock->shouldReceive('isVerbose')->andReturn(false);
 
             $this->command->setInput($inputMock);
             $this->command->setOutput($outputMock);
@@ -359,10 +359,10 @@ describe('GenerateFormRequestsCommand', function () {
             $inputMock->shouldReceive('getOption')->with('namespace')->andReturn('App\\Http\\Requests');
             $inputMock->shouldReceive('getOption')->with('force')->andReturn(false);
             $inputMock->shouldReceive('getOption')->with('dry-run')->andReturn(false);
-            $inputMock->shouldReceive('getOption')->with('verbose')->andReturn(false);
 
             $outputMock->shouldReceive('writeln')->andReturn(null);
             $outputMock->shouldReceive('write')->andReturn(null);
+            $outputMock->shouldReceive('isVerbose')->andReturn(false);
 
             $this->command->setInput($inputMock);
             $this->command->setOutput($outputMock);

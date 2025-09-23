@@ -85,6 +85,24 @@ describe('OpenApiParser', function () {
 
             unlink($tempFile);
         });
+
+        it('should handle relative paths correctly', function () {
+            // Create a temporary file in the current directory
+            $relativePath = 'temp_openapi_test.json';
+            file_put_contents($relativePath, json_encode([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+                'paths' => [],
+            ]));
+
+            // Test parsing with relative path
+            $specification = $this->parser->parseFromFile($relativePath);
+            expect($specification->version)->toBe('3.0.0');
+            expect($specification->info['title'])->toBe('Test');
+
+            // Clean up
+            unlink($relativePath);
+        });
     });
 
     describe('extractEndpoints', function () {
