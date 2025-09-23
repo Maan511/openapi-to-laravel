@@ -1,6 +1,5 @@
 <?php
 
-
 describe('Large OpenAPI Specification Performance', function () {
     it('should generate FormRequests for 100 endpoints in less than 5 seconds', function () {
         $startTime = microtime(true);
@@ -23,41 +22,41 @@ describe('Large OpenAPI Specification Performance', function () {
                                         'name' => [
                                             'type' => 'string',
                                             'minLength' => 1,
-                                            'maxLength' => 255
+                                            'maxLength' => 255,
                                         ],
                                         'description' => [
                                             'type' => 'string',
-                                            'maxLength' => 1000
+                                            'maxLength' => 1000,
                                         ],
                                         'status' => [
                                             'type' => 'string',
-                                            'enum' => ['active', 'inactive', 'pending']
+                                            'enum' => ['active', 'inactive', 'pending'],
                                         ],
                                         'priority' => [
                                             'type' => 'integer',
                                             'minimum' => 1,
-                                            'maximum' => 10
+                                            'maximum' => 10,
                                         ],
                                         'tags' => [
                                             'type' => 'array',
                                             'items' => ['type' => 'string'],
                                             'minItems' => 0,
-                                            'maxItems' => 10
+                                            'maxItems' => 10,
                                         ],
                                         'metadata' => [
                                             'type' => 'object',
                                             'properties' => [
                                                 'created_by' => ['type' => 'string'],
                                                 'updated_by' => ['type' => 'string'],
-                                                'version' => ['type' => 'integer']
-                                            ]
-                                        ]
+                                                'version' => ['type' => 'integer'],
+                                            ],
+                                        ],
                                     ],
-                                    'required' => ['name', 'status']
-                                ]
-                            ]
-                        ]
-                    ]
+                                    'required' => ['name', 'status'],
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 'put' => [
                     'operationId' => "update{$resourceName}",
@@ -72,22 +71,22 @@ describe('Large OpenAPI Specification Performance', function () {
                                         'name' => [
                                             'type' => 'string',
                                             'minLength' => 1,
-                                            'maxLength' => 255
+                                            'maxLength' => 255,
                                         ],
                                         'description' => [
                                             'type' => 'string',
-                                            'maxLength' => 1000
+                                            'maxLength' => 1000,
                                         ],
                                         'status' => [
                                             'type' => 'string',
-                                            'enum' => ['active', 'inactive', 'pending']
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                            'enum' => ['active', 'inactive', 'pending'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ];
         }
 
@@ -96,17 +95,17 @@ describe('Large OpenAPI Specification Performance', function () {
             'info' => [
                 'title' => 'Large Test API',
                 'version' => '1.0.0',
-                'description' => 'A large OpenAPI specification for performance testing'
+                'description' => 'A large OpenAPI specification for performance testing',
             ],
-            'paths' => $paths
+            'paths' => $paths,
         ];
 
         // Initialize services
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver();
+        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
         $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
-        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper();
-        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine();
+        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
         $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
 
         // Parse specification
@@ -132,10 +131,10 @@ describe('Large OpenAPI Specification Performance', function () {
 
         // Log performance metrics for debugging
         echo "\nPerformance Metrics:\n";
-        echo "- Total endpoints with request bodies: " . count($endpoints) . "\n";
-        echo "- Total FormRequest classes generated: " . count($formRequests) . "\n";
-        echo "- Execution time: " . number_format($executionTime, 3) . " seconds\n";
-        echo "- Average time per endpoint: " . number_format($executionTime / count($endpoints) * 1000, 2) . " ms\n";
+        echo '- Total endpoints with request bodies: ' . count($endpoints) . "\n";
+        echo '- Total FormRequest classes generated: ' . count($formRequests) . "\n";
+        echo '- Execution time: ' . number_format($executionTime, 3) . " seconds\n";
+        echo '- Average time per endpoint: ' . number_format($executionTime / count($endpoints) * 1000, 2) . " ms\n";
 
         // Validate a sample of generated FormRequest classes
         $sampleFormRequest = $formRequests[0];
@@ -174,26 +173,26 @@ describe('Large OpenAPI Specification Performance', function () {
                                                         'type' => 'object',
                                                         'properties' => [
                                                             'data' => ['type' => 'string'],
-                                                            'value' => ['type' => 'integer']
-                                                        ]
-                                                    ]
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                                            'value' => ['type' => 'integer'],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         $specData = [
             'openapi' => '3.0.0',
             'info' => [
                 'title' => 'Deep Nesting Test API',
-                'version' => '1.0.0'
+                'version' => '1.0.0',
             ],
             'paths' => [
                 '/deep' => [
@@ -202,21 +201,21 @@ describe('Large OpenAPI Specification Performance', function () {
                         'requestBody' => [
                             'content' => [
                                 'application/json' => [
-                                    'schema' => $nestedSchema
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                    'schema' => $nestedSchema,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         // Initialize services
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver();
+        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
         $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
-        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper();
-        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine();
+        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
         $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
 
         // Parse and generate
@@ -247,8 +246,8 @@ describe('Large OpenAPI Specification Performance', function () {
         expect($formRequest->validationRules)->toHaveKey('level1.level2.level3.level4.level5.*.value');
 
         echo "\nDeep Nesting Performance:\n";
-        echo "- Execution time: " . number_format($executionTime, 3) . " seconds\n";
-        echo "- Total validation rules generated: " . count($formRequest->validationRules) . "\n";
+        echo '- Execution time: ' . number_format($executionTime, 3) . " seconds\n";
+        echo '- Total validation rules generated: ' . count($formRequest->validationRules) . "\n";
     });
 
     it('should efficiently generate FormRequests with complex validation constraints', function () {
@@ -271,61 +270,61 @@ describe('Large OpenAPI Specification Performance', function () {
                                             'format' => 'email',
                                             'pattern' => '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
                                             'minLength' => 5,
-                                            'maxLength' => 254
+                                            'maxLength' => 254,
                                         ],
                                         'password' => [
                                             'type' => 'string',
                                             'pattern' => '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
                                             'minLength' => 8,
-                                            'maxLength' => 128
+                                            'maxLength' => 128,
                                         ],
                                         'age' => [
                                             'type' => 'integer',
                                             'minimum' => 0,
                                             'maximum' => 150,
-                                            'multipleOf' => 1
+                                            'multipleOf' => 1,
                                         ],
                                         'score' => [
                                             'type' => 'number',
                                             'minimum' => 0.0,
                                             'maximum' => 100.0,
-                                            'multipleOf' => 0.01
+                                            'multipleOf' => 0.01,
                                         ],
                                         'categories' => [
                                             'type' => 'array',
                                             'items' => [
                                                 'type' => 'string',
-                                                'enum' => ['tech', 'science', 'arts', 'sports', 'music']
+                                                'enum' => ['tech', 'science', 'arts', 'sports', 'music'],
                                             ],
                                             'minItems' => 1,
                                             'maxItems' => 5,
-                                            'uniqueItems' => true
+                                            'uniqueItems' => true,
                                         ],
                                         'metadata' => [
                                             'type' => 'object',
                                             'properties' => [
                                                 'source' => [
                                                     'type' => 'string',
-                                                    'enum' => ['web', 'mobile', 'api', 'import']
+                                                    'enum' => ['web', 'mobile', 'api', 'import'],
                                                 ],
                                                 'timestamp' => [
                                                     'type' => 'string',
-                                                    'format' => 'date-time'
+                                                    'format' => 'date-time',
                                                 ],
                                                 'version' => [
                                                     'type' => 'string',
-                                                    'pattern' => '^v\d+\.\d+\.\d+$'
-                                                ]
+                                                    'pattern' => '^v\d+\.\d+\.\d+$',
+                                                ],
                                             ],
-                                            'required' => ['source', 'timestamp']
-                                        ]
+                                            'required' => ['source', 'timestamp'],
+                                        ],
                                     ],
-                                    'required' => ['email', 'password', 'age']
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                    'required' => ['email', 'password', 'age'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ];
         }
 
@@ -333,17 +332,17 @@ describe('Large OpenAPI Specification Performance', function () {
             'openapi' => '3.0.0',
             'info' => [
                 'title' => 'Complex Validation Test API',
-                'version' => '1.0.0'
+                'version' => '1.0.0',
             ],
-            'paths' => $paths
+            'paths' => $paths,
         ];
 
         // Initialize services
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver();
+        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
         $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
-        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper();
-        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine();
+        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
         $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
 
         // Parse and generate
@@ -381,8 +380,8 @@ describe('Large OpenAPI Specification Performance', function () {
         expect($sampleFormRequest->validationRules['categories'])->toContain('max:5');
 
         echo "\nComplex Validation Performance:\n";
-        echo "- Execution time: " . number_format($executionTime, 3) . " seconds\n";
-        echo "- FormRequests generated: " . count($formRequests) . "\n";
-        echo "- Average rules per FormRequest: " . number_format(array_sum(array_map(fn($fr) => count($fr->validationRules), $formRequests)) / count($formRequests), 1) . "\n";
+        echo '- Execution time: ' . number_format($executionTime, 3) . " seconds\n";
+        echo '- FormRequests generated: ' . count($formRequests) . "\n";
+        echo '- Average rules per FormRequest: ' . number_format(array_sum(array_map(fn ($fr) => count($fr->validationRules), $formRequests)) / count($formRequests), 1) . "\n";
     });
 });

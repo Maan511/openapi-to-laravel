@@ -88,7 +88,7 @@ class OpenApiSpecification
     public function getSchemaByRef(string $ref): ?array
     {
         // Handle $ref format: #/components/schemas/SchemaName
-        if (!str_starts_with($ref, '#/components/schemas/')) {
+        if (! str_starts_with($ref, '#/components/schemas/')) {
             return null;
         }
 
@@ -111,7 +111,7 @@ class OpenApiSpecification
      */
     public function hasComponents(): bool
     {
-        return !empty($this->components);
+        return ! empty($this->components);
     }
 
     /**
@@ -141,7 +141,6 @@ class OpenApiSpecification
 
         return $count;
     }
-
 
     /**
      * Convert to array representation

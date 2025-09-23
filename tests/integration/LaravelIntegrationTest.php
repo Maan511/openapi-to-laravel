@@ -2,13 +2,13 @@
 
 namespace Maan511\OpenapiToLaravel\Tests\Integration;
 
-use Maan511\OpenapiToLaravel\Tests\TestCase;
-use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
+use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
-use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
+use Maan511\OpenapiToLaravel\Tests\TestCase;
 
 /**
  * Integration test for Laravel integration
@@ -35,20 +35,20 @@ class LaravelIntegrationTest extends TestCase
                                         'type' => 'object',
                                         'properties' => [
                                             'name' => ['type' => 'string'],
-                                            'email' => ['type' => 'string', 'format' => 'email']
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                            'email' => ['type' => 'string', 'format' => 'email'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'laravel_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -57,10 +57,10 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify Laravel FormRequest inheritance
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('use Illuminate\Foundation\Http\FormRequest', $content);
@@ -87,21 +87,21 @@ class LaravelIntegrationTest extends TestCase
                                         'properties' => [
                                             'name' => ['type' => 'string', 'minLength' => 2, 'maxLength' => 100],
                                             'email' => ['type' => 'string', 'format' => 'email'],
-                                            'age' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 120]
+                                            'age' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 120],
                                         ],
-                                        'required' => ['name', 'email']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['name', 'email'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'laravel_rules_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -110,13 +110,13 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $content = $formRequests[0]->generatePhpCode();
-        
+
         // Verify rules() method exists and has proper structure
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('return [', $content);
-        
+
         // Verify some validation rules are present
         $this->assertStringContainsString('required', $content);
         $this->assertStringContainsString('string', $content);
@@ -141,20 +141,20 @@ class LaravelIntegrationTest extends TestCase
                                     'schema' => [
                                         'type' => 'object',
                                         'properties' => [
-                                            'name' => ['type' => 'string']
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                            'name' => ['type' => 'string'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'laravel_auth_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -163,9 +163,9 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $content = $formRequests[0]->generatePhpCode();
-        
+
         // Verify authorize() method exists
         $this->assertStringContainsString('public function authorize()', $content);
         $this->assertStringContainsString('return true', $content);
@@ -190,20 +190,20 @@ class LaravelIntegrationTest extends TestCase
                                         'type' => 'object',
                                         'properties' => [
                                             'name' => ['type' => 'string'],
-                                            'email' => ['type' => 'string', 'format' => 'email']
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                            'email' => ['type' => 'string', 'format' => 'email'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'controller_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -212,10 +212,10 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify the class structure is suitable for controller injection
         $this->assertStringContainsString('class CreateUserRequest extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
@@ -243,31 +243,31 @@ class LaravelIntegrationTest extends TestCase
                                             'name' => [
                                                 'type' => 'string',
                                                 'minLength' => 2,
-                                                'maxLength' => 50
+                                                'maxLength' => 50,
                                             ],
                                             'email' => [
                                                 'type' => 'string',
-                                                'format' => 'email'
+                                                'format' => 'email',
                                             ],
                                             'age' => [
                                                 'type' => 'integer',
                                                 'minimum' => 18,
-                                                'maximum' => 120
-                                            ]
+                                                'maximum' => 120,
+                                            ],
                                         ],
-                                        'required' => ['name', 'email']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['name', 'email'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'validation_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -276,10 +276,10 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify validation structure is correct
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('required', $content);
@@ -288,20 +288,20 @@ class LaravelIntegrationTest extends TestCase
         $this->assertStringContainsString('integer', $content);
         $this->assertStringContainsString('min:', $content);
         $this->assertStringContainsString('max:', $content);
-        
+
         // Verify Laravel FormRequest structure
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function authorize()', $content);
         $this->assertStringContainsString('return true', $content);
-        
+
         // Test validation rules were mapped correctly (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Verify required fields exist in string rules
         $this->assertArrayHasKey('name', $formRequest->validationRules);
         $this->assertArrayHasKey('email', $formRequest->validationRules);
         $this->assertArrayHasKey('age', $formRequest->validationRules);
-        
+
         // Verify validation rule content
         $this->assertStringContainsString('required', $formRequest->validationRules['name']);
         $this->assertStringContainsString('string', $formRequest->validationRules['name']);
@@ -331,32 +331,32 @@ class LaravelIntegrationTest extends TestCase
                                                 'type' => 'string',
                                                 'description' => 'The full name of the user',
                                                 'minLength' => 2,
-                                                'maxLength' => 100
+                                                'maxLength' => 100,
                                             ],
                                             'email' => [
                                                 'type' => 'string',
                                                 'format' => 'email',
-                                                'description' => 'Valid email address for the user'
+                                                'description' => 'Valid email address for the user',
                                             ],
                                             'phone' => [
                                                 'type' => 'string',
                                                 'pattern' => '^\\+?[1-9]\\d{1,14}$',
-                                                'description' => 'International phone number'
-                                            ]
+                                                'description' => 'International phone number',
+                                            ],
                                         ],
-                                        'required' => ['name', 'email']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['name', 'email'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'messages_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -365,28 +365,28 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify the basic structure includes messages method (even if simple)
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('extends FormRequest', $content);
-        
+
         // For now, just verify that we can generate the FormRequest
         // and that it contains the expected field validation rules
         $this->assertStringContainsString('name', $content);
         $this->assertStringContainsString('email', $content);
         $this->assertStringContainsString('required', $content);
         $this->assertStringContainsString('string', $content);
-        
+
         // Verify validation rules structure (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check that we have rules for each field
         $this->assertArrayHasKey('name', $formRequest->validationRules);
         $this->assertArrayHasKey('email', $formRequest->validationRules);
-        
+
         // Verify content of rules
         $this->assertStringContainsString('required', $formRequest->validationRules['name']);
         $this->assertStringContainsString('string', $formRequest->validationRules['name']);
@@ -414,38 +414,38 @@ class LaravelIntegrationTest extends TestCase
                                                 'type' => 'string',
                                                 'title' => 'First Name',
                                                 'minLength' => 1,
-                                                'maxLength' => 50
+                                                'maxLength' => 50,
                                             ],
                                             'lastName' => [
                                                 'type' => 'string',
                                                 'title' => 'Last Name',
                                                 'minLength' => 1,
-                                                'maxLength' => 50
+                                                'maxLength' => 50,
                                             ],
                                             'emailAddress' => [
                                                 'type' => 'string',
                                                 'format' => 'email',
-                                                'title' => 'Email Address'
+                                                'title' => 'Email Address',
                                             ],
                                             'dateOfBirth' => [
                                                 'type' => 'string',
                                                 'format' => 'date',
-                                                'title' => 'Date of Birth'
-                                            ]
+                                                'title' => 'Date of Birth',
+                                            ],
                                         ],
-                                        'required' => ['firstName', 'lastName', 'emailAddress']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['firstName', 'lastName', 'emailAddress'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'attributes_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -454,29 +454,29 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify the basic FormRequest structure
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('public function authorize()', $content);
-        
+
         // Verify that fields with titles are included in validation
         $this->assertStringContainsString('firstName', $content);
         $this->assertStringContainsString('lastName', $content);
         $this->assertStringContainsString('emailAddress', $content);
         $this->assertStringContainsString('dateOfBirth', $content);
-        
+
         // Verify validation rules structure (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check that we have rules for each field with custom titles
         $this->assertArrayHasKey('firstName', $formRequest->validationRules);
         $this->assertArrayHasKey('lastName', $formRequest->validationRules);
         $this->assertArrayHasKey('emailAddress', $formRequest->validationRules);
-        
+
         // Verify that required fields are properly mapped
         $this->assertStringContainsString('required', $formRequest->validationRules['firstName']);
         $this->assertStringContainsString('required', $formRequest->validationRules['lastName']);
@@ -500,12 +500,12 @@ class LaravelIntegrationTest extends TestCase
                                 'application/json' => [
                                     'schema' => [
                                         'type' => 'object',
-                                        'properties' => ['name' => ['type' => 'string']]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
+                                        'properties' => ['name' => ['type' => 'string']],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 '/users/{id}' => [
                     'put' => [
@@ -515,19 +515,19 @@ class LaravelIntegrationTest extends TestCase
                                 'application/json' => [
                                     'schema' => [
                                         'type' => 'object',
-                                        'properties' => ['name' => ['type' => 'string']]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'properties' => ['name' => ['type' => 'string']],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'naming_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -536,12 +536,12 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertCount(2, $formRequests);
-        
+
         // Verify PascalCase naming with "Request" suffix
-        $classNames = array_map(fn($fr) => $fr->className, $formRequests);
+        $classNames = array_map(fn ($fr) => $fr->className, $formRequests);
         $this->assertContains('CreateUserRequest', $classNames);
         $this->assertContains('UpdateUserProfileRequest', $classNames);
-        
+
         // Verify method names are camelCase
         foreach ($formRequests as $formRequest) {
             $content = $formRequest->generatePhpCode();
@@ -570,40 +570,40 @@ class LaravelIntegrationTest extends TestCase
                                         'properties' => [
                                             'name' => [
                                                 'type' => 'string',
-                                                'maxLength' => 100
+                                                'maxLength' => 100,
                                             ],
                                             'avatar' => [
                                                 'type' => 'string',
                                                 'format' => 'binary',
-                                                'description' => 'User profile picture'
+                                                'description' => 'User profile picture',
                                             ],
                                             'resume' => [
                                                 'type' => 'string',
                                                 'format' => 'binary',
-                                                'description' => 'User resume document'
+                                                'description' => 'User resume document',
                                             ],
                                             'documents' => [
                                                 'type' => 'array',
                                                 'items' => [
                                                     'type' => 'string',
-                                                    'format' => 'binary'
+                                                    'format' => 'binary',
                                                 ],
-                                                'description' => 'Additional documents'
-                                            ]
+                                                'description' => 'Additional documents',
+                                            ],
                                         ],
-                                        'required' => ['name', 'avatar']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['name', 'avatar'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'file_upload_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -612,32 +612,32 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify the basic FormRequest structure
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
-        
+
         // Verify that file fields are included in validation
         $this->assertStringContainsString('name', $content);
         $this->assertStringContainsString('avatar', $content);
         $this->assertStringContainsString('resume', $content);
         $this->assertStringContainsString('documents', $content);
-        
+
         // Verify validation rules structure (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
-        // Check that we have rules for file fields  
+
+        // Check that we have rules for file fields
         $this->assertArrayHasKey('name', $formRequest->validationRules);
         $this->assertArrayHasKey('avatar', $formRequest->validationRules);
         $this->assertArrayHasKey('resume', $formRequest->validationRules);
-        
+
         // Verify required fields are properly mapped
         $this->assertStringContainsString('required', $formRequest->validationRules['name']);
         $this->assertStringContainsString('required', $formRequest->validationRules['avatar']);
-        
+
         // Check that file fields have appropriate validation
         $this->assertStringContainsString('string', $formRequest->validationRules['avatar']);
         $this->assertStringContainsString('nullable', $formRequest->validationRules['resume']);
@@ -663,28 +663,28 @@ class LaravelIntegrationTest extends TestCase
                                         'properties' => [
                                             'name' => [
                                                 'type' => 'string',
-                                                'minLength' => 1
+                                                'minLength' => 1,
                                             ],
                                             'profile' => [
                                                 'type' => 'object',
                                                 'properties' => [
                                                     'bio' => [
                                                         'type' => 'string',
-                                                        'maxLength' => 500
+                                                        'maxLength' => 500,
                                                     ],
                                                     'age' => [
                                                         'type' => 'integer',
-                                                        'minimum' => 18
+                                                        'minimum' => 18,
                                                     ],
                                                     'social' => [
                                                         'type' => 'object',
                                                         'properties' => [
                                                             'twitter' => ['type' => 'string'],
-                                                            'linkedin' => ['type' => 'string', 'format' => 'uri']
-                                                        ]
-                                                    ]
+                                                            'linkedin' => ['type' => 'string', 'format' => 'uri'],
+                                                        ],
+                                                    ],
                                                 ],
-                                                'required' => ['bio']
+                                                'required' => ['bio'],
                                             ],
                                             'addresses' => [
                                                 'type' => 'array',
@@ -693,25 +693,25 @@ class LaravelIntegrationTest extends TestCase
                                                     'properties' => [
                                                         'street' => ['type' => 'string'],
                                                         'city' => ['type' => 'string'],
-                                                        'zipCode' => ['type' => 'string', 'pattern' => '^\\d{5}$']
+                                                        'zipCode' => ['type' => 'string', 'pattern' => '^\\d{5}$'],
                                                     ],
-                                                    'required' => ['street', 'city']
-                                                ]
-                                            ]
+                                                    'required' => ['street', 'city'],
+                                                ],
+                                            ],
                                         ],
-                                        'required' => ['name', 'profile']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['name', 'profile'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'nested_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -720,31 +720,31 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify the basic FormRequest structure
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
-        
+
         // Verify validation rules structure (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check for nested field validation (should use dot notation)
         $fieldNames = array_keys($formRequest->validationRules);
-        
+
         // Should contain nested properties with dot notation
-        $nestedFields = array_filter($fieldNames, fn($field) => str_contains($field, '.'));
+        $nestedFields = array_filter($fieldNames, fn ($field) => str_contains($field, '.'));
         $this->assertNotEmpty($nestedFields, 'Should have nested fields with dot notation');
-        
+
         // Check for specific nested patterns we expect
-        $hasProfileFields = !empty(array_filter($fieldNames, fn($field) => str_starts_with($field, 'profile.')));
-        $hasAddressFields = !empty(array_filter($fieldNames, fn($field) => str_starts_with($field, 'addresses.')));
-        
+        $hasProfileFields = ! empty(array_filter($fieldNames, fn ($field) => str_starts_with($field, 'profile.')));
+        $hasAddressFields = ! empty(array_filter($fieldNames, fn ($field) => str_starts_with($field, 'addresses.')));
+
         // At minimum, we should have some nested structure
         $this->assertTrue($hasProfileFields || $hasAddressFields, 'Should have profile or address nested fields');
-        
+
         // Verify required fields are properly mapped
         $this->assertArrayHasKey('name', $formRequest->validationRules);
         $this->assertStringContainsString('required', $formRequest->validationRules['name']);
@@ -772,35 +772,35 @@ class LaravelIntegrationTest extends TestCase
                                                 'type' => 'string',
                                                 'minLength' => 3,
                                                 'maxLength' => 20,
-                                                'pattern' => '^[a-zA-Z0-9_]+$'
+                                                'pattern' => '^[a-zA-Z0-9_]+$',
                                             ],
                                             'email' => [
                                                 'type' => 'string',
-                                                'format' => 'email'
+                                                'format' => 'email',
                                             ],
                                             'password' => [
                                                 'type' => 'string',
-                                                'minLength' => 8
+                                                'minLength' => 8,
                                             ],
                                             'age' => [
                                                 'type' => 'integer',
                                                 'minimum' => 13,
-                                                'maximum' => 150
-                                            ]
+                                                'maximum' => 150,
+                                            ],
                                         ],
-                                        'required' => ['username', 'email', 'password']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['username', 'email', 'password'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'laravel_validation_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -809,30 +809,30 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify Laravel FormRequest integration structure
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('use Illuminate\Foundation\Http\FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('public function authorize()', $content);
-        
+
         // Verify Laravel validation rules are generated
         $this->assertStringContainsString('required', $content);
         $this->assertStringContainsString('string', $content);
         $this->assertStringContainsString('email', $content);
         $this->assertStringContainsString('integer', $content);
-        
+
         // Verify validation rules structure (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check that rules are properly structured for Laravel
         $this->assertArrayHasKey('username', $formRequest->validationRules);
         $this->assertArrayHasKey('email', $formRequest->validationRules);
         $this->assertArrayHasKey('password', $formRequest->validationRules);
-        
+
         // Verify required fields
         $this->assertStringContainsString('required', $formRequest->validationRules['username']);
         $this->assertStringContainsString('required', $formRequest->validationRules['email']);
@@ -859,41 +859,41 @@ class LaravelIntegrationTest extends TestCase
                                         'properties' => [
                                             'authType' => [
                                                 'type' => 'string',
-                                                'enum' => ['password', 'oauth', 'sso']
+                                                'enum' => ['password', 'oauth', 'sso'],
                                             ],
                                             'username' => [
                                                 'type' => 'string',
-                                                'minLength' => 3
+                                                'minLength' => 3,
                                             ],
                                             'password' => [
                                                 'type' => 'string',
-                                                'minLength' => 8
+                                                'minLength' => 8,
                                             ],
                                             'oauthToken' => [
-                                                'type' => 'string'
+                                                'type' => 'string',
                                             ],
                                             'ssoProvider' => [
                                                 'type' => 'string',
-                                                'enum' => ['google', 'microsoft', 'github']
+                                                'enum' => ['google', 'microsoft', 'github'],
                                             ],
                                             'email' => [
                                                 'type' => 'string',
-                                                'format' => 'email'
-                                            ]
+                                                'format' => 'email',
+                                            ],
                                         ],
-                                        'required' => ['authType', 'username', 'email']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['authType', 'username', 'email'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'conditional_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -902,30 +902,30 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify the basic FormRequest structure
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
-        
+
         // Verify that enum fields are handled properly
         $this->assertStringContainsString('authType', $content);
         $this->assertStringContainsString('username', $content);
         $this->assertStringContainsString('email', $content);
-        
+
         // Verify validation rules structure (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check that enum rules are generated
         $this->assertArrayHasKey('authType', $formRequest->validationRules);
         $this->assertArrayHasKey('username', $formRequest->validationRules);
         $this->assertArrayHasKey('email', $formRequest->validationRules);
-        
+
         // Should have enum validation rules
         $this->assertStringContainsString('in:', $formRequest->validationRules['authType']);
-        
+
         // Verify required fields
         $this->assertStringContainsString('required', $formRequest->validationRules['authType']);
         $this->assertStringContainsString('required', $formRequest->validationRules['username']);
@@ -942,10 +942,10 @@ class LaravelIntegrationTest extends TestCase
             $properties["field{$i}"] = [
                 'type' => 'string',
                 'minLength' => 1,
-                'maxLength' => 100
+                'maxLength' => 100,
             ];
         }
-        
+
         $spec = [
             'openapi' => '3.0.0',
             'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -959,51 +959,51 @@ class LaravelIntegrationTest extends TestCase
                                     'schema' => [
                                         'type' => 'object',
                                         'properties' => $properties,
-                                        'required' => array_keys(array_slice($properties, 0, 25))
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => array_keys(array_slice($properties, 0, 25)),
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'performance_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $startTime = microtime(true);
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
         $parsedSpec = $parser->parseFromFile($tempFile);
         $endpoints = $parser->getEndpointsWithRequestBodies($parsedSpec);
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-        
+
         $endTime = microtime(true);
         $executionTime = $endTime - $startTime;
-        
+
         // Should complete in reasonable time (under 2 seconds for 50 fields)
         $this->assertLessThan(2.0, $executionTime, 'Generation should complete in under 2 seconds');
-        
+
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify structure is maintained with large number of fields
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
-        
+
         // Verify all fields are included (use string-based rules)
         $this->assertGreaterThanOrEqual(50, count($formRequest->validationRules));
-        
+
         // Verify some sample fields exist
         $this->assertArrayHasKey('field1', $formRequest->validationRules);
         $this->assertArrayHasKey('field25', $formRequest->validationRules);
         $this->assertArrayHasKey('field50', $formRequest->validationRules);
-        
+
         // Verify rules contain expected validation
         $this->assertStringContainsString('string', $formRequest->validationRules['field1']);
         $this->assertStringContainsString('required', $formRequest->validationRules['field1']);
@@ -1029,31 +1029,31 @@ class LaravelIntegrationTest extends TestCase
                                         'properties' => [
                                             'email' => [
                                                 'type' => 'string',
-                                                'format' => 'email'
+                                                'format' => 'email',
                                             ],
                                             'age' => [
                                                 'type' => 'integer',
                                                 'minimum' => 0,
-                                                'maximum' => 150
+                                                'maximum' => 150,
                                             ],
                                             'status' => [
                                                 'type' => 'string',
-                                                'enum' => ['active', 'inactive', 'pending']
-                                            ]
+                                                'enum' => ['active', 'inactive', 'pending'],
+                                            ],
                                         ],
-                                        'required' => ['email']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['email'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'error_handling_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -1063,22 +1063,22 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
-        
+
         // Should generate valid PHP code without syntax errors
         $content = $formRequest->generatePhpCode();
         $this->assertNotEmpty($content);
-        
+
         // Basic structure should be present
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('public function authorize()', $content);
-        
+
         // Validation rules should be properly formed (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
-        // Each rule should have basic required properties  
+
+        // Each rule should have basic required properties
         foreach ($formRequest->validationRules as $field => $rule) {
             $this->assertNotEmpty($field, 'Each rule should have a field name');
             $this->assertIsString($rule, 'Each rule should be a string');
@@ -1108,38 +1108,38 @@ class LaravelIntegrationTest extends TestCase
                                             'title' => [
                                                 'type' => 'string',
                                                 'minLength' => 1,
-                                                'maxLength' => 200
+                                                'maxLength' => 200,
                                             ],
                                             'content' => [
                                                 'type' => 'string',
-                                                'minLength' => 10
+                                                'minLength' => 10,
                                             ],
                                             'category' => [
                                                 'type' => 'string',
-                                                'enum' => ['public', 'private', 'restricted']
-                                            ]
+                                                'enum' => ['public', 'private', 'restricted'],
+                                            ],
                                         ],
-                                        'required' => ['title', 'content']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                        'required' => ['title', 'content'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ],
             'components' => [
                 'securitySchemes' => [
                     'bearerAuth' => [
                         'type' => 'http',
-                        'scheme' => 'bearer'
-                    ]
-                ]
-            ]
+                        'scheme' => 'bearer',
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'middleware_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -1148,25 +1148,25 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify standard Laravel FormRequest structure that's middleware-compatible
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('public function authorize()', $content);
-        
+
         // Should return true by default (auth handled by middleware)
         $this->assertStringContainsString('return true', $content);
-        
+
         // Verify validation rules are properly structured (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check that protected endpoint validation works
         $this->assertArrayHasKey('title', $formRequest->validationRules);
         $this->assertArrayHasKey('content', $formRequest->validationRules);
-        
+
         // Verify required fields
         $this->assertStringContainsString('required', $formRequest->validationRules['title']);
         $this->assertStringContainsString('required', $formRequest->validationRules['content']);
@@ -1193,49 +1193,49 @@ class LaravelIntegrationTest extends TestCase
                                             'title' => [
                                                 'type' => 'string',
                                                 'minLength' => 5,
-                                                'maxLength' => 200
+                                                'maxLength' => 200,
                                             ],
                                             'slug' => [
                                                 'type' => 'string',
                                                 'pattern' => '^[a-z0-9-]+$',
-                                                'maxLength' => 100
+                                                'maxLength' => 100,
                                             ],
                                             'content' => [
                                                 'type' => 'string',
-                                                'minLength' => 50
+                                                'minLength' => 50,
                                             ],
                                             'published' => [
-                                                'type' => 'boolean'
+                                                'type' => 'boolean',
                                             ],
                                             'tags' => [
                                                 'type' => 'array',
                                                 'items' => [
                                                     'type' => 'string',
                                                     'minLength' => 2,
-                                                    'maxLength' => 30
-                                                ]
+                                                    'maxLength' => 30,
+                                                ],
                                             ],
                                             'metadata' => [
                                                 'type' => 'object',
                                                 'properties' => [
                                                     'author' => ['type' => 'string'],
-                                                    'category' => ['type' => 'string']
-                                                ]
-                                            ]
+                                                    'category' => ['type' => 'string'],
+                                                ],
+                                            ],
                                         ],
-                                        'required' => ['title', 'content']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['title', 'content'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'api_resource_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -1244,32 +1244,32 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify Laravel FormRequest structure compatible with API resources
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('public function authorize()', $content);
-        
+
         // Verify validation rules are API-resource friendly (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check API resource compatible field validation
         $this->assertArrayHasKey('title', $formRequest->validationRules);
         $this->assertArrayHasKey('content', $formRequest->validationRules);
-        
+
         // Should handle boolean fields correctly
         $this->assertArrayHasKey('published', $formRequest->validationRules);
         $this->assertStringContainsString('boolean', $formRequest->validationRules['published']);
-        
-        // Should handle array fields correctly  
+
+        // Should handle array fields correctly
         $this->assertArrayHasKey('tags', $formRequest->validationRules);
         $this->assertStringContainsString('array', $formRequest->validationRules['tags']);
-        
+
         // Should handle nested object fields correctly
-        $metadataFields = array_filter(array_keys($formRequest->validationRules), fn($field) => str_starts_with($field, 'metadata'));
+        $metadataFields = array_filter(array_keys($formRequest->validationRules), fn ($field) => str_starts_with($field, 'metadata'));
         $this->assertNotEmpty($metadataFields);
 
         unlink($tempFile);
@@ -1294,36 +1294,36 @@ class LaravelIntegrationTest extends TestCase
                                             'title' => [
                                                 'type' => 'string',
                                                 'minLength' => 3,
-                                                'maxLength' => 150
+                                                'maxLength' => 150,
                                             ],
                                             'body' => [
                                                 'type' => 'string',
                                                 'minLength' => 10,
-                                                'maxLength' => 5000
+                                                'maxLength' => 5000,
                                             ],
                                             'status' => [
                                                 'type' => 'string',
-                                                'enum' => ['draft', 'published', 'archived']
+                                                'enum' => ['draft', 'published', 'archived'],
                                             ],
                                             'publishedAt' => [
                                                 'type' => 'string',
                                                 'format' => 'date-time',
-                                                'nullable' => true
-                                            ]
+                                                'nullable' => true,
+                                            ],
                                         ],
-                                        'required' => ['title', 'body', 'status']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                        'required' => ['title', 'body', 'status'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'testing_support_test_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        
+
         $parser = $this->createParser();
         $generator = $this->createGenerator();
 
@@ -1332,35 +1332,35 @@ class LaravelIntegrationTest extends TestCase
         $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
         $this->assertNotEmpty($formRequests);
-        
+
         $formRequest = $formRequests[0];
         $content = $formRequest->generatePhpCode();
-        
+
         // Verify structure supports Laravel testing
         $this->assertStringContainsString('extends FormRequest', $content);
         $this->assertStringContainsString('public function rules()', $content);
         $this->assertStringContainsString('public function authorize()', $content);
-        
+
         // Verify class naming follows Laravel conventions for testing
         $this->assertStringContainsString('CreatePostRequest', $content);
         $this->assertStringContainsString('namespace App\\Http\\Requests', $content);
-        
+
         // Verify validation rules are test-friendly (use string-based rules)
         $this->assertNotEmpty($formRequest->validationRules);
-        
+
         // Check validation structure suitable for testing
         $this->assertArrayHasKey('title', $formRequest->validationRules);
         $this->assertArrayHasKey('body', $formRequest->validationRules);
         $this->assertArrayHasKey('status', $formRequest->validationRules);
-        
+
         // Should handle enum validation for testing
         $this->assertStringContainsString('in:', $formRequest->validationRules['status']);
-        
+
         // Should handle nullable fields for testing
         if (isset($formRequest->validationRules['publishedAt'])) {
             $this->assertStringContainsString('nullable', $formRequest->validationRules['publishedAt']);
         }
-        
+
         // Verify required fields are properly identified for testing
         $this->assertStringContainsString('required', $formRequest->validationRules['title']);
         $this->assertStringContainsString('required', $formRequest->validationRules['body']);
@@ -1374,8 +1374,9 @@ class LaravelIntegrationTest extends TestCase
      */
     private function createParser(): OpenApiParser
     {
-        $referenceResolver = new ReferenceResolver();
+        $referenceResolver = new ReferenceResolver;
         $schemaExtractor = new SchemaExtractor($referenceResolver);
+
         return new OpenApiParser($schemaExtractor, $referenceResolver);
     }
 
@@ -1384,8 +1385,9 @@ class LaravelIntegrationTest extends TestCase
      */
     private function createGenerator(): FormRequestGenerator
     {
-        $ruleMapper = new ValidationRuleMapper();
-        $templateEngine = new TemplateEngine();
+        $ruleMapper = new ValidationRuleMapper;
+        $templateEngine = new TemplateEngine;
+
         return new FormRequestGenerator($ruleMapper, $templateEngine);
     }
 

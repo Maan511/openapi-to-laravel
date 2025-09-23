@@ -1,7 +1,7 @@
 <?php
 
 beforeEach(function () {
-    $this->referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver();
+    $this->referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
     $this->schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($this->referenceResolver);
 });
 
@@ -15,17 +15,17 @@ describe('SchemaExtractor', function () {
                             'type' => 'object',
                             'properties' => [
                                 'name' => ['type' => 'string'],
-                                'email' => ['type' => 'string', 'format' => 'email']
+                                'email' => ['type' => 'string', 'format' => 'email'],
                             ],
-                            'required' => ['name']
-                        ]
-                    ]
-                ]
+                            'required' => ['name'],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromRequestBody($requestBody, $specification);
@@ -43,21 +43,21 @@ describe('SchemaExtractor', function () {
                     'application/xml' => [
                         'schema' => [
                             'type' => 'object',
-                            'properties' => ['xml_field' => ['type' => 'string']]
-                        ]
+                            'properties' => ['xml_field' => ['type' => 'string']],
+                        ],
                     ],
                     'application/json' => [
                         'schema' => [
                             'type' => 'object',
-                            'properties' => ['json_field' => ['type' => 'string']]
-                        ]
-                    ]
-                ]
+                            'properties' => ['json_field' => ['type' => 'string']],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromRequestBody($requestBody, $specification);
@@ -72,21 +72,21 @@ describe('SchemaExtractor', function () {
                     'application/xml' => [
                         'schema' => [
                             'type' => 'object',
-                            'properties' => ['xml_field' => ['type' => 'string']]
-                        ]
+                            'properties' => ['xml_field' => ['type' => 'string']],
+                        ],
                     ],
                     'application/x-www-form-urlencoded' => [
                         'schema' => [
                             'type' => 'object',
-                            'properties' => ['form_field' => ['type' => 'string']]
-                        ]
-                    ]
-                ]
+                            'properties' => ['form_field' => ['type' => 'string']],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromRequestBody($requestBody, $specification);
@@ -98,9 +98,9 @@ describe('SchemaExtractor', function () {
             $requestBody = [
                 'content' => [
                     'application/json' => [
-                        'schema' => ['$ref' => '#/components/schemas/User']
-                    ]
-                ]
+                        'schema' => ['$ref' => '#/components/schemas/User'],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
@@ -112,11 +112,11 @@ describe('SchemaExtractor', function () {
                             'type' => 'object',
                             'properties' => [
                                 'id' => ['type' => 'integer'],
-                                'name' => ['type' => 'string']
-                            ]
-                        ]
-                    ]
-                ]
+                                'name' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromRequestBody($requestBody, $specification);
@@ -131,10 +131,10 @@ describe('SchemaExtractor', function () {
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
-            expect(fn() => $this->schemaExtractor->extractFromRequestBody($requestBody, $specification))
+            expect(fn () => $this->schemaExtractor->extractFromRequestBody($requestBody, $specification))
                 ->toThrow(\InvalidArgumentException::class, 'No content found in request body');
         });
     });
@@ -146,25 +146,25 @@ describe('SchemaExtractor', function () {
                     'name' => 'id',
                     'in' => 'path',
                     'required' => true,
-                    'schema' => ['type' => 'integer']
+                    'schema' => ['type' => 'integer'],
                 ],
                 [
                     'name' => 'filter',
                     'in' => 'query',
                     'required' => false,
-                    'schema' => ['type' => 'string']
+                    'schema' => ['type' => 'string'],
                 ],
                 [
                     'name' => 'sort',
                     'in' => 'query',
                     'required' => false,
-                    'schema' => ['type' => 'string', 'enum' => ['name', 'date']]
-                ]
+                    'schema' => ['type' => 'string', 'enum' => ['name', 'date']],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
@@ -183,25 +183,25 @@ describe('SchemaExtractor', function () {
                     'name' => 'user_id',
                     'in' => 'query',
                     'required' => true,
-                    'schema' => ['type' => 'integer']
+                    'schema' => ['type' => 'integer'],
                 ],
                 [
                     'name' => 'Authorization',
                     'in' => 'header',
                     'required' => true,
-                    'schema' => ['type' => 'string']
+                    'schema' => ['type' => 'string'],
                 ],
                 [
                     'name' => 'session_id',
                     'in' => 'cookie',
                     'required' => false,
-                    'schema' => ['type' => 'string']
-                ]
+                    'schema' => ['type' => 'string'],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
@@ -217,8 +217,8 @@ describe('SchemaExtractor', function () {
                 [
                     'name' => 'filter',
                     'in' => 'query',
-                    'schema' => ['type' => 'string']
-                ]
+                    'schema' => ['type' => 'string'],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
@@ -230,10 +230,10 @@ describe('SchemaExtractor', function () {
                             'name' => 'page',
                             'in' => 'query',
                             'required' => false,
-                            'schema' => ['type' => 'integer', 'minimum' => 1]
-                        ]
-                    ]
-                ]
+                            'schema' => ['type' => 'integer', 'minimum' => 1],
+                        ],
+                    ],
+                ],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
@@ -248,7 +248,7 @@ describe('SchemaExtractor', function () {
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
@@ -262,7 +262,7 @@ describe('SchemaExtractor', function () {
             $schemaData = [
                 'type' => 'string',
                 'minLength' => 3,
-                'maxLength' => 50
+                'maxLength' => 50,
             ];
 
             $schema = $this->schemaExtractor->createSchemaObject($schemaData);
@@ -278,9 +278,9 @@ describe('SchemaExtractor', function () {
                 'type' => 'object',
                 'properties' => [
                     'name' => ['type' => 'string'],
-                    'age' => ['type' => 'integer', 'minimum' => 0]
+                    'age' => ['type' => 'integer', 'minimum' => 0],
                 ],
-                'required' => ['name']
+                'required' => ['name'],
             ];
 
             $schema = $this->schemaExtractor->createSchemaObject($schemaData);
@@ -297,7 +297,7 @@ describe('SchemaExtractor', function () {
                 'type' => 'array',
                 'items' => ['type' => 'string'],
                 'minItems' => 1,
-                'maxItems' => 10
+                'maxItems' => 10,
             ];
 
             $schema = $this->schemaExtractor->createSchemaObject($schemaData);
@@ -311,7 +311,7 @@ describe('SchemaExtractor', function () {
         it('should handle schema with format', function () {
             $schemaData = [
                 'type' => 'string',
-                'format' => 'email'
+                'format' => 'email',
             ];
 
             $schema = $this->schemaExtractor->createSchemaObject($schemaData);
@@ -323,7 +323,7 @@ describe('SchemaExtractor', function () {
         it('should handle schema with enum', function () {
             $schemaData = [
                 'type' => 'string',
-                'enum' => ['active', 'inactive', 'pending']
+                'enum' => ['active', 'inactive', 'pending'],
             ];
 
             $schema = $this->schemaExtractor->createSchemaObject($schemaData);
@@ -334,7 +334,7 @@ describe('SchemaExtractor', function () {
         it('should handle schema with pattern', function () {
             $schemaData = [
                 'type' => 'string',
-                'pattern' => '^[A-Z][a-z]+$'
+                'pattern' => '^[A-Z][a-z]+$',
             ];
 
             $schema = $this->schemaExtractor->createSchemaObject($schemaData);
@@ -350,7 +350,7 @@ describe('SchemaExtractor', function () {
                 'minLength' => 5,
                 'maxLength' => 100,
                 'pattern' => '^[a-zA-Z]+$',
-                'enum' => ['option1', 'option2']
+                'enum' => ['option1', 'option2'],
             ];
 
             $constraints = $this->schemaExtractor->extractValidationConstraints($schemaData);
@@ -366,7 +366,7 @@ describe('SchemaExtractor', function () {
                 'type' => 'integer',
                 'minimum' => 0,
                 'maximum' => 1000,
-                'multipleOf' => 5
+                'multipleOf' => 5,
             ];
 
             $constraints = $this->schemaExtractor->extractValidationConstraints($schemaData);
@@ -381,7 +381,7 @@ describe('SchemaExtractor', function () {
                 'type' => 'array',
                 'minItems' => 1,
                 'maxItems' => 20,
-                'uniqueItems' => true
+                'uniqueItems' => true,
             ];
 
             $constraints = $this->schemaExtractor->extractValidationConstraints($schemaData);
@@ -413,8 +413,8 @@ describe('SchemaExtractor', function () {
         it('should return object for schemas with properties', function () {
             $schemaData = [
                 'properties' => [
-                    'name' => ['type' => 'string']
-                ]
+                    'name' => ['type' => 'string'],
+                ],
             ];
             $type = $this->schemaExtractor->getSchemaType($schemaData);
 
@@ -423,7 +423,7 @@ describe('SchemaExtractor', function () {
 
         it('should return array for schemas with items', function () {
             $schemaData = [
-                'items' => ['type' => 'string']
+                'items' => ['type' => 'string'],
             ];
             $type = $this->schemaExtractor->getSchemaType($schemaData);
 
@@ -450,8 +450,8 @@ describe('SchemaExtractor', function () {
         it('should identify implicit object schemas', function () {
             $implicitObjectSchema = [
                 'properties' => [
-                    'name' => ['type' => 'string']
-                ]
+                    'name' => ['type' => 'string'],
+                ],
             ];
 
             expect($this->schemaExtractor->isSchemaObject($implicitObjectSchema))->toBeTrue();
@@ -464,18 +464,18 @@ describe('SchemaExtractor', function () {
                 'type' => 'object',
                 'properties' => [
                     'name' => ['type' => 'string'],
-                    'age' => ['type' => 'integer']
+                    'age' => ['type' => 'integer'],
                 ],
-                'required' => ['name']
+                'required' => ['name'],
             ];
 
             $schema2 = [
                 'type' => 'object',
                 'properties' => [
                     'email' => ['type' => 'string', 'format' => 'email'],
-                    'age' => ['type' => 'number'] // Should override
+                    'age' => ['type' => 'number'], // Should override
                 ],
-                'required' => ['email']
+                'required' => ['email'],
             ];
 
             $merged = $this->schemaExtractor->mergeSchemas($schema1, $schema2);
@@ -501,8 +501,8 @@ describe('SchemaExtractor', function () {
             $schemaData = [
                 'type' => 'object',
                 'properties' => [
-                    'name' => ['type' => 'string']
-                ]
+                    'name' => ['type' => 'string'],
+                ],
             ];
 
             $result = $this->schemaExtractor->validateSchemaData($schemaData);
@@ -513,7 +513,7 @@ describe('SchemaExtractor', function () {
 
         it('should detect invalid schema structure', function () {
             $schemaData = [
-                'properties' => 'invalid_properties_format'
+                'properties' => 'invalid_properties_format',
             ];
 
             $result = $this->schemaExtractor->validateSchemaData($schemaData);

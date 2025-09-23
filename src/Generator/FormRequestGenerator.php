@@ -2,6 +2,7 @@
 
 namespace Maan511\OpenapiToLaravel\Generator;
 
+use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Models\EndpointDefinition;
 use Maan511\OpenapiToLaravel\Models\FormRequestClass;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
@@ -14,8 +15,7 @@ class FormRequestGenerator
     public function __construct(
         private readonly ValidationRuleMapper $ruleMapper,
         private readonly TemplateEngine $templateEngine
-    ) {
-    }
+    ) {}
 
     /**
      * Generate FormRequest class from endpoint and schema
@@ -26,8 +26,8 @@ class FormRequestGenerator
         string $outputDir,
         array $options = []
     ): FormRequestClass {
-        if (!$endpoint->hasRequestBody()) {
-            throw new \InvalidArgumentException("Endpoint {$endpoint->getDisplayName()} has no request body");
+        if (! $endpoint->hasRequestBody()) {
+            throw new InvalidArgumentException("Endpoint {$endpoint->getDisplayName()} has no request body");
         }
 
         $className = $endpoint->generateFormRequestClassName();
@@ -35,7 +35,7 @@ class FormRequestGenerator
 
         // Get validation rules as string array for Laravel
         $validationRulesArray = $this->ruleMapper->mapValidationRules($endpoint->requestSchema);
-        
+
         // Get validation rules as ValidationRule objects for the model
         $validationRuleObjects = $this->ruleMapper->createValidationRules($endpoint->requestSchema);
 
@@ -90,11 +90,11 @@ class FormRequestGenerator
         $classNames = [];
 
         foreach ($endpoints as $endpoint) {
-            if (!$endpoint instanceof EndpointDefinition) {
-                throw new \InvalidArgumentException('All items must be EndpointDefinition instances');
+            if (! $endpoint instanceof EndpointDefinition) {
+                throw new InvalidArgumentException('All items must be EndpointDefinition instances');
             }
 
-            if (!$endpoint->hasRequestBody()) {
+            if (! $endpoint->hasRequestBody()) {
                 continue; // Skip endpoints without request bodies
             }
 
@@ -141,16 +141,18 @@ class FormRequestGenerator
         ];
 
         // Check if file exists and force flag
-        if (file_exists($formRequest->filePath) && !$force) {
+        if (file_exists($formRequest->filePath) && ! $force) {
             $result['message'] = "File already exists and force flag not set: {$formRequest->filePath}";
+
             return $result;
         }
 
         // Ensure output directory exists
         $outputDir = dirname($formRequest->filePath);
-        if (!is_dir($outputDir)) {
-            if (!mkdir($outputDir, 0755, true)) {
+        if (! is_dir($outputDir)) {
+            if (! mkdir($outputDir, 0755, true)) {
                 $result['message'] = "Failed to create output directory: {$outputDir}";
+
                 return $result;
             }
         }
@@ -161,6 +163,7 @@ class FormRequestGenerator
         // Write to file
         if (file_put_contents($formRequest->filePath, $phpCode) === false) {
             $result['message'] = "Failed to write file: {$formRequest->filePath}";
+
             return $result;
         }
 
@@ -186,7 +189,7 @@ class FormRequestGenerator
         ];
 
         foreach ($formRequests as $formRequest) {
-            if (!$formRequest instanceof FormRequestClass) {
+            if (! $formRequest instanceof FormRequestClass) {
                 $results[] = [
                     'success' => false,
                     'message' => 'Invalid FormRequestClass instance',
@@ -194,6 +197,7 @@ class FormRequestGenerator
                     'className' => '',
                 ];
                 $summary['failed']++;
+
                 continue;
             }
 
@@ -223,7 +227,7 @@ class FormRequestGenerator
         $results = [];
 
         foreach ($formRequests as $formRequest) {
-            if (!$formRequest instanceof FormRequestClass) {
+            if (! $formRequest instanceof FormRequestClass) {
                 continue;
             }
 
@@ -251,18 +255,19 @@ class FormRequestGenerator
         $warnings = [];
 
         foreach ($formRequests as $formRequest) {
-            if (!$formRequest instanceof FormRequestClass) {
+            if (! $formRequest instanceof FormRequestClass) {
                 $errors[] = 'Invalid FormRequestClass instance';
+
                 continue;
             }
 
             // Validate class name
-            if (!preg_match('/^[A-Z][a-zA-Z0-9]*Request$/', $formRequest->className)) {
+            if (! preg_match('/^[A-Z][a-zA-Z0-9]*Request$/', $formRequest->className)) {
                 $errors[] = "Invalid class name: {$formRequest->className}";
             }
 
             // Validate namespace
-            if (!preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $formRequest->namespace)) {
+            if (! preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $formRequest->namespace)) {
                 $errors[] = "Invalid namespace: {$formRequest->namespace}";
             }
 
@@ -278,7 +283,7 @@ class FormRequestGenerator
             }
 
             // Check file path
-            if (!str_ends_with($formRequest->filePath, '.php')) {
+            if (! str_ends_with($formRequest->filePath, '.php')) {
                 $errors[] = "Invalid file path: {$formRequest->filePath}";
             }
 
@@ -313,7 +318,7 @@ class FormRequestGenerator
         $complexities = [];
 
         foreach ($formRequests as $formRequest) {
-            if (!$formRequest instanceof FormRequestClass) {
+            if (! $formRequest instanceof FormRequestClass) {
                 continue;
             }
 
@@ -324,7 +329,7 @@ class FormRequestGenerator
 
             $complexities[] = $complexity;
 
-            if (!in_array($formRequest->namespace, $stats['namespaces'])) {
+            if (! in_array($formRequest->namespace, $stats['namespaces'])) {
                 $stats['namespaces'][] = $formRequest->namespace;
             }
 
@@ -336,7 +341,7 @@ class FormRequestGenerator
             }
         }
 
-        if (!empty($complexities)) {
+        if (! empty($complexities)) {
             $stats['averageComplexity'] = array_sum($complexities) / count($complexities);
         }
 
@@ -349,6 +354,7 @@ class FormRequestGenerator
     private function buildFilePath(string $outputDir, string $className): string
     {
         $outputDir = rtrim($outputDir, '/\\');
+
         return $outputDir . DIRECTORY_SEPARATOR . $className . '.php';
     }
 
@@ -365,7 +371,7 @@ class FormRequestGenerator
 
         // Try appending method
         $newClassName = $baseClassName . ucfirst(strtolower($endpoint->method)) . 'Request';
-        if (!in_array($newClassName, $existingNames)) {
+        if (! in_array($newClassName, $existingNames)) {
             return $newClassName;
         }
 

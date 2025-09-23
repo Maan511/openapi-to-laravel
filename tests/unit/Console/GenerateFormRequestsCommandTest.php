@@ -1,13 +1,12 @@
 <?php
 
-
 beforeEach(function () {
-    $this->command = new \Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand();
+    $this->command = new \Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand;
 
     // Create mock application and set up command
     $this->application = Mockery::mock(\Illuminate\Console\Application::class);
     $this->application->shouldReceive('getHelperSet')->andReturn(Mockery::mock(\Symfony\Component\Console\Helper\HelperSet::class));
-    
+
     $this->command->setLaravel(Mockery::mock(\Illuminate\Contracts\Foundation\Application::class));
     $this->command->setApplication($this->application);
 });
@@ -35,7 +34,7 @@ describe('GenerateFormRequestsCommand', function () {
             file_put_contents($tempFile, json_encode([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
-                'paths' => []
+                'paths' => [],
             ]));
 
             $reflection = new ReflectionClass($this->command);
@@ -159,12 +158,12 @@ describe('GenerateFormRequestsCommand', function () {
                     filePath: '/app/Http/Requests/TestRequest.php',
                     validationRules: ['name' => 'required|string'],
                     sourceSchema: $schema
-                )
+                ),
             ];
 
             $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator(
-                new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper(),
-                new \Maan511\OpenapiToLaravel\Generator\TemplateEngine()
+                new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper,
+                new \Maan511\OpenapiToLaravel\Generator\TemplateEngine
             );
 
             $reflection = new ReflectionClass($this->command);
@@ -198,20 +197,20 @@ describe('GenerateFormRequestsCommand', function () {
                     'total' => 2,
                     'success' => 1,
                     'skipped' => 1,
-                    'failed' => 0
+                    'failed' => 0,
                 ],
                 'results' => [
                     [
                         'success' => true,
                         'className' => 'CreateUserRequest',
-                        'message' => 'Generated successfully'
+                        'message' => 'Generated successfully',
                     ],
                     [
                         'success' => false,
                         'className' => 'UpdateUserRequest',
-                        'message' => 'File already exists'
-                    ]
-                ]
+                        'message' => 'File already exists',
+                    ],
+                ],
             ];
 
             $reflection = new ReflectionClass($this->command);
@@ -226,7 +225,7 @@ describe('GenerateFormRequestsCommand', function () {
             $this->command->setOutput($outputMock);
 
             // Should not throw any exceptions
-            expect(fn() => $method->invoke($this->command, $results, true))->not->toThrow(\Exception::class);
+            expect(fn () => $method->invoke($this->command, $results, true))->not->toThrow(\Exception::class);
         });
     });
 
@@ -240,8 +239,8 @@ describe('GenerateFormRequestsCommand', function () {
                 'namespaces' => ['App\\Http\\Requests'],
                 'mostComplex' => [
                     'className' => 'ComplexRequest',
-                    'complexity' => 25
-                ]
+                    'complexity' => 25,
+                ],
             ];
 
             $reflection = new ReflectionClass($this->command);
@@ -256,7 +255,7 @@ describe('GenerateFormRequestsCommand', function () {
             $this->command->setOutput($outputMock);
 
             // Should not throw any exceptions
-            expect(fn() => $method->invoke($this->command, $stats))->not->toThrow(\Exception::class);
+            expect(fn () => $method->invoke($this->command, $stats))->not->toThrow(\Exception::class);
         });
     });
 
@@ -278,16 +277,16 @@ describe('GenerateFormRequestsCommand', function () {
                                             'type' => 'object',
                                             'properties' => [
                                                 'name' => ['type' => 'string'],
-                                                'email' => ['type' => 'string', 'format' => 'email']
+                                                'email' => ['type' => 'string', 'format' => 'email'],
                                             ],
-                                            'required' => ['name', 'email']
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                            'required' => ['name', 'email'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ];
             file_put_contents($tempFile, json_encode($validSpec));
 
