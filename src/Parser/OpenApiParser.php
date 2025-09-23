@@ -36,16 +36,22 @@ class OpenApiParser
         }
 
         try {
-            // Detect format from file extension
-            $format = $this->detectFormat($filePath);
-
-            if ($format === 'yaml') {
-                $spec = Reader::readFromYamlFile($filePath);
-            } else {
-                $spec = Reader::readFromJsonFile($filePath);
+            // Convert to absolute path to handle references properly
+            $absolutePath = realpath($filePath);
+            if ($absolutePath === false) {
+                throw new InvalidArgumentException("Unable to resolve absolute path for: {$filePath}");
             }
 
-            return $this->parseOpenApiSpec($spec, $filePath);
+            // Detect format from file extension
+            $format = $this->detectFormat($absolutePath);
+
+            if ($format === 'yaml') {
+                $spec = Reader::readFromYamlFile($absolutePath);
+            } else {
+                $spec = Reader::readFromJsonFile($absolutePath);
+            }
+
+            return $this->parseOpenApiSpec($spec, $absolutePath);
         } catch (Throwable $e) {
             throw new InvalidArgumentException(
                 "Failed to parse OpenAPI specification from {$filePath}: " . $e->getMessage(),
