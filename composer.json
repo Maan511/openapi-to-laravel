@@ -35,5 +35,12 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Maan511\\OpenapiToLaravel\\OpenapiToLaravelServiceProvider"
+            ]
+        }
     }
 }

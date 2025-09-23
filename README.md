@@ -31,15 +31,9 @@ A powerful PHP tool that automatically generates Laravel FormRequest classes fro
 composer require maan511/openapi-to-laravel --dev
 ```
 
-### Register the Command (Laravel)
+### Automatic Registration
 
-If you're using this in a Laravel project, register the command in your `app/Console/Kernel.php`:
-
-```php
-protected $commands = [
-    \Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand::class,
-];
-```
+The package will automatically register the command with Laravel using auto-discovery. No manual registration is required.
 
 ## Quick Start
 
