@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         php-version: [8.3]
-        laravel-version: [10, 11]
+        laravel-version: [11]
 
     name: PHP ${{ matrix.php-version }} - Laravel ${{ matrix.laravel-version }}
 
@@ -38,13 +38,7 @@ jobs:
           ${{ runner.os }}-php-${{ matrix.php-version }}-
 
     - name: Install dependencies
-      run: |
-        if [ ${{ matrix.laravel-version }} = "10" ]; then
-          composer require "illuminate/support:^10.0" "illuminate/console:^10.0" "illuminate/validation:^10.0" --no-interaction --no-update
-        else
-          composer require "illuminate/support:^11.0" "illuminate/console:^11.0" "illuminate/validation:^11.0" --no-interaction --no-update
-        fi
-        composer install --prefer-dist --no-progress --no-suggest
+      run: composer install --prefer-dist --no-progress
 
     - name: Run tests
       run: vendor/bin/pest
@@ -60,7 +54,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: 8.2
+        php-version: 8.3
         extensions: mbstring, intl, bcmath
 
     - name: Cache Composer packages
@@ -68,12 +62,12 @@ jobs:
       uses: actions/cache@v3
       with:
         path: vendor
-        key: ${{ runner.os }}-php-8.2-${{ hashFiles('**/composer.lock') }}
+        key: ${{ runner.os }}-php-8.3-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
-          ${{ runner.os }}-php-8.2-
+          ${{ runner.os }}-php-8.3-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-suggest
+      run: composer install --prefer-dist --no-progress
 
     - name: Check code formatting (Pint)
       run: vendor/bin/pint --test
@@ -97,7 +91,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: 8.2
+        php-version: 8.3
         extensions: mbstring, intl, bcmath
 
     - name: Cache Composer packages
@@ -105,12 +99,12 @@ jobs:
       uses: actions/cache@v3
       with:
         path: vendor
-        key: ${{ runner.os }}-php-8.2-${{ hashFiles('**/composer.lock') }}
+        key: ${{ runner.os }}-php-8.3-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
-          ${{ runner.os }}-php-8.2-
+          ${{ runner.os }}-php-8.3-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-suggest
+      run: composer install --prefer-dist --no-progress
 
     - name: Security audit
       run: composer audit
