@@ -19,7 +19,7 @@ describe('GenerateFormRequestsCommand', function () {
     describe('command signature', function () {
         it('should have correct signature', function () {
             $signature = $this->command->getName();
-            expect($signature)->toBe('openapi:generate');
+            expect($signature)->toBe('openapi-to-laravel:make-requests');
         });
 
         it('should have correct description', function () {
