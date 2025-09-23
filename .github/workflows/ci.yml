@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: [8.1, 8.2, 8.3]
+        laravel-version: [10, 11]
+        exclude:
+          # Laravel 11 requires PHP 8.2+
+          - php-version: 8.1
+            laravel-version: 11
+
+    name: PHP ${{ matrix.php-version }} - Laravel ${{ matrix.laravel-version }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, intl, bcmath
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-version }}-
+
+    - name: Install dependencies
+      run: |
+        if [ ${{ matrix.laravel-version }} = "10" ]; then
+          composer require "illuminate/support:^10.0" "illuminate/console:^10.0" "illuminate/validation:^10.0" --no-interaction --no-update
+        else
+          composer require "illuminate/support:^11.0" "illuminate/console:^11.0" "illuminate/validation:^11.0" --no-interaction --no-update
+        fi
+        composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Run tests
+      run: vendor/bin/pest
+
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.2
+        extensions: mbstring, intl, bcmath
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-8.2-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-8.2-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Check code formatting (Pint)
+      run: vendor/bin/pint --test
+
+    - name: Run static analysis (if PHPStan is available)
+      run: |
+        if [ -f "vendor/bin/phpstan" ]; then
+          vendor/bin/phpstan analyse --memory-limit=2G
+        else
+          echo "PHPStan not found, skipping static analysis"
+        fi
+
+  security:
+    runs-on: ubuntu-latest
+    name: Security Audit
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.2
+        extensions: mbstring, intl, bcmath
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-8.2-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-8.2-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Security audit
+      run: composer audit
