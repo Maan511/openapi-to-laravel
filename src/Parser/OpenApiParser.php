@@ -4,9 +4,13 @@ namespace Maan511\OpenapiToLaravel\Parser;
 
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
+use Exception;
+use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Models\EndpointDefinition;
 use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use stdClass;
+use Throwable;
 
 /**
  * Main OpenAPI parsing service
@@ -16,20 +20,19 @@ class OpenApiParser
     public function __construct(
         private readonly SchemaExtractor $schemaExtractor,
         private readonly ReferenceResolver $referenceResolver
-    ) {
-    }
+    ) {}
 
     /**
      * Parse OpenAPI specification from file
      */
     public function parseFromFile(string $filePath): OpenApiSpecification
     {
-        if (!file_exists($filePath)) {
-            throw new \InvalidArgumentException("OpenAPI specification file not found: {$filePath}");
+        if (! file_exists($filePath)) {
+            throw new InvalidArgumentException("OpenAPI specification file not found: {$filePath}");
         }
 
-        if (!is_readable($filePath)) {
-            throw new \InvalidArgumentException("OpenAPI specification file is not readable: {$filePath}");
+        if (! is_readable($filePath)) {
+            throw new InvalidArgumentException("OpenAPI specification file is not readable: {$filePath}");
         }
 
         try {
@@ -43,8 +46,8 @@ class OpenApiParser
             }
 
             return $this->parseOpenApiSpec($spec, $filePath);
-        } catch (\Throwable $e) {
-            throw new \InvalidArgumentException(
+        } catch (Throwable $e) {
+            throw new InvalidArgumentException(
                 "Failed to parse OpenAPI specification from {$filePath}: " . $e->getMessage(),
                 previous: $e
             );
@@ -64,9 +67,9 @@ class OpenApiParser
             }
 
             return $this->parseOpenApiSpec($spec, $sourcePath ?: 'string');
-        } catch (\Throwable $e) {
-            throw new \InvalidArgumentException(
-                "Failed to parse OpenAPI specification from string: " . $e->getMessage(),
+        } catch (Throwable $e) {
+            throw new InvalidArgumentException(
+                'Failed to parse OpenAPI specification from string: ' . $e->getMessage(),
                 previous: $e
             );
         }
@@ -86,7 +89,7 @@ class OpenApiParser
                 $method = strtoupper($method);
 
                 // Skip non-HTTP methods (like parameters, summary, etc.)
-                if (!in_array($method, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'])) {
+                if (! in_array($method, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'])) {
                     continue;
                 }
 
@@ -107,7 +110,7 @@ class OpenApiParser
     {
         $allEndpoints = $this->extractEndpoints($specification);
 
-        return array_values(array_filter($allEndpoints, fn(EndpointDefinition $endpoint) => $endpoint->hasRequestBody()));
+        return array_values(array_filter($allEndpoints, fn (EndpointDefinition $endpoint) => $endpoint->hasRequestBody()));
     }
 
     /**
@@ -142,7 +145,7 @@ class OpenApiParser
         }
 
         // Check version compatibility
-        if (!preg_match('/^3\.[0-1]\.\d+$/', $specification->version)) {
+        if (! preg_match('/^3\.[0-1]\.\d+$/', $specification->version)) {
             $warnings[] = "OpenAPI version {$specification->version} may not be fully supported";
         }
 
@@ -165,7 +168,7 @@ class OpenApiParser
     public function getSpecificationStats(OpenApiSpecification $specification): array
     {
         $endpoints = $this->extractEndpoints($specification);
-        $endpointsWithBodies = array_filter($endpoints, fn($e) => $e->hasRequestBody());
+        $endpointsWithBodies = array_filter($endpoints, fn ($e) => $e->hasRequestBody());
 
         $methods = [];
         $tags = [];
@@ -193,7 +196,7 @@ class OpenApiParser
         $specData = $spec->getSerializableData();
 
         // Convert stdClass to array if necessary
-        if ($specData instanceof \stdClass) {
+        if ($specData instanceof stdClass) {
             $specArray = json_decode(json_encode($specData), true);
         } else {
             $specArray = $specData;
@@ -213,7 +216,7 @@ class OpenApiParser
         }
 
         // Try to get schema from parameters
-        if (isset($operation['parameters']) && !empty($operation['parameters'])) {
+        if (isset($operation['parameters']) && ! empty($operation['parameters'])) {
             return $this->schemaExtractor->extractFromParameters($operation['parameters'], $specification);
         }
 
@@ -241,8 +244,9 @@ class OpenApiParser
     {
         try {
             $this->parseFromFile($filePath);
+
             return true;
-        } catch (\Exception) {
+        } catch (Exception) {
             return false;
         }
     }

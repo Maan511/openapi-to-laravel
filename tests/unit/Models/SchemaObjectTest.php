@@ -302,7 +302,7 @@ describe('SchemaObject', function () {
         it('should create schema from array data', function () {
             $data = [
                 'type' => 'string',
-                'format' => 'email'
+                'format' => 'email',
             ];
 
             $schema = \Maan511\OpenapiToLaravel\Models\SchemaObject::fromArray($data);
@@ -316,9 +316,9 @@ describe('SchemaObject', function () {
                 'type' => 'object',
                 'properties' => [
                     'name' => ['type' => 'string'],
-                    'age' => ['type' => 'integer']
+                    'age' => ['type' => 'integer'],
                 ],
-                'required' => ['name']
+                'required' => ['name'],
             ];
 
             $schema = \Maan511\OpenapiToLaravel\Models\SchemaObject::fromArray($data);
@@ -334,7 +334,7 @@ describe('SchemaObject', function () {
         it('should handle array schema from array data', function () {
             $data = [
                 'type' => 'array',
-                'items' => ['type' => 'string']
+                'items' => ['type' => 'string'],
             ];
 
             $schema = \Maan511\OpenapiToLaravel\Models\SchemaObject::fromArray($data);

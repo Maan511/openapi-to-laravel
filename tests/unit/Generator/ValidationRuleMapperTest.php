@@ -1,8 +1,7 @@
 <?php
 
-
 beforeEach(function () {
-    $this->mapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper();
+    $this->mapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
 });
 
 describe('ValidationRuleMapper', function () {
@@ -13,7 +12,7 @@ describe('ValidationRuleMapper', function () {
                 properties: [
                     'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
                     'email' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string', format: 'email'),
-                    'age' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer')
+                    'age' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer'),
                 ],
                 required: ['name', 'email']
             );
@@ -54,12 +53,12 @@ describe('ValidationRuleMapper', function () {
                             'profile' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(
                                 type: 'object',
                                 properties: [
-                                    'bio' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')
+                                    'bio' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
                                 ]
-                            )
+                            ),
                         ],
                         required: ['name']
-                    )
+                    ),
                 ],
                 required: ['user']
             );
@@ -83,7 +82,7 @@ describe('ValidationRuleMapper', function () {
                     type: 'object',
                     properties: [
                         'id' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer'),
-                        'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')
+                        'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
                     ],
                     required: ['id']
                 )
@@ -242,7 +241,7 @@ describe('ValidationRuleMapper', function () {
                 type: 'object',
                 properties: [
                     'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'age' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer')
+                    'age' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer'),
                 ],
                 required: ['name']
             );
@@ -252,10 +251,10 @@ describe('ValidationRuleMapper', function () {
             expect($rules)->toBeArray();
             expect($rules)->not->toBeEmpty();
 
-            $nameRules = array_filter($rules, fn($rule) => $rule->fieldPath === 'name');
+            $nameRules = array_filter($rules, fn ($rule) => $rule->fieldPath === 'name');
             expect($nameRules)->not->toBeEmpty();
 
-            $requiredRule = array_filter($nameRules, fn($rule) => $rule->rule === 'required');
+            $requiredRule = array_filter($nameRules, fn ($rule) => $rule->rule === 'required');
             expect($requiredRule)->toHaveCount(1);
         });
     });
@@ -265,7 +264,7 @@ describe('ValidationRuleMapper', function () {
             $rules = [
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
-                'age' => 'nullable|integer|min:0|max:120'
+                'age' => 'nullable|integer|min:0|max:120',
             ];
 
             $errors = $this->mapper->validateLaravelRules($rules);
@@ -277,7 +276,7 @@ describe('ValidationRuleMapper', function () {
             $rules = [
                 'name' => 'required|string|',
                 'email' => '',
-                'age' => 'required|:invalid'
+                'age' => 'required|:invalid',
             ];
 
             $errors = $this->mapper->validateLaravelRules($rules);
@@ -291,7 +290,7 @@ describe('ValidationRuleMapper', function () {
         it('should detect non-string rules', function () {
             $rules = [
                 'name' => ['required', 'string'],
-                'age' => null
+                'age' => null,
             ];
 
             $errors = $this->mapper->validateLaravelRules($rules);
@@ -307,7 +306,7 @@ describe('ValidationRuleMapper', function () {
             // Simulate rules coming from different sources that need to be combined
             $rules1 = ['name' => 'required|string'];
             $rules2 = ['name' => 'max:255'];
-            
+
             // First combine them manually to simulate multiple rule sources
             $allRules = [];
             foreach ([$rules1, $rules2] as $ruleSet) {
@@ -333,7 +332,7 @@ describe('ValidationRuleMapper', function () {
         it('should avoid duplicate rules', function () {
             $rules = [
                 'name' => 'required|string|required',
-                'email' => 'email|required|email'
+                'email' => 'email|required|email',
             ];
 
             $combined = $this->mapper->combineRules($rules);
@@ -348,7 +347,7 @@ describe('ValidationRuleMapper', function () {
             $rules = [
                 'z_field' => 'string',
                 'a_field' => 'integer',
-                'b_field' => 'boolean'
+                'b_field' => 'boolean',
             ];
 
             $sorted = $this->mapper->sortValidationRules($rules);

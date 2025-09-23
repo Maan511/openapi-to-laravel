@@ -2,6 +2,10 @@
 
 namespace Maan511\OpenapiToLaravel\Models;
 
+use DateTime;
+use DateTimeInterface;
+use InvalidArgumentException;
+
 /**
  * Represents a generated Laravel FormRequest class
  */
@@ -17,7 +21,7 @@ class FormRequestClass
         public readonly ?EndpointDefinition $endpoint = null,
         public readonly array $customMessages = [],
         public readonly array $customAttributes = [],
-        public readonly ?\DateTimeInterface $generatedAt = null,
+        public readonly ?DateTimeInterface $generatedAt = null,
         public readonly array $options = []
     ) {
         $this->validateClassName();
@@ -40,10 +44,10 @@ class FormRequestClass
         $ruleObjects = [];
         foreach ($this->validationRules as $field => $ruleString) {
             $rules = explode('|', $ruleString);
-            
+
             // Determine if required
             $isRequired = in_array('required', $rules);
-            
+
             // Determine type
             $type = 'string'; // Default
             foreach ($rules as $rule) {
@@ -52,7 +56,7 @@ class FormRequestClass
                     break;
                 }
             }
-            
+
             $ruleObjects[] = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
                 property: $field,
                 type: $type,
@@ -60,7 +64,7 @@ class FormRequestClass
                 isRequired: $isRequired
             );
         }
-        
+
         return $ruleObjects;
     }
 
@@ -79,14 +83,14 @@ class FormRequestClass
         array $options = []
     ): self {
         // Handle both 'authorizationMethod' and 'authorize_return' options for backwards compatibility
-        $authorizationMethod = $options['authorizationMethod'] 
-            ?? $options['authorize_return'] 
+        $authorizationMethod = $options['authorizationMethod']
+            ?? $options['authorize_return']
             ?? 'return true;';
-            
+
         // Handle custom messages and attributes from options
         $finalCustomMessages = array_merge($customMessages, $options['customMessages'] ?? []);
         $finalCustomAttributes = array_merge($customAttributes, $options['customAttributes'] ?? []);
-            
+
         return new self(
             $className,
             $namespace,
@@ -97,7 +101,7 @@ class FormRequestClass
             $endpoint,
             $finalCustomMessages,
             $finalCustomAttributes,
-            new \DateTime(),
+            new DateTime,
             $options
         );
     }
@@ -131,7 +135,7 @@ class FormRequestClass
      */
     public function hasCustomMessages(): bool
     {
-        return !empty($this->customMessages);
+        return ! empty($this->customMessages);
     }
 
     /**
@@ -139,7 +143,7 @@ class FormRequestClass
      */
     public function hasCustomAttributes(): bool
     {
-        return !empty($this->customAttributes);
+        return ! empty($this->customAttributes);
     }
 
     /**
@@ -353,18 +357,18 @@ class FormRequestClass
         $warnings = [];
 
         // Validate class name
-        if (!preg_match('/^[A-Z][a-zA-Z0-9]*Request$/', $this->className)) {
+        if (! preg_match('/^[A-Z][a-zA-Z0-9]*Request$/', $this->className)) {
             $errors[] = "Invalid class name format: {$this->className}";
         }
 
         // Validate namespace
-        if (!preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $this->namespace)) {
+        if (! preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $this->namespace)) {
             $errors[] = "Invalid namespace format: {$this->namespace}";
         }
 
         // Validate validation rules
         foreach ($this->validationRules as $field => $rules) {
-            if (!is_string($rules) || empty($rules)) {
+            if (! is_string($rules) || empty($rules)) {
                 $errors[] = "Invalid validation rule for field '{$field}'";
             }
         }
@@ -377,7 +381,7 @@ class FormRequestClass
         return [
             'valid' => empty($errors),
             'errors' => $errors,
-            'warnings' => $warnings
+            'warnings' => $warnings,
         ];
     }
 
@@ -387,11 +391,11 @@ class FormRequestClass
     private function validateClassName(): void
     {
         if (empty($this->className)) {
-            throw new \InvalidArgumentException('Class name cannot be empty');
+            throw new InvalidArgumentException('Class name cannot be empty');
         }
 
-        if (!preg_match('/^[A-Z][a-zA-Z0-9]*Request$/', $this->className)) {
-            throw new \InvalidArgumentException(
+        if (! preg_match('/^[A-Z][a-zA-Z0-9]*Request$/', $this->className)) {
+            throw new InvalidArgumentException(
                 "Invalid class name: {$this->className}. Must start with uppercase letter and end with 'Request'."
             );
         }
@@ -403,11 +407,11 @@ class FormRequestClass
     private function validateNamespace(): void
     {
         if (empty($this->namespace)) {
-            throw new \InvalidArgumentException('Namespace cannot be empty');
+            throw new InvalidArgumentException('Namespace cannot be empty');
         }
 
-        if (!preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $this->namespace)) {
-            throw new \InvalidArgumentException(
+        if (! preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $this->namespace)) {
+            throw new InvalidArgumentException(
                 "Invalid namespace: {$this->namespace}. Must be a valid PHP namespace."
             );
         }
@@ -419,11 +423,11 @@ class FormRequestClass
     private function validateFilePath(): void
     {
         if (empty($this->filePath)) {
-            throw new \InvalidArgumentException('File path cannot be empty');
+            throw new InvalidArgumentException('File path cannot be empty');
         }
 
-        if (!str_ends_with($this->filePath, '.php')) {
-            throw new \InvalidArgumentException(
+        if (! str_ends_with($this->filePath, '.php')) {
+            throw new InvalidArgumentException(
                 "Invalid file path: {$this->filePath}. Must end with .php"
             );
         }
@@ -435,16 +439,16 @@ class FormRequestClass
     private function validateValidationRules(): void
     {
         if (empty($this->validationRules)) {
-            throw new \InvalidArgumentException('Validation rules cannot be empty');
+            throw new InvalidArgumentException('Validation rules cannot be empty');
         }
 
         foreach ($this->validationRules as $field => $rules) {
-            if (!is_string($field) || empty($field)) {
-                throw new \InvalidArgumentException('Field names must be non-empty strings');
+            if (! is_string($field) || empty($field)) {
+                throw new InvalidArgumentException('Field names must be non-empty strings');
             }
 
-            if (!is_string($rules)) {
-                throw new \InvalidArgumentException("Validation rules for field '{$field}' must be string");
+            if (! is_string($rules)) {
+                throw new InvalidArgumentException("Validation rules for field '{$field}' must be string");
             }
             // Allow empty rules - they will be caught by the validate() method
         }
@@ -462,7 +466,7 @@ class FormRequestClass
             'validationRules' => $this->validationRules,
             'authorizationMethod' => $this->authorizationMethod,
             'sourceEndpoint' => $this->getSourceEndpoint(),
-            'generatedAt' => $this->generatedAt?->format(\DateTimeInterface::ATOM),
+            'generatedAt' => $this->generatedAt?->format(DateTimeInterface::ATOM),
             'complexity' => $this->getComplexityScore(),
             'rulesCount' => $this->getValidationRulesCount(),
             'hasCustomMessages' => $this->hasCustomMessages(),

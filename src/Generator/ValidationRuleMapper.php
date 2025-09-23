@@ -53,7 +53,7 @@ class ValidationRuleMapper
                 $prefix = $isRequired ? 'required' : 'nullable';
 
                 // Remove existing required/nullable rules
-                $existingRules = array_filter($existingRules, fn($rule) => !in_array($rule, ['required', 'nullable']));
+                $existingRules = array_filter($existingRules, fn ($rule) => ! in_array($rule, ['required', 'nullable']));
 
                 // Add required/nullable at the beginning
                 array_unshift($existingRules, $prefix);
@@ -180,7 +180,7 @@ class ValidationRuleMapper
                     if ($schema->items->isObject()) {
                         // Add a rule for the array items themselves
                         $validationRules[$itemsFieldPath] = 'array';
-                        
+
                         // For object items, we need to recurse through properties
                         foreach ($schema->items->properties as $propertyName => $propertySchema) {
                             $propertyFieldPath = "{$itemsFieldPath}.{$propertyName}";
@@ -231,7 +231,7 @@ class ValidationRuleMapper
 
                 // Collect all rules for this field
                 $allRules = [];
-                
+
                 // Add required or nullable
                 if ($isRequired) {
                     $allRules[] = 'required';
@@ -305,7 +305,7 @@ class ValidationRuleMapper
         } elseif ($fieldPrefix) {
             // Scalar field
             $scalarRules = [$schema->getTypeValidationRule()];
-            
+
             // Add format rule if present
             $formatRule = $schema->getFormatValidationRule();
             if ($formatRule) {
@@ -341,7 +341,7 @@ class ValidationRuleMapper
     {
         $rules = [];
 
-        if (!$schema->hasValidation()) {
+        if (! $schema->hasValidation()) {
             return $rules;
         }
 
@@ -383,7 +383,7 @@ class ValidationRuleMapper
         }
 
         // Enum constraint
-        if (!empty($constraints->enum)) {
+        if (! empty($constraints->enum)) {
             $rules[] = ValidationRule::in($fieldPath, $constraints->enum);
         }
 
@@ -411,12 +411,14 @@ class ValidationRuleMapper
 
         // If rules are ValidationRule objects
         if (reset($rules) instanceof ValidationRule) {
-            usort($rules, fn(ValidationRule $a, ValidationRule $b) => $a->compareTo($b));
+            usort($rules, fn (ValidationRule $a, ValidationRule $b) => $a->compareTo($b));
+
             return $rules;
         }
 
         // If rules are field => rule string pairs
         ksort($rules);
+
         return $rules;
     }
 
@@ -453,8 +455,9 @@ class ValidationRuleMapper
         $errors = [];
 
         foreach ($rules as $field => $ruleString) {
-            if (!is_string($ruleString) || empty($ruleString)) {
+            if (! is_string($ruleString) || empty($ruleString)) {
                 $errors[] = "Invalid rule for field '{$field}': must be non-empty string";
+
                 continue;
             }
 
@@ -462,6 +465,7 @@ class ValidationRuleMapper
             foreach ($ruleParts as $rule) {
                 if (empty($rule)) {
                     $errors[] = "Empty rule part in field '{$field}'";
+
                     continue;
                 }
 

@@ -2,6 +2,7 @@
 
 namespace Maan511\OpenapiToLaravel\Console;
 
+use Exception;
 use Illuminate\Console\Command;
 use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
 use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
@@ -45,15 +46,15 @@ class GenerateFormRequestsCommand extends Command
 
         try {
             // Initialize services
-            $referenceResolver = new ReferenceResolver();
+            $referenceResolver = new ReferenceResolver;
             $schemaExtractor = new SchemaExtractor($referenceResolver);
             $parser = new OpenApiParser($schemaExtractor, $referenceResolver);
-            $ruleMapper = new ValidationRuleMapper();
-            $templateEngine = new TemplateEngine();
+            $ruleMapper = new ValidationRuleMapper;
+            $templateEngine = new TemplateEngine;
             $generator = new FormRequestGenerator($ruleMapper, $templateEngine);
 
             if ($verbose) {
-                $this->info("Starting generation process...");
+                $this->info('Starting generation process...');
                 $this->info("Spec file: {$specPath}");
                 $this->info("Output directory: {$outputDir}");
                 $this->info("Namespace: {$namespace}");
@@ -61,25 +62,27 @@ class GenerateFormRequestsCommand extends Command
 
             // Validate inputs
             $validationResult = $this->validateInputs($specPath, $outputDir, $namespace);
-            if (!$validationResult['success']) {
+            if (! $validationResult['success']) {
                 $this->error($validationResult['message']);
+
                 return 1;
             }
 
             // Parse OpenAPI specification
             if ($verbose) {
-                $this->info("Parsing OpenAPI specification...");
+                $this->info('Parsing OpenAPI specification...');
             }
 
             $specification = $parser->parseFromFile($specPath);
 
             // Validate specification
             $specValidation = $parser->validateSpecification($specification);
-            if (!$specValidation['valid']) {
-                $this->error("Invalid OpenAPI specification:");
+            if (! $specValidation['valid']) {
+                $this->error('Invalid OpenAPI specification:');
                 foreach ($specValidation['errors'] as $error) {
                     $this->error("  - {$error}");
                 }
+
                 return 1;
             }
 
@@ -92,28 +95,30 @@ class GenerateFormRequestsCommand extends Command
             $endpoints = $parser->getEndpointsWithRequestBodies($specification);
 
             if (empty($endpoints)) {
-                $this->warn("No endpoints with request bodies found. No FormRequests will be generated.");
+                $this->warn('No endpoints with request bodies found. No FormRequests will be generated.');
+
                 return 0;
             }
 
             if ($verbose) {
-                $this->info("Found " . count($endpoints) . " endpoints with request bodies");
+                $this->info('Found ' . count($endpoints) . ' endpoints with request bodies');
             }
 
             // Generate FormRequest classes
             if ($verbose) {
-                $this->info("Generating FormRequest classes...");
+                $this->info('Generating FormRequest classes...');
             }
 
             $formRequests = $generator->generateFromEndpoints($endpoints, $namespace, $outputDir);
 
             // Validate generated classes
             $validation = $generator->validate($formRequests);
-            if (!$validation['valid']) {
-                $this->error("Validation failed:");
+            if (! $validation['valid']) {
+                $this->error('Validation failed:');
                 foreach ($validation['errors'] as $error) {
                     $this->error("  - {$error}");
                 }
+
                 return 1;
             }
 
@@ -129,7 +134,7 @@ class GenerateFormRequestsCommand extends Command
 
             // Generate files
             if ($verbose) {
-                $this->info("Writing FormRequest files...");
+                $this->info('Writing FormRequest files...');
             }
 
             $results = $generator->generateAndWriteMultiple($formRequests, $force);
@@ -145,11 +150,12 @@ class GenerateFormRequestsCommand extends Command
 
             return $results['summary']['failed'] > 0 ? 1 : 0;
 
-        } catch (\Exception $e) {
-            $this->error("Generation failed: " . $e->getMessage());
+        } catch (Exception $e) {
+            $this->error('Generation failed: ' . $e->getMessage());
             if ($verbose) {
-                $this->error("Stack trace: " . $e->getTraceAsString());
+                $this->error('Stack trace: ' . $e->getTraceAsString());
             }
+
             return 1;
         }
     }
@@ -160,42 +166,42 @@ class GenerateFormRequestsCommand extends Command
     private function validateInputs(string $specPath, string $outputDir, string $namespace): array
     {
         // Check spec file exists
-        if (!file_exists($specPath)) {
+        if (! file_exists($specPath)) {
             return [
                 'success' => false,
-                'message' => "OpenAPI specification file not found: {$specPath}"
+                'message' => "OpenAPI specification file not found: {$specPath}",
             ];
         }
 
-        if (!is_readable($specPath)) {
+        if (! is_readable($specPath)) {
             return [
                 'success' => false,
-                'message' => "OpenAPI specification file is not readable: {$specPath}"
+                'message' => "OpenAPI specification file is not readable: {$specPath}",
             ];
         }
 
         // Validate namespace format
-        if (!preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $namespace)) {
+        if (! preg_match('/^[A-Z][a-zA-Z0-9_\\\\]*[a-zA-Z0-9]$/', $namespace)) {
             return [
                 'success' => false,
-                'message' => "Invalid namespace format: {$namespace}"
+                'message' => "Invalid namespace format: {$namespace}",
             ];
         }
 
         // Check if output directory is writable (create if needed)
-        if (!is_dir($outputDir)) {
-            if (!mkdir($outputDir, 0755, true)) {
+        if (! is_dir($outputDir)) {
+            if (! mkdir($outputDir, 0755, true)) {
                 return [
                     'success' => false,
-                    'message' => "Cannot create output directory: {$outputDir}"
+                    'message' => "Cannot create output directory: {$outputDir}",
                 ];
             }
         }
 
-        if (!is_writable($outputDir)) {
+        if (! is_writable($outputDir)) {
             return [
                 'success' => false,
-                'message' => "Output directory is not writable: {$outputDir}"
+                'message' => "Output directory is not writable: {$outputDir}",
             ];
         }
 
@@ -207,8 +213,8 @@ class GenerateFormRequestsCommand extends Command
      */
     private function handleDryRun(array $formRequests, FormRequestGenerator $generator): int
     {
-        $this->info("Dry run mode - showing what would be generated:");
-        $this->line("");
+        $this->info('Dry run mode - showing what would be generated:');
+        $this->line('');
 
         $dryRunResults = $generator->dryRun($formRequests);
 
@@ -229,9 +235,9 @@ class GenerateFormRequestsCommand extends Command
         $this->table($headers, $rows);
 
         $this->info("\nSummary:");
-        $this->info("Total classes: " . count($dryRunResults));
-        $this->info("Existing files: " . count(array_filter($dryRunResults, fn($r) => $r['fileExists'])));
-        $this->info("Total estimated size: " . number_format(array_sum(array_column($dryRunResults, 'estimatedSize'))) . " bytes");
+        $this->info('Total classes: ' . count($dryRunResults));
+        $this->info('Existing files: ' . count(array_filter($dryRunResults, fn ($r) => $r['fileExists'])));
+        $this->info('Total estimated size: ' . number_format(array_sum(array_column($dryRunResults, 'estimatedSize'))) . ' bytes');
 
         return 0;
     }
@@ -249,9 +255,9 @@ class GenerateFormRequestsCommand extends Command
         $this->info("Skipped: {$summary['skipped']}");
         $this->info("Failed: {$summary['failed']}");
 
-        if ($verbose && !empty($results['results'])) {
-            $this->line("");
-            $this->info("Detailed Results:");
+        if ($verbose && ! empty($results['results'])) {
+            $this->line('');
+            $this->info('Detailed Results:');
 
             foreach ($results['results'] as $result) {
                 $status = $result['success'] ? '✓' : '✗';
@@ -260,10 +266,10 @@ class GenerateFormRequestsCommand extends Command
         }
 
         if ($summary['failed'] > 0) {
-            $this->line("");
-            $this->error("Some files failed to generate. Check the detailed results above.");
+            $this->line('');
+            $this->error('Some files failed to generate. Check the detailed results above.');
         } elseif ($summary['success'] > 0) {
-            $this->line("");
+            $this->line('');
             $this->info("✓ Successfully generated {$summary['success']} FormRequest classes");
         }
     }
@@ -273,13 +279,13 @@ class GenerateFormRequestsCommand extends Command
      */
     private function displayStats(array $stats): void
     {
-        $this->line("");
-        $this->info("Statistics:");
+        $this->line('');
+        $this->info('Statistics:');
         $this->info("Total classes: {$stats['totalClasses']}");
         $this->info("Total validation rules: {$stats['totalRules']}");
-        $this->info("Average complexity: " . round($stats['averageComplexity'], 2));
-        $this->info("Estimated total size: " . number_format($stats['estimatedTotalSize']) . " bytes");
-        $this->info("Namespaces used: " . count($stats['namespaces']));
+        $this->info('Average complexity: ' . round($stats['averageComplexity'], 2));
+        $this->info('Estimated total size: ' . number_format($stats['estimatedTotalSize']) . ' bytes');
+        $this->info('Namespaces used: ' . count($stats['namespaces']));
 
         if ($stats['mostComplex']) {
             $this->info("Most complex class: {$stats['mostComplex']['className']} (score: {$stats['mostComplex']['complexity']})");

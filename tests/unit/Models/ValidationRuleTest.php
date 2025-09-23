@@ -115,7 +115,7 @@ describe('ValidationRule', function () {
         });
 
         it('should return false when constraints are empty', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints();
+            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
             $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
                 property: 'name',

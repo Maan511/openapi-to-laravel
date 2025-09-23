@@ -2,6 +2,7 @@
 
 namespace Maan511\OpenapiToLaravel\Generator;
 
+use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Models\FormRequestClass;
 
 /**
@@ -43,8 +44,8 @@ class TemplateEngine
      */
     public function render(string $templateName, array $variables = []): string
     {
-        if (!isset($this->templates[$templateName])) {
-            throw new \InvalidArgumentException("Template '{$templateName}' not found");
+        if (! isset($this->templates[$templateName])) {
+            throw new InvalidArgumentException("Template '{$templateName}' not found");
         }
 
         $template = $this->templates[$templateName];
@@ -77,8 +78,8 @@ class TemplateEngine
      */
     public function loadTemplate(string $name, string $filePath): void
     {
-        if (!file_exists($filePath)) {
-            throw new \InvalidArgumentException("Template file not found: {$filePath}");
+        if (! file_exists($filePath)) {
+            throw new InvalidArgumentException("Template file not found: {$filePath}");
         }
 
         $this->templates[$name] = file_get_contents($filePath);
@@ -241,7 +242,7 @@ PHP;
                 $formattedValue = $this->formatPhpArray($value, $indentLevel + 1);
                 $items[] = "{$itemIndent}'{$key}' => {$formattedValue},";
             } else {
-                $items[] = "{$itemIndent}'{$key}' => " . var_export($value, true) . ",";
+                $items[] = "{$itemIndent}'{$key}' => " . var_export($value, true) . ',';
             }
         }
 
@@ -267,7 +268,7 @@ PHP;
         $name = str_replace(' ', '', $name);
 
         // Ensure it ends with "Request"
-        if (!str_ends_with($name, 'Request')) {
+        if (! str_ends_with($name, 'Request')) {
             $name .= 'Request';
         }
 
@@ -321,11 +322,11 @@ PHP;
         $result = [
             'valid' => true,
             'errors' => [],
-            'warnings' => []
+            'warnings' => [],
         ];
 
         // Check for PHP opening tag
-        if (!str_starts_with(trim($template), '<?php')) {
+        if (! str_starts_with(trim($template), '<?php')) {
             $result['warnings'][] = 'Template does not start with <?php tag';
         }
 
@@ -341,7 +342,7 @@ PHP;
         // Simple PHP syntax check by looking for obvious errors
         // Since php_check_syntax is deprecated/removed, we'll do basic checks
         $testTemplate = preg_replace('/\{\{[^}]+\}\}/', '"test"', $template);
-        
+
         // Check for unmatched braces
         $openBraces = substr_count($testTemplate, '{');
         $closeBraces = substr_count($testTemplate, '}');
@@ -387,8 +388,8 @@ PHP;
      */
     public function getTemplate(string $templateName): string
     {
-        if (!isset($this->templates[$templateName])) {
-            throw new \InvalidArgumentException("Unknown template: {$templateName}");
+        if (! isset($this->templates[$templateName])) {
+            throw new InvalidArgumentException("Unknown template: {$templateName}");
         }
 
         return $this->templates[$templateName];
@@ -461,15 +462,15 @@ PHP;
                 'namespace', 'className', 'sourceEndpoint', 'description',
                 'generatedAt', 'authorize', 'rules',
                 'hasCustomMessages', 'customMessages', 'hasCustomAttributes',
-                'customAttributes'
+                'customAttributes',
             ],
             'form_request_minimal' => [
-                'namespace', 'className', 'authorize', 'rules'
-            ]
+                'namespace', 'className', 'authorize', 'rules',
+            ],
         ];
 
-        if (!isset($variables[$templateType])) {
-            throw new \InvalidArgumentException("Unknown template type: {$templateType}");
+        if (! isset($variables[$templateType])) {
+            throw new InvalidArgumentException("Unknown template type: {$templateType}");
         }
 
         return $variables[$templateType];

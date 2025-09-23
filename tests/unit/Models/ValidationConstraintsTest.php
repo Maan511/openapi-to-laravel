@@ -41,7 +41,7 @@ describe('ValidationConstraints', function () {
         });
 
         it('should create empty constraints by default', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints();
+            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
             expect($constraints->minLength)->toBeNull();
             expect($constraints->maxLength)->toBeNull();
@@ -147,7 +147,7 @@ describe('ValidationConstraints', function () {
         });
 
         it('should return false when enum constraint is null', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints();
+            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
             expect($constraints->hasEnumConstraint())->toBeFalse();
         });
@@ -171,7 +171,7 @@ describe('ValidationConstraints', function () {
         });
 
         it('should return false when pattern constraint is null', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints();
+            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
             expect($constraints->hasPatternConstraint())->toBeFalse();
         });
@@ -187,7 +187,7 @@ describe('ValidationConstraints', function () {
 
     describe('isEmpty', function () {
         it('should return true for empty constraints', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints();
+            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
             expect($constraints->isEmpty())->toBeTrue();
         });
@@ -284,7 +284,7 @@ describe('ValidationConstraints', function () {
                 'multipleOf' => 5,
                 'minItems' => 1,
                 'maxItems' => 10,
-                'uniqueItems' => true
+                'uniqueItems' => true,
             ];
 
             $constraints = \Maan511\OpenapiToLaravel\Models\ValidationConstraints::fromArray($data);
@@ -304,7 +304,7 @@ describe('ValidationConstraints', function () {
         it('should handle partial array data', function () {
             $data = [
                 'minLength' => 5,
-                'maximum' => 100
+                'maximum' => 100,
             ];
 
             $constraints = \Maan511\OpenapiToLaravel\Models\ValidationConstraints::fromArray($data);
@@ -346,7 +346,7 @@ describe('ValidationConstraints', function () {
         });
 
         it('should return valid for empty pattern', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints();
+            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
             $result = $constraints->validatePattern();
 
@@ -371,7 +371,7 @@ describe('ValidationConstraints', function () {
         });
 
         it('should return 0 for empty constraints', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints();
+            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
             expect($constraints->getComplexityScore())->toBe(0);
         });

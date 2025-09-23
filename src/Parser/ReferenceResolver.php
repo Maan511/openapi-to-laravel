@@ -2,7 +2,10 @@
 
 namespace Maan511\OpenapiToLaravel\Parser;
 
+use Exception;
+use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
+use RuntimeException;
 
 /**
  * Resolves OpenAPI reference objects ($ref)
@@ -10,8 +13,11 @@ use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
 class ReferenceResolver
 {
     private array $resolutionCache = [];
+
     private array $resolutionStack = [];
+
     private int $maxCacheSize = 1000; // Prevent unbounded cache growth
+
     private int $cacheHits = 0;
 
     /**
@@ -22,24 +28,25 @@ class ReferenceResolver
         // Check cache first
         if (isset($this->resolutionCache[$ref])) {
             $this->cacheHits++;
+
             return $this->resolutionCache[$ref];
         }
 
         // Check for circular reference
         if (in_array($ref, $this->resolutionStack)) {
-            throw new \RuntimeException("Circular reference detected: " . implode(' -> ', [...$this->resolutionStack, $ref]));
+            throw new RuntimeException('Circular reference detected: ' . implode(' -> ', [...$this->resolutionStack, $ref]));
         }
 
         $this->resolutionStack[] = $ref;
 
         try {
             $resolved = $this->resolveReference($ref, $specification);
-            
+
             // If the resolved schema contains references, resolve them too
             if ($resolved && is_array($resolved)) {
                 $resolved = $this->resolveAllReferences($resolved, $specification);
             }
-            
+
             // Manage cache size
             if (count($this->resolutionCache) >= $this->maxCacheSize) {
                 // Remove 25% of oldest entries
@@ -49,8 +56,9 @@ class ReferenceResolver
                     unset($this->resolutionCache[$keys[$i]]);
                 }
             }
-            
+
             $this->resolutionCache[$ref] = $resolved;
+
             return $resolved;
         } finally {
             array_pop($this->resolutionStack);
@@ -69,7 +77,7 @@ class ReferenceResolver
 
         // Check for circular references by detecting if we've seen this reference before
         if (isset($schema['$ref']) && in_array($schema['$ref'], $this->resolutionStack)) {
-            throw new \InvalidArgumentException('Circular reference detected');
+            throw new InvalidArgumentException('Circular reference detected');
         }
 
         $resolved = $schema;
@@ -117,7 +125,7 @@ class ReferenceResolver
     {
         try {
             return $this->resolve($ref, $specification) !== null;
-        } catch (\Exception) {
+        } catch (Exception) {
             return false;
         }
     }
@@ -171,7 +179,7 @@ class ReferenceResolver
             $references = $this->getReferences($schemaArray);
 
             foreach ($references as $ref) {
-                if (!$this->referenceExists($ref, $specification)) {
+                if (! $this->referenceExists($ref, $specification)) {
                     $errors[] = "Invalid reference in schema '{$schemaName}': {$ref}";
                 }
             }
@@ -180,7 +188,7 @@ class ReferenceResolver
         // Check references in paths
         foreach ($specification->paths as $path => $pathItem) {
             foreach ($pathItem as $method => $operation) {
-                if (!is_array($operation) || !isset($operation['requestBody'])) {
+                if (! is_array($operation) || ! isset($operation['requestBody'])) {
                     continue;
                 }
 
@@ -201,13 +209,14 @@ class ReferenceResolver
     public function flattenReferences(string $ref, OpenApiSpecification $specification): array
     {
         $resolved = $this->resolve($ref, $specification);
-        if (!$resolved) {
+        if (! $resolved) {
             return [];
         }
 
         // If the resolved schema has another reference, flatten it
         if (isset($resolved['$ref'])) {
             $nestedResolved = $this->flattenReferences($resolved['$ref'], $specification);
+
             return array_merge($nestedResolved, array_diff_key($resolved, ['$ref' => '']));
         }
 
@@ -219,11 +228,12 @@ class ReferenceResolver
      */
     public function parseReference(string $ref): array
     {
-        if (!str_starts_with($ref, '#/')) {
-            throw new \InvalidArgumentException("Invalid reference format: {$ref}. Must start with '#/'");
+        if (! str_starts_with($ref, '#/')) {
+            throw new InvalidArgumentException("Invalid reference format: {$ref}. Must start with '#/'");
         }
 
         $path = substr($ref, 2); // Remove '#/'
+
         return explode('/', $path);
     }
 
@@ -297,12 +307,12 @@ class ReferenceResolver
      */
     public function getReferenceType(string $ref): string
     {
-        if (!str_starts_with($ref, '#/')) {
+        if (! str_starts_with($ref, '#/')) {
             return 'unknown';
         }
 
         $pathParts = $this->parseReference($ref);
-        
+
         if (count($pathParts) >= 2 && $pathParts[0] === 'components') {
             return match ($pathParts[1]) {
                 'schemas' => 'schema',
@@ -325,15 +335,15 @@ class ReferenceResolver
      */
     public function extractReferencePath(string $ref): array
     {
-        if (!str_starts_with($ref, '#/')) {
-            throw new \InvalidArgumentException("Invalid reference format: {$ref}");
+        if (! str_starts_with($ref, '#/')) {
+            throw new InvalidArgumentException("Invalid reference format: {$ref}");
         }
 
         $path = substr($ref, 2); // Remove '#/'
         $parts = explode('/', $path);
-        
+
         // Decode JSON pointer escapes
-        return array_map(function($part) {
+        return array_map(function ($part) {
             return str_replace(['~1', '~0'], ['/', '~'], $part);
         }, $parts);
     }
@@ -348,31 +358,34 @@ class ReferenceResolver
         // Check if empty
         if (empty($ref)) {
             $errors[] = 'Reference cannot be empty';
+
             return ['valid' => false, 'errors' => $errors];
         }
 
         // Check for external file references (contains filename before #)
         if (strpos($ref, '#') > 0) {
             $errors[] = 'External file references are not supported';
+
             return ['valid' => false, 'errors' => $errors];
         }
 
         // Check format - must start with #/
-        if (!str_starts_with($ref, '#/')) {
+        if (! str_starts_with($ref, '#/')) {
             $errors[] = 'Reference must start with #/';
+
             return ['valid' => false, 'errors' => $errors];
         }
 
         // Try to parse the reference path
         try {
             $this->extractReferencePath($ref);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $errors[] = "Invalid reference path: {$e->getMessage()}";
         }
 
         return [
             'valid' => empty($errors),
-            'errors' => $errors
+            'errors' => $errors,
         ];
     }
 
@@ -383,23 +396,23 @@ class ReferenceResolver
     {
         // Check if it's a completely invalid reference format (no # at all)
         if (strpos($ref, '#') === false) {
-            throw new \InvalidArgumentException("Invalid reference format: {$ref}");
+            throw new InvalidArgumentException("Invalid reference format: {$ref}");
         }
 
         // Check for external file references (filename before #)
         if (strpos($ref, '#') > 0) {
-            throw new \InvalidArgumentException("External file references are not supported");
+            throw new InvalidArgumentException('External file references are not supported');
         }
 
         // Only support internal references (must start with #/)
-        if (!str_starts_with($ref, '#/')) {
-            throw new \InvalidArgumentException("Invalid reference format: {$ref}");
+        if (! str_starts_with($ref, '#/')) {
+            throw new InvalidArgumentException("Invalid reference format: {$ref}");
         }
 
         // Validate reference format
         $validation = $this->validateReference($ref);
-        if (!$validation['valid']) {
-            throw new \InvalidArgumentException("Invalid reference format: {$ref}");
+        if (! $validation['valid']) {
+            throw new InvalidArgumentException("Invalid reference format: {$ref}");
         }
 
         $pathParts = $this->parseReference($ref);
@@ -408,8 +421,8 @@ class ReferenceResolver
         $current = $specification->toArray();
 
         foreach ($pathParts as $part) {
-            if (!is_array($current) || !isset($current[$part])) {
-                throw new \InvalidArgumentException("Reference not found: {$ref}");
+            if (! is_array($current) || ! isset($current[$part])) {
+                throw new InvalidArgumentException("Reference not found: {$ref}");
             }
             $current = $current[$part];
         }
@@ -427,18 +440,18 @@ class ReferenceResolver
         string $method,
         array &$errors
     ): void {
-        if (!isset($requestBody['content'])) {
+        if (! isset($requestBody['content'])) {
             return;
         }
 
         foreach ($requestBody['content'] as $contentType => $content) {
-            if (!isset($content['schema'])) {
+            if (! isset($content['schema'])) {
                 continue;
             }
 
             $references = $this->getReferences($content['schema']);
             foreach ($references as $ref) {
-                if (!$this->referenceExists($ref, $specification)) {
+                if (! $this->referenceExists($ref, $specification)) {
                     $errors[] = "Invalid reference in {$method} {$path} ({$contentType}): {$ref}";
                 }
             }

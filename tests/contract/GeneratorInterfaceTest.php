@@ -2,9 +2,11 @@
 
 namespace Maan511\OpenapiToLaravel\Tests\Contract;
 
+use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
 use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
 use Maan511\OpenapiToLaravel\Tests\TestCase;
+use ReflectionClass;
 
 /**
  * Contract test for Generator interface based on generator-interface.yaml
@@ -17,7 +19,7 @@ class GeneratorInterfaceTest extends TestCase
     public function test_form_request_generator_class_exists()
     {
         // Try to instantiate the generator class
-        $reflection = new \ReflectionClass(FormRequestGenerator::class);
+        $reflection = new ReflectionClass(FormRequestGenerator::class);
 
         // The generator should exist and be instantiable
         $this->assertTrue($reflection->isInstantiable());
@@ -26,7 +28,7 @@ class GeneratorInterfaceTest extends TestCase
     public function test_validation_rule_mapper_class_exists()
     {
         // Try to instantiate the mapper class
-        $reflection = new \ReflectionClass(ValidationRuleMapper::class);
+        $reflection = new ReflectionClass(ValidationRuleMapper::class);
 
         // The mapper should exist and be instantiable
         $this->assertTrue($reflection->isInstantiable());
@@ -35,10 +37,10 @@ class GeneratorInterfaceTest extends TestCase
     public function test_generator_creates_form_request_from_schema()
     {
         $generator = new FormRequestGenerator(
-            new ValidationRuleMapper(),
-            new \Maan511\OpenapiToLaravel\Generator\TemplateEngine()
+            new ValidationRuleMapper,
+            new \Maan511\OpenapiToLaravel\Generator\TemplateEngine
         );
-        
+
         $schema = $this->getSampleRequestSchema();
         $result = $generator->generateFromSchema(
             $schema,
@@ -46,7 +48,7 @@ class GeneratorInterfaceTest extends TestCase
             'App\\Http\\Requests',
             '/tmp'
         );
-        
+
         $this->assertInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class, $result);
         $this->assertEquals('CreateUserRequest', $result->className);
         $this->assertEquals('App\\Http\\Requests', $result->namespace);
@@ -58,11 +60,11 @@ class GeneratorInterfaceTest extends TestCase
     public function test_generator_validates_class_name_format()
     {
         $schema = $this->getSampleRequestSchema();
-        
+
         // Test that invalid class names are rejected during FormRequestClass creation
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid class name');
-        
+
         \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
             className: 'invalid-class-name',
             namespace: 'App\\Http\\Requests',
@@ -75,11 +77,11 @@ class GeneratorInterfaceTest extends TestCase
     public function test_generator_validates_namespace_format()
     {
         $schema = $this->getSampleRequestSchema();
-        
+
         // Test that invalid namespaces are rejected during FormRequestClass creation
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid namespace');
-        
+
         \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
             className: 'TestRequest',
             namespace: 'invalid-namespace',
@@ -92,10 +94,10 @@ class GeneratorInterfaceTest extends TestCase
     public function test_generator_produces_valid_php_code()
     {
         $generator = new FormRequestGenerator(
-            new ValidationRuleMapper(),
-            new \Maan511\OpenapiToLaravel\Generator\TemplateEngine()
+            new ValidationRuleMapper,
+            new \Maan511\OpenapiToLaravel\Generator\TemplateEngine
         );
-        
+
         $schema = $this->getSampleRequestSchema();
         $formRequest = $generator->generateFromSchema(
             $schema,
@@ -103,14 +105,14 @@ class GeneratorInterfaceTest extends TestCase
             'App\\Http\\Requests',
             '/tmp'
         );
-        
+
         // Verify the FormRequest structure
         $this->assertEquals('CreateUserRequest', $formRequest->className);
         $this->assertEquals('App\\Http\\Requests', $formRequest->namespace);
         $this->assertStringEndsWith('/CreateUserRequest.php', $formRequest->filePath);
         $this->assertArrayHasKey('name', $formRequest->validationRules);
         $this->assertArrayHasKey('email', $formRequest->validationRules);
-        
+
         // Verify PHP code generation
         $phpCode = $formRequest->generatePhpCode();
         $this->assertStringContainsString('<?php', $phpCode);
@@ -118,7 +120,7 @@ class GeneratorInterfaceTest extends TestCase
         $this->assertStringContainsString('class CreateUserRequest extends FormRequest', $phpCode);
         $this->assertStringContainsString('public function rules(): array', $phpCode);
         $this->assertStringContainsString('public function authorize(): bool', $phpCode);
-        
+
         // Verify rules are present in generated code
         $this->assertStringContainsString("'name'", $phpCode);
         $this->assertStringContainsString("'email'", $phpCode);
@@ -126,8 +128,8 @@ class GeneratorInterfaceTest extends TestCase
 
     public function test_validation_rule_mapper_maps_string_constraints()
     {
-        $mapper = new ValidationRuleMapper();
-        
+        $mapper = new ValidationRuleMapper;
+
         $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
             type: 'string',
             format: 'email',
@@ -138,12 +140,12 @@ class GeneratorInterfaceTest extends TestCase
                 enum: ['active', 'inactive']
             )
         );
-        
+
         $rules = $mapper->mapValidationRules($schema, 'email');
-        
+
         $this->assertArrayHasKey('email', $rules);
         $rule = $rules['email'];
-        
+
         // Check that it contains expected rules
         $this->assertStringContainsString('string', $rule);
         $this->assertStringContainsString('email', $rule);
@@ -155,8 +157,8 @@ class GeneratorInterfaceTest extends TestCase
 
     public function test_validation_rule_mapper_maps_numeric_constraints()
     {
-        $mapper = new ValidationRuleMapper();
-        
+        $mapper = new ValidationRuleMapper;
+
         $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
             type: 'integer',
             validation: new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
@@ -165,12 +167,12 @@ class GeneratorInterfaceTest extends TestCase
                 multipleOf: 5
             )
         );
-        
+
         $rules = $mapper->mapValidationRules($schema, 'score');
-        
+
         $this->assertArrayHasKey('score', $rules);
         $rule = $rules['score'];
-        
+
         // Check that it contains expected rules
         $this->assertStringContainsString('integer', $rule);
         $this->assertStringContainsString('min:0', $rule);
@@ -180,8 +182,8 @@ class GeneratorInterfaceTest extends TestCase
 
     public function test_validation_rule_mapper_maps_array_constraints()
     {
-        $mapper = new ValidationRuleMapper();
-        
+        $mapper = new ValidationRuleMapper;
+
         $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
             type: 'array',
             items: new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
@@ -191,29 +193,29 @@ class GeneratorInterfaceTest extends TestCase
                 uniqueItems: true
             )
         );
-        
+
         $rules = $mapper->mapValidationRules($schema, 'tags');
-        
+
         $this->assertArrayHasKey('tags', $rules);
         $this->assertArrayHasKey('tags.*', $rules);
-        
+
         $arrayRule = $rules['tags'];
         $itemRule = $rules['tags.*'];
-        
+
         // Check array constraints
         $this->assertStringContainsString('array', $arrayRule);
         $this->assertStringContainsString('min:1', $arrayRule);
         $this->assertStringContainsString('max:10', $arrayRule);
         // Note: uniqueItems translates to distinct rule which may need special handling
-        
+
         // Check item type
         $this->assertStringContainsString('string', $itemRule);
     }
 
     public function test_validation_rule_mapper_handles_nested_objects()
     {
-        $mapper = new ValidationRuleMapper();
-        
+        $mapper = new ValidationRuleMapper;
+
         $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
             type: 'object',
             properties: [
@@ -232,30 +234,30 @@ class GeneratorInterfaceTest extends TestCase
                                     validation: new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
                                         enum: ['light', 'dark']
                                     )
-                                )
+                                ),
                             ]
-                        )
+                        ),
                     ],
                     required: ['bio']
-                )
+                ),
             ],
             required: ['profile']
         );
-        
+
         $rules = $mapper->mapValidationRules($schema);
-        
+
         // Should generate dot notation rules
         $this->assertArrayHasKey('profile', $rules);
         $this->assertArrayHasKey('profile.bio', $rules);
         $this->assertArrayHasKey('profile.preferences', $rules);
         $this->assertArrayHasKey('profile.preferences.theme', $rules);
-        
+
         // Check required/nullable
         $this->assertStringContainsString('required', $rules['profile']);
         $this->assertStringContainsString('required', $rules['profile.bio']);
         $this->assertStringContainsString('nullable', $rules['profile.preferences']);
         $this->assertStringContainsString('nullable', $rules['profile.preferences.theme']);
-        
+
         // Check constraints
         $this->assertStringContainsString('max:500', $rules['profile.bio']);
         $this->assertStringContainsString('in:light,dark', $rules['profile.preferences.theme']);
@@ -263,26 +265,26 @@ class GeneratorInterfaceTest extends TestCase
 
     public function test_validation_rule_mapper_handles_required_fields()
     {
-        $mapper = new ValidationRuleMapper();
-        
+        $mapper = new ValidationRuleMapper;
+
         $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
             type: 'object',
             properties: [
                 'required_field' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                'optional_field' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')
+                'optional_field' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
             ],
             required: ['required_field']
         );
-        
+
         $rules = $mapper->mapValidationRules($schema);
-        
+
         $this->assertArrayHasKey('required_field', $rules);
         $this->assertArrayHasKey('optional_field', $rules);
-        
+
         // Required field should have 'required' rule
         $this->assertStringContainsString('required', $rules['required_field']);
         $this->assertStringNotContainsString('nullable', $rules['required_field']);
-        
+
         // Optional field should have 'nullable' rule
         $this->assertStringContainsString('nullable', $rules['optional_field']);
         $this->assertStringNotContainsString('required', $rules['optional_field']);
@@ -291,18 +293,18 @@ class GeneratorInterfaceTest extends TestCase
     public function test_generator_includes_generation_options()
     {
         $generator = new FormRequestGenerator(
-            new ValidationRuleMapper(),
-            new \Maan511\OpenapiToLaravel\Generator\TemplateEngine()
+            new ValidationRuleMapper,
+            new \Maan511\OpenapiToLaravel\Generator\TemplateEngine
         );
-        
+
         $schema = $this->getSampleRequestSchema();
         $options = [
             'includeAuthorization' => true,
             'authorizationMethod' => 'return false;',
             'customMessages' => ['name.required' => 'Name is required'],
-            'customAttributes' => ['name' => 'Full Name']
+            'customAttributes' => ['name' => 'Full Name'],
         ];
-        
+
         $formRequest = $generator->generateFromSchema(
             $schema,
             'TestRequest',
@@ -310,7 +312,7 @@ class GeneratorInterfaceTest extends TestCase
             '/tmp',
             $options
         );
-        
+
         $this->assertEquals($options, $formRequest->options);
         $this->assertEquals('return false;', $formRequest->authorizationMethod);
         $this->assertEquals(['name.required' => 'Name is required'], $formRequest->customMessages);
@@ -319,8 +321,8 @@ class GeneratorInterfaceTest extends TestCase
 
     public function test_generator_handles_complex_validation_constraints()
     {
-        $mapper = new ValidationRuleMapper();
-        
+        $mapper = new ValidationRuleMapper;
+
         // Create a complex schema with multiple constraint types
         $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
             type: 'object',
@@ -348,19 +350,19 @@ class GeneratorInterfaceTest extends TestCase
                         maxItems: 5,
                         uniqueItems: true
                     )
-                )
+                ),
             ],
             required: ['username', 'score']
         );
-        
+
         $rules = $mapper->mapValidationRules($schema);
-        
+
         // Verify complex constraints are handled
         $this->assertArrayHasKey('username', $rules);
         $this->assertArrayHasKey('score', $rules);
         $this->assertArrayHasKey('tags', $rules);
         $this->assertArrayHasKey('tags.*', $rules);
-        
+
         // Test that multiple constraints are combined properly
         $usernameRule = $rules['username'];
         $this->assertStringContainsString('required', $usernameRule);
@@ -372,8 +374,8 @@ class GeneratorInterfaceTest extends TestCase
 
     public function test_mapper_returns_correct_validation_rule_format()
     {
-        $mapper = new ValidationRuleMapper();
-        
+        $mapper = new ValidationRuleMapper;
+
         $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
             type: 'object',
             properties: [
@@ -391,29 +393,29 @@ class GeneratorInterfaceTest extends TestCase
                         'bio' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(
                             type: 'string',
                             validation: new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(maxLength: 1000)
-                        )
+                        ),
                     ]
-                )
+                ),
             ],
             required: ['name', 'email']
         );
-        
+
         $rules = $mapper->mapValidationRules($schema);
-        
+
         // Check expected format is returned
         $this->assertIsArray($rules);
         $this->assertArrayHasKey('name', $rules);
         $this->assertArrayHasKey('email', $rules);
         $this->assertArrayHasKey('profile', $rules);
         $this->assertArrayHasKey('profile.bio', $rules);
-        
+
         // Verify rule format (should be pipe-separated strings)
         $this->assertIsString($rules['name']);
         $this->assertStringContainsString('required|string|max:255', $rules['name']);
-        
+
         $this->assertIsString($rules['email']);
         $this->assertStringContainsString('required|string|email', $rules['email']);
-        
+
         $this->assertIsString($rules['profile.bio']);
         $this->assertStringContainsString('nullable|string|max:1000', $rules['profile.bio']);
     }

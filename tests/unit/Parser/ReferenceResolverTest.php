@@ -1,7 +1,7 @@
 <?php
 
 beforeEach(function () {
-    $this->referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver();
+    $this->referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 });
 
 describe('ReferenceResolver', function () {
@@ -16,11 +16,11 @@ describe('ReferenceResolver', function () {
                             'type' => 'object',
                             'properties' => [
                                 'id' => ['type' => 'integer'],
-                                'name' => ['type' => 'string']
-                            ]
-                        ]
-                    ]
-                ]
+                                'name' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
@@ -42,18 +42,18 @@ describe('ReferenceResolver', function () {
                             'type' => 'object',
                             'properties' => [
                                 'street' => ['type' => 'string'],
-                                'city' => ['type' => 'string']
-                            ]
+                                'city' => ['type' => 'string'],
+                            ],
                         ],
                         'User' => [
                             'type' => 'object',
                             'properties' => [
                                 'name' => ['type' => 'string'],
-                                'address' => ['$ref' => '#/components/schemas/Address']
-                            ]
-                        ]
-                    ]
-                ]
+                                'address' => ['$ref' => '#/components/schemas/Address'],
+                            ],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
@@ -73,10 +73,10 @@ describe('ReferenceResolver', function () {
                         'pageParam' => [
                             'name' => 'page',
                             'in' => 'query',
-                            'schema' => ['type' => 'integer', 'minimum' => 1]
-                        ]
-                    ]
-                ]
+                            'schema' => ['type' => 'integer', 'minimum' => 1],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
@@ -92,36 +92,36 @@ describe('ReferenceResolver', function () {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
-                'components' => ['schemas' => []]
+                'components' => ['schemas' => []],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
 
-            expect(fn() => $this->referenceResolver->resolve('#/components/schemas/NonExistent', $specification))
+            expect(fn () => $this->referenceResolver->resolve('#/components/schemas/NonExistent', $specification))
                 ->toThrow(\InvalidArgumentException::class, 'Reference not found: #/components/schemas/NonExistent');
         });
 
         it('should throw exception for malformed reference', function () {
             $spec = [
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
 
-            expect(fn() => $this->referenceResolver->resolve('invalid-reference', $specification))
+            expect(fn () => $this->referenceResolver->resolve('invalid-reference', $specification))
                 ->toThrow(\InvalidArgumentException::class, 'Invalid reference format: invalid-reference');
         });
 
         it('should handle external file references', function () {
             $spec = [
                 'openapi' => '3.0.0',
-                'info' => ['title' => 'Test', 'version' => '1.0.0']
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
 
-            expect(fn() => $this->referenceResolver->resolve('external.json#/schemas/User', $specification))
+            expect(fn () => $this->referenceResolver->resolve('external.json#/schemas/User', $specification))
                 ->toThrow(\InvalidArgumentException::class, 'External file references are not supported');
         });
     });
@@ -153,26 +153,26 @@ describe('ReferenceResolver', function () {
                             'type' => 'object',
                             'properties' => [
                                 'street' => ['type' => 'string'],
-                                'city' => ['type' => 'string']
-                            ]
+                                'city' => ['type' => 'string'],
+                            ],
                         ],
                         'Contact' => [
                             'type' => 'object',
                             'properties' => [
                                 'email' => ['type' => 'string', 'format' => 'email'],
-                                'phone' => ['type' => 'string']
-                            ]
+                                'phone' => ['type' => 'string'],
+                            ],
                         ],
                         'User' => [
                             'type' => 'object',
                             'properties' => [
                                 'name' => ['type' => 'string'],
                                 'address' => ['$ref' => '#/components/schemas/Address'],
-                                'contact' => ['$ref' => '#/components/schemas/Contact']
-                            ]
-                        ]
-                    ]
-                ]
+                                'contact' => ['$ref' => '#/components/schemas/Contact'],
+                            ],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
@@ -195,8 +195,8 @@ describe('ReferenceResolver', function () {
                             'type' => 'object',
                             'properties' => [
                                 'name' => ['type' => 'string'],
-                                'color' => ['type' => 'string']
-                            ]
+                                'color' => ['type' => 'string'],
+                            ],
                         ],
                         'Post' => [
                             'type' => 'object',
@@ -204,12 +204,12 @@ describe('ReferenceResolver', function () {
                                 'title' => ['type' => 'string'],
                                 'tags' => [
                                     'type' => 'array',
-                                    'items' => ['$ref' => '#/components/schemas/Tag']
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                    'items' => ['$ref' => '#/components/schemas/Tag'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
@@ -233,18 +233,18 @@ describe('ReferenceResolver', function () {
                                 'value' => ['type' => 'string'],
                                 'children' => [
                                     'type' => 'array',
-                                    'items' => ['$ref' => '#/components/schemas/Node']
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                    'items' => ['$ref' => '#/components/schemas/Node'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
             $nodeSchema = $spec['components']['schemas']['Node'];
 
-            expect(fn() => $this->referenceResolver->resolveAllReferences($nodeSchema, $specification))
+            expect(fn () => $this->referenceResolver->resolveAllReferences($nodeSchema, $specification))
                 ->toThrow(\InvalidArgumentException::class, 'Circular reference detected');
         });
     });
@@ -345,10 +345,10 @@ describe('ReferenceResolver', function () {
                     'schemas' => [
                         'User' => [
                             'type' => 'object',
-                            'properties' => ['name' => ['type' => 'string']]
-                        ]
-                    ]
-                ]
+                            'properties' => ['name' => ['type' => 'string']],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
@@ -375,10 +375,10 @@ describe('ReferenceResolver', function () {
                     'schemas' => [
                         'User' => [
                             'type' => 'object',
-                            'properties' => ['name' => ['type' => 'string']]
-                        ]
-                    ]
-                ]
+                            'properties' => ['name' => ['type' => 'string']],
+                        ],
+                    ],
+                ],
             ];
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');

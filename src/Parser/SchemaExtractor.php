@@ -2,6 +2,7 @@
 
 namespace Maan511\OpenapiToLaravel\Parser;
 
+use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
 
@@ -12,8 +13,7 @@ class SchemaExtractor
 {
     public function __construct(
         private readonly ReferenceResolver $referenceResolver
-    ) {
-    }
+    ) {}
 
     /**
      * Create a SchemaObject from raw schema data
@@ -69,7 +69,7 @@ class SchemaExtractor
         // If both are object schemas, merge properties
         if ($this->isSchemaObject($schema1) && $this->isSchemaObject($schema2)) {
             $merged = $schema2; // Start with second schema
-            
+
             if (isset($schema1['properties']) && isset($schema2['properties'])) {
                 $merged['properties'] = array_merge($schema1['properties'], $schema2['properties']);
             } elseif (isset($schema1['properties'])) {
@@ -97,28 +97,28 @@ class SchemaExtractor
         $errors = [];
 
         // Schema must have either type, properties, or items
-        if (!isset($schemaData['type']) && !isset($schemaData['properties']) && !isset($schemaData['items'])) {
+        if (! isset($schemaData['type']) && ! isset($schemaData['properties']) && ! isset($schemaData['items'])) {
             $errors[] = 'Schema must have either type, properties, or items';
         }
 
         // Validate properties structure
-        if (isset($schemaData['properties']) && !is_array($schemaData['properties'])) {
+        if (isset($schemaData['properties']) && ! is_array($schemaData['properties'])) {
             $errors[] = 'Properties must be an array';
         }
 
         // Validate items structure
-        if (isset($schemaData['items']) && !is_array($schemaData['items'])) {
+        if (isset($schemaData['items']) && ! is_array($schemaData['items'])) {
             $errors[] = 'Items must be an array';
         }
 
         // Validate required field
-        if (isset($schemaData['required']) && !is_array($schemaData['required'])) {
+        if (isset($schemaData['required']) && ! is_array($schemaData['required'])) {
             $errors[] = 'Required field must be an array';
         }
 
         return [
             'valid' => empty($errors),
-            'errors' => $errors
+            'errors' => $errors,
         ];
     }
 
@@ -127,8 +127,8 @@ class SchemaExtractor
      */
     public function extractFromRequestBody(array $requestBody, OpenApiSpecification $specification): ?SchemaObject
     {
-        if (!isset($requestBody['content'])) {
-            throw new \InvalidArgumentException('No content found in request body');
+        if (! isset($requestBody['content'])) {
+            throw new InvalidArgumentException('No content found in request body');
         }
 
         // Look for JSON content first, then specific types, then any other content type
@@ -138,7 +138,7 @@ class SchemaExtractor
         // Prefer application/json
         if (isset($content['application/json']['schema'])) {
             $schema = $content['application/json']['schema'];
-        } 
+        }
         // If no JSON, fall back to first available content type (for test compatibility)
         else {
             $firstContent = reset($content);
@@ -147,8 +147,8 @@ class SchemaExtractor
             }
         }
 
-        if (!$schema) {
-            throw new \InvalidArgumentException('No content found in request body');
+        if (! $schema) {
+            throw new InvalidArgumentException('No content found in request body');
         }
 
         return $this->parseSchema($schema, $specification);
@@ -177,7 +177,7 @@ class SchemaExtractor
             }
 
             $name = $parameter['name'] ?? null;
-            if (!$name) {
+            if (! $name) {
                 continue;
             }
 
@@ -214,7 +214,7 @@ class SchemaExtractor
     public function extractFromComponents(string $ref, OpenApiSpecification $specification): ?SchemaObject
     {
         $schema = $specification->getSchemaByRef($ref);
-        if (!$schema) {
+        if (! $schema) {
             return null;
         }
 
@@ -253,7 +253,7 @@ class SchemaExtractor
         // Extract from operation request bodies
         foreach ($specification->paths as $path => $pathItem) {
             foreach ($pathItem as $method => $operation) {
-                if (!is_array($operation) || !isset($operation['requestBody'])) {
+                if (! is_array($operation) || ! isset($operation['requestBody'])) {
                     continue;
                 }
 
@@ -306,7 +306,7 @@ class SchemaExtractor
     public function hasValidationConstraints(SchemaObject $schema): bool
     {
         return $schema->hasValidation()
-            || !empty($schema->required)
+            || ! empty($schema->required)
             || $schema->format !== null;
     }
 
@@ -319,17 +319,17 @@ class SchemaExtractor
 
         foreach ($specification->paths as $path => $pathItem) {
             foreach ($pathItem as $method => $operation) {
-                if (!is_array($operation)) {
+                if (! is_array($operation)) {
                     continue;
                 }
 
                 // Only process operations with request bodies
-                if (!isset($operation['requestBody'])) {
+                if (! isset($operation['requestBody'])) {
                     continue;
                 }
 
                 $schema = $this->extractFromRequestBody($operation['requestBody'], $specification);
-                if (!$schema) {
+                if (! $schema) {
                     continue;
                 }
 
@@ -366,12 +366,12 @@ class SchemaExtractor
         }
 
         // Check for unsupported types
-        if ($schema->isReference() && !$schema->ref) {
+        if ($schema->isReference() && ! $schema->ref) {
             $errors[] = 'Invalid reference object';
         }
 
         // Check array schemas have items
-        if ($schema->isArray() && !$schema->items) {
+        if ($schema->isArray() && ! $schema->items) {
             $errors[] = 'Array schema missing items definition';
         }
 
@@ -424,7 +424,7 @@ class SchemaExtractor
      */
     public function extractContentTypes(array $requestBody): array
     {
-        if (!isset($requestBody['content'])) {
+        if (! isset($requestBody['content'])) {
             return [];
         }
 
