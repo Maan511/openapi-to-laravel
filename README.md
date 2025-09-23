@@ -46,13 +46,13 @@ protected $commands = [
 ### 1. Generate FormRequests from OpenAPI Specification
 
 ```bash
-php artisan openapi:generate path/to/your/openapi.json
+php artisan openapi-to-laravel:make-requests path/to/your/openapi.json
 ```
 
 ### 2. With Custom Options
 
 ```bash
-php artisan openapi:generate api-spec.yaml \
+php artisan openapi-to-laravel:make-requests api-spec.yaml \
     --output=app/Http/Requests/Api \
     --namespace="App\\Http\\Requests\\Api" \
     --force \
@@ -64,7 +64,7 @@ php artisan openapi:generate api-spec.yaml \
 Preview what will be generated without creating files:
 
 ```bash
-php artisan openapi:generate openapi.json --dry-run
+php artisan openapi-to-laravel:make-requests openapi.json --dry-run
 ```
 
 ## Command Options

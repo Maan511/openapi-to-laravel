@@ -19,7 +19,7 @@ class GenerateFormRequestsCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'openapi:generate
+    protected $signature = 'openapi-to-laravel:make-requests
                             {spec : Path to OpenAPI specification file}
                             {--output=./app/Http/Requests : Output directory for generated FormRequest classes}
                             {--namespace=App\\Http\\Requests : PHP namespace for generated classes}

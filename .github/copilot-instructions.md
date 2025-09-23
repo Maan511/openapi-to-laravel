@@ -72,8 +72,8 @@ composer test
 composer format
 
 # Generate FormRequests from OpenAPI
-php artisan openapi:generate path/to/spec.json
-php artisan openapi:generate spec.yaml --output=app/Http/Requests/Api --namespace="App\\Http\\Requests\\Api" --force --verbose
+php artisan openapi-to-laravel:make-requests path/to/spec.json
+php artisan openapi-to-laravel:make-requests spec.yaml --output=app/Http/Requests/Api --namespace="App\\Http\\Requests\\Api" --force --verbose
 ```
 
 ## Key Implementation Guidelines
