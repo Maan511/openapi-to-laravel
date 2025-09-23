@@ -142,6 +142,45 @@ describe('GenerateFormRequestsCommand', function () {
             chmod($tempDir, 0755);
             rmdir($tempDir);
         });
+
+        it('should not create output directory in dry-run mode', function () {
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            file_put_contents($tempFile, '{}');
+
+            $tempDir = sys_get_temp_dir() . '/dry_run_test_' . uniqid();
+
+            $reflection = new ReflectionClass($this->command);
+            $method = $reflection->getMethod('validateInputs');
+            $method->setAccessible(true);
+
+            // Test with dry-run enabled
+            $result = $method->invoke(
+                $this->command,
+                $tempFile,
+                $tempDir,
+                'App\\Http\\Requests',
+                true // dry-run enabled
+            );
+
+            expect($result['success'])->toBeTrue();
+            expect(is_dir($tempDir))->toBeFalse(); // Directory should not be created
+
+            // Test without dry-run (normal behavior)
+            $result = $method->invoke(
+                $this->command,
+                $tempFile,
+                $tempDir,
+                'App\\Http\\Requests',
+                false // dry-run disabled
+            );
+
+            expect($result['success'])->toBeTrue();
+            expect(is_dir($tempDir))->toBeTrue(); // Directory should be created
+
+            // Cleanup
+            unlink($tempFile);
+            rmdir($tempDir);
+        });
     });
 
     describe('handleDryRun', function () {

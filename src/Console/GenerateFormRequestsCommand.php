@@ -60,7 +60,7 @@ class GenerateFormRequestsCommand extends Command
             }
 
             // Validate inputs
-            $validationResult = $this->validateInputs($specPath, $outputDir, $namespace);
+            $validationResult = $this->validateInputs($specPath, $outputDir, $namespace, $dryRun);
             if (! $validationResult['success']) {
                 $this->error($validationResult['message']);
 
@@ -162,7 +162,7 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Validate command inputs
      */
-    private function validateInputs(string $specPath, string $outputDir, string $namespace): array
+    private function validateInputs(string $specPath, string $outputDir, string $namespace, bool $dryRun = false): array
     {
         // Check spec file exists
         if (! file_exists($specPath)) {
@@ -185,6 +185,11 @@ class GenerateFormRequestsCommand extends Command
                 'success' => false,
                 'message' => "Invalid namespace format: {$namespace}",
             ];
+        }
+
+        // Skip directory validation and creation in dry-run mode
+        if ($dryRun) {
+            return ['success' => true];
         }
 
         // Check if output directory is writable (create if needed)
