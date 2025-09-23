@@ -1,7 +1,7 @@
 # OpenAPI to Laravel FormRequest Generator
 
-[![PHP Version](https://img.shields.io/badge/php-%5E8.1-blue)](https://www.php.net/releases/8.1/en.php)
-[![Laravel](https://img.shields.io/badge/laravel-%5E9.0-red)](https://laravel.com)
+[![PHP Version](https://img.shields.io/badge/php-%5E8.3-blue)](https://www.php.net/releases/8.3/en.php)
+[![Laravel](https://img.shields.io/badge/laravel-%5E11.0-red)](https://laravel.com)
 [![Tests](https://img.shields.io/badge/tests-passing-green)](https://github.com/maan511/openapi-to-laravel)
 
 A powerful PHP tool that automatically generates Laravel FormRequest classes from OpenAPI 3.x specifications, enabling true API-first development workflows.
@@ -21,8 +21,8 @@ A powerful PHP tool that automatically generates Laravel FormRequest classes fro
 
 ### Requirements
 
-- PHP 8.1 or higher
-- Laravel 9.0 or higher
+- PHP 8.3 or higher
+- Laravel 11.0 or higher
 - Composer
 
 ### Install via Composer
@@ -31,10 +31,14 @@ A powerful PHP tool that automatically generates Laravel FormRequest classes fro
 composer require maan511/openapi-to-laravel --dev
 ```
 
-### Publish Configuration (Optional)
+### Register the Command (Laravel)
 
-```bash
-php artisan vendor:publish --provider="Maan511\OpenapiToLaravel\ServiceProvider"
+If you're using this in a Laravel project, register the command in your `app/Console/Kernel.php`:
+
+```php
+protected $commands = [
+    \Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand::class,
+];
 ```
 
 ## Quick Start
@@ -267,11 +271,6 @@ composer test
 ./vendor/bin/pest tests/Performance
 ```
 
-### Test Coverage
-
-```bash
-composer test-coverage
-```
 
 ## Performance
 
@@ -284,7 +283,7 @@ The tool is optimized for large OpenAPI specifications:
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+We welcome contributions! Please feel free to submit a Pull Request.
 
 ### Development Setup
 
@@ -300,23 +299,16 @@ composer install
 composer test
 
 # Run code formatting
-composer format
-
-# Run static analysis
-composer analyse
+./vendor/bin/pint
 ```
-
-## Changelog
-
-Please see [CHANGELOG.md](CHANGELOG.md) for more information on what has changed recently.
 
 ## Security
 
-If you discover any security related issues, please email security@example.com instead of using the issue tracker.
+If you discover any security related issues, please email Maan511@users.noreply.github.com instead of using the issue tracker.
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+The MIT License (MIT).
 
 ## Support
 
