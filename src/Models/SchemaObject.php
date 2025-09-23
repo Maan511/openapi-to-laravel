@@ -2,6 +2,9 @@
 
 namespace Maan511\OpenapiToLaravel\Models;
 
+use InvalidArgumentException;
+use ReflectionClass;
+
 /**
  * Represents OpenAPI schema definitions with validation constraints
  */
@@ -62,7 +65,7 @@ class SchemaObject
      */
     public function isReference(): bool
     {
-        return !empty($this->ref);
+        return ! empty($this->ref);
     }
 
     /**
@@ -110,7 +113,7 @@ class SchemaObject
      */
     public function hasProperties(): bool
     {
-        return !empty($this->properties);
+        return ! empty($this->properties);
     }
 
     /**
@@ -166,7 +169,7 @@ class SchemaObject
      */
     public function getFormatValidationRule(): ?string
     {
-        if (!$this->format) {
+        if (! $this->format) {
             return null;
         }
 
@@ -279,8 +282,8 @@ class SchemaObject
     {
         $validTypes = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
 
-        if (!in_array($this->type, $validTypes)) {
-            throw new \InvalidArgumentException(
+        if (! in_array($this->type, $validTypes)) {
+            throw new InvalidArgumentException(
                 "Invalid schema type: {$this->type}. Must be one of: " . implode(', ', $validTypes)
             );
         }
@@ -317,7 +320,7 @@ class SchemaObject
     {
         $constraintKeys = [
             'minLength', 'maxLength', 'minimum', 'maximum', 'pattern', 'enum',
-            'multipleOf', 'minItems', 'maxItems', 'uniqueItems'
+            'multipleOf', 'minItems', 'maxItems', 'uniqueItems',
         ];
 
         foreach ($constraintKeys as $key) {
@@ -413,12 +416,13 @@ class SchemaObject
             return 1 + $this->items->getNestingLevel();
         }
 
-        if ($this->isObject() && !empty($this->properties)) {
+        if ($this->isObject() && ! empty($this->properties)) {
             $maxLevel = 0;
             foreach ($this->properties as $property) {
                 $level = 1 + $property->getNestingLevel();
                 $maxLevel = max($maxLevel, $level);
             }
+
             return $maxLevel;
         }
 
@@ -456,8 +460,8 @@ class SchemaObject
     public function __clone()
     {
         // Use reflection to modify readonly properties for cloning
-        $reflection = new \ReflectionClass($this);
-        
+        $reflection = new ReflectionClass($this);
+
         // Deep clone properties
         if ($this->properties) {
             $clonedProperties = [];

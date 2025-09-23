@@ -2,6 +2,8 @@
 
 namespace Maan511\OpenapiToLaravel\Models;
 
+use InvalidArgumentException;
+
 /**
  * OpenAPI validation rules that map to Laravel validation
  */
@@ -51,7 +53,7 @@ class ValidationConstraints
             || $this->minimum !== null
             || $this->maximum !== null
             || $this->pattern !== null
-            || ($this->enum !== null && !empty($this->enum))
+            || ($this->enum !== null && ! empty($this->enum))
             || $this->multipleOf !== null
             || $this->minItems !== null
             || $this->maxItems !== null
@@ -77,7 +79,7 @@ class ValidationConstraints
             $rules[] = "regex:/{$this->getEscapedPattern()}/";
         }
 
-        if ($this->enum !== null && !empty($this->enum)) {
+        if ($this->enum !== null && ! empty($this->enum)) {
             $enumValues = implode(',', $this->enum);
             $rules[] = "in:{$enumValues}";
         }
@@ -106,7 +108,7 @@ class ValidationConstraints
             $rules[] = "multiple_of:{$this->multipleOf}";
         }
 
-        if ($this->enum !== null && !empty($this->enum)) {
+        if ($this->enum !== null && ! empty($this->enum)) {
             $enumValues = implode(',', $this->enum);
             $rules[] = "in:{$enumValues}";
         }
@@ -130,7 +132,7 @@ class ValidationConstraints
         }
 
         if ($this->uniqueItems === true) {
-            $rules[] = "distinct";
+            $rules[] = 'distinct';
         }
 
         return $rules;
@@ -157,7 +159,7 @@ class ValidationConstraints
         return $this->minLength !== null
             || $this->maxLength !== null
             || $this->pattern !== null
-            || ($this->enum !== null && !empty($this->enum));
+            || ($this->enum !== null && ! empty($this->enum));
     }
 
     /**
@@ -168,7 +170,7 @@ class ValidationConstraints
         return $this->minimum !== null
             || $this->maximum !== null
             || $this->multipleOf !== null
-            || ($this->enum !== null && !empty($this->enum));
+            || ($this->enum !== null && ! empty($this->enum));
     }
 
     /**
@@ -186,7 +188,7 @@ class ValidationConstraints
      */
     public function hasEnum(): bool
     {
-        return $this->enum !== null && !empty($this->enum);
+        return $this->enum !== null && ! empty($this->enum);
     }
 
     /**
@@ -205,6 +207,7 @@ class ValidationConstraints
         if ($this->enum === null) {
             return '';
         }
+
         return implode(',', $this->enum);
     }
 
@@ -232,18 +235,19 @@ class ValidationConstraints
 
         // Clear any previous errors
         $previousErrorReporting = error_reporting(0);
-        
+
         try {
             $result = preg_match("/{$this->getEscapedPattern()}/", '');
-            
+
             if ($result === false) {
                 $lastError = preg_last_error_msg();
+
                 return [
                     'valid' => false,
-                    'errors' => ["Invalid regex pattern: {$this->pattern}. Error: {$lastError}"]
+                    'errors' => ["Invalid regex pattern: {$this->pattern}. Error: {$lastError}"],
                 ];
             }
-            
+
             return ['valid' => true, 'errors' => []];
         } finally {
             error_reporting($previousErrorReporting);
@@ -272,7 +276,7 @@ class ValidationConstraints
         if ($this->pattern !== null) {
             $summary[] = "pattern: {$this->pattern}";
         }
-        if ($this->enum !== null && !empty($this->enum)) {
+        if ($this->enum !== null && ! empty($this->enum)) {
             $enumStr = implode(', ', $this->enum);
             $summary[] = "enum: [{$enumStr}]";
         }
@@ -286,7 +290,7 @@ class ValidationConstraints
             $summary[] = "maxItems: {$this->maxItems}";
         }
         if ($this->uniqueItems !== null) {
-            $summary[] = "uniqueItems: " . ($this->uniqueItems ? 'true' : 'false');
+            $summary[] = 'uniqueItems: ' . ($this->uniqueItems ? 'true' : 'false');
         }
 
         return $summary;
@@ -299,37 +303,37 @@ class ValidationConstraints
     {
         // Length constraints
         if ($this->minLength !== null && $this->minLength < 0) {
-            throw new \InvalidArgumentException('minLength must be >= 0');
+            throw new InvalidArgumentException('minLength must be >= 0');
         }
 
         if ($this->maxLength !== null && $this->maxLength < 0) {
-            throw new \InvalidArgumentException('maxLength must be >= 0');
+            throw new InvalidArgumentException('maxLength must be >= 0');
         }
 
         if ($this->minLength !== null && $this->maxLength !== null && $this->minLength > $this->maxLength) {
-            throw new \InvalidArgumentException('minLength cannot be greater than maxLength');
+            throw new InvalidArgumentException('minLength cannot be greater than maxLength');
         }
 
         // Numeric constraints
         if ($this->minimum !== null && $this->maximum !== null && $this->minimum > $this->maximum) {
-            throw new \InvalidArgumentException('minimum cannot be greater than maximum');
+            throw new InvalidArgumentException('minimum cannot be greater than maximum');
         }
 
         if ($this->multipleOf !== null && $this->multipleOf <= 0) {
-            throw new \InvalidArgumentException('multipleOf must be > 0');
+            throw new InvalidArgumentException('multipleOf must be > 0');
         }
 
         // Array constraints
         if ($this->minItems !== null && $this->minItems < 0) {
-            throw new \InvalidArgumentException('minItems must be >= 0');
+            throw new InvalidArgumentException('minItems must be >= 0');
         }
 
         if ($this->maxItems !== null && $this->maxItems < 0) {
-            throw new \InvalidArgumentException('maxItems must be >= 0');
+            throw new InvalidArgumentException('maxItems must be >= 0');
         }
 
         if ($this->minItems !== null && $this->maxItems !== null && $this->minItems > $this->maxItems) {
-            throw new \InvalidArgumentException('minItems cannot be greater than maxItems');
+            throw new InvalidArgumentException('minItems cannot be greater than maxItems');
         }
 
         // Pattern validation - don't throw exception, just store for later validation
@@ -358,7 +362,7 @@ class ValidationConstraints
         if ($this->pattern !== null) {
             $array['pattern'] = $this->pattern;
         }
-        if ($this->enum !== null && !empty($this->enum)) {
+        if ($this->enum !== null && ! empty($this->enum)) {
             $array['enum'] = $this->enum;
         }
         if ($this->multipleOf !== null) {
@@ -382,7 +386,7 @@ class ValidationConstraints
      */
     public static function empty(): self
     {
-        return new self();
+        return new self;
     }
 
     /**
@@ -425,7 +429,7 @@ class ValidationConstraints
      */
     public function isEmpty(): bool
     {
-        return !$this->hasConstraints();
+        return ! $this->hasConstraints();
     }
 
     /**
@@ -439,7 +443,7 @@ class ValidationConstraints
             minimum: $other->minimum ?? $this->minimum,
             maximum: $other->maximum ?? $this->maximum,
             pattern: $other->pattern ?? $this->pattern,
-            enum: ($other->enum !== null && !empty($other->enum)) ? $other->enum : $this->enum,
+            enum: ($other->enum !== null && ! empty($other->enum)) ? $other->enum : $this->enum,
             multipleOf: $other->multipleOf ?? $this->multipleOf,
             minItems: $other->minItems ?? $this->minItems,
             maxItems: $other->maxItems ?? $this->maxItems,
@@ -453,17 +457,37 @@ class ValidationConstraints
     public function getComplexityScore(): int
     {
         $score = 0;
-        
-        if ($this->minLength !== null) $score++;
-        if ($this->maxLength !== null) $score++;
-        if ($this->minimum !== null) $score++;
-        if ($this->maximum !== null) $score++;
-        if ($this->pattern !== null) $score += 2; // Patterns are more complex
-        if ($this->enum !== null && !empty($this->enum)) $score++;
-        if ($this->multipleOf !== null) $score += 2; // Custom rule needed
-        if ($this->minItems !== null) $score++;
-        if ($this->maxItems !== null) $score++;
-        if ($this->uniqueItems !== null) $score++;
+
+        if ($this->minLength !== null) {
+            $score++;
+        }
+        if ($this->maxLength !== null) {
+            $score++;
+        }
+        if ($this->minimum !== null) {
+            $score++;
+        }
+        if ($this->maximum !== null) {
+            $score++;
+        }
+        if ($this->pattern !== null) {
+            $score += 2;
+        } // Patterns are more complex
+        if ($this->enum !== null && ! empty($this->enum)) {
+            $score++;
+        }
+        if ($this->multipleOf !== null) {
+            $score += 2;
+        } // Custom rule needed
+        if ($this->minItems !== null) {
+            $score++;
+        }
+        if ($this->maxItems !== null) {
+            $score++;
+        }
+        if ($this->uniqueItems !== null) {
+            $score++;
+        }
 
         return $score;
     }

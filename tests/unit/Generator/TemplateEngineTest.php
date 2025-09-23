@@ -1,7 +1,7 @@
 <?php
 
 beforeEach(function () {
-    $this->templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine();
+    $this->templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
 });
 
 describe('TemplateEngine', function () {
@@ -97,7 +97,7 @@ describe('TemplateEngine', function () {
                 type: 'object',
                 properties: [
                     'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'nested' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object')
+                    'nested' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object'),
                 ]
             );
 
@@ -108,7 +108,7 @@ describe('TemplateEngine', function () {
                 validationRules: [
                     'name' => 'required|string|max:255',
                     'nested.field' => 'nullable|string',
-                    'array_field.*' => 'string|max:50'
+                    'array_field.*' => 'string|max:50',
                 ],
                 sourceSchema: $schema
             );
@@ -152,7 +152,7 @@ describe('TemplateEngine', function () {
         });
 
         it('should throw exception for unknown template', function () {
-            expect(fn() => $this->templateEngine->getTemplate('unknown_template'))
+            expect(fn () => $this->templateEngine->getTemplate('unknown_template'))
                 ->toThrow(\InvalidArgumentException::class, 'Unknown template: unknown_template');
         });
     });
@@ -170,9 +170,9 @@ describe('TemplateEngine', function () {
     describe('setTemplate', function () {
         it('should allow setting custom templates', function () {
             $customTemplate = '<?php /* custom template */ {{className}}';
-            
+
             $this->templateEngine->setTemplate('custom', $customTemplate);
-            
+
             expect($this->templateEngine->hasTemplate('custom'))->toBeTrue();
             expect($this->templateEngine->getTemplate('custom'))->toBe($customTemplate);
         });
@@ -180,9 +180,9 @@ describe('TemplateEngine', function () {
         it('should override existing templates', function () {
             $originalTemplate = $this->templateEngine->getTemplate('form_request');
             $newTemplate = '<?php /* modified template */';
-            
+
             $this->templateEngine->setTemplate('form_request', $newTemplate);
-            
+
             expect($this->templateEngine->getTemplate('form_request'))->toBe($newTemplate);
             expect($this->templateEngine->getTemplate('form_request'))->not->toBe($originalTemplate);
         });
@@ -221,7 +221,7 @@ describe('TemplateEngine', function () {
         it('should format simple rules array', function () {
             $rules = [
                 'name' => 'required|string',
-                'email' => 'required|email'
+                'email' => 'required|email',
             ];
 
             $formatted = $this->templateEngine->formatValidationRules($rules);
@@ -235,7 +235,7 @@ describe('TemplateEngine', function () {
         it('should format rules with proper indentation', function () {
             $rules = [
                 'nested.field' => 'nullable|string',
-                'array.*' => 'string'
+                'array.*' => 'string',
             ];
 
             $formatted = $this->templateEngine->formatValidationRules($rules);
@@ -254,7 +254,7 @@ describe('TemplateEngine', function () {
 
         it('should escape special characters in rule values', function () {
             $rules = [
-                'pattern' => "regex:/^[A-Z][a-z']+$/"
+                'pattern' => "regex:/^[A-Z][a-z']+$/",
             ];
 
             $formatted = $this->templateEngine->formatValidationRules($rules);
@@ -296,8 +296,8 @@ describe('TemplateEngine', function () {
         it('should handle nested arrays', function () {
             $array = [
                 'level1' => [
-                    'level2' => 'value'
-                ]
+                    'level2' => 'value',
+                ],
             ];
 
             $formatted = $this->templateEngine->formatArray($array);
@@ -347,7 +347,7 @@ describe('TemplateEngine', function () {
         });
 
         it('should throw exception for unknown template type', function () {
-            expect(fn() => $this->templateEngine->getAvailableVariables('unknown'))
+            expect(fn () => $this->templateEngine->getAvailableVariables('unknown'))
                 ->toThrow(\InvalidArgumentException::class);
         });
     });

@@ -27,7 +27,7 @@ describe('FormRequestClass', function () {
         it('should throw exception for invalid class name', function () {
             $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
 
-            expect(fn() => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
                 className: 'invalid-class-name',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/invalid-class-name.php',
@@ -39,7 +39,7 @@ describe('FormRequestClass', function () {
         it('should throw exception for invalid namespace', function () {
             $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
 
-            expect(fn() => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'invalid-namespace',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -51,7 +51,7 @@ describe('FormRequestClass', function () {
         it('should throw exception for empty validation rules', function () {
             $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
 
-            expect(fn() => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -149,7 +149,7 @@ describe('FormRequestClass', function () {
                     'name' => 'required|string|max:255',
                     'nested.field' => 'nullable|string',
                     'array.*' => 'string',
-                    'deep.nested.field' => 'integer'
+                    'deep.nested.field' => 'integer',
                 ],
                 sourceSchema: $schema
             );
@@ -214,7 +214,7 @@ describe('FormRequestClass', function () {
                     'name' => 'required|string|max:255',
                     'email' => 'required|email|unique:users',
                     'profile.bio' => 'nullable|string|max:1000',
-                    'profile.social.*' => 'nullable|url'
+                    'profile.social.*' => 'nullable|url',
                 ],
                 sourceSchema: $schema,
                 customMessages: ['name.required' => 'Name is required'],

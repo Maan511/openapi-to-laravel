@@ -2,15 +2,21 @@
 
 namespace Maan511\OpenapiToLaravel\Models;
 
+use InvalidArgumentException;
+
 /**
  * Individual Laravel validation rule derived from OpenAPI constraints
  */
 class ValidationRule
 {
     public readonly string $property;
+
     public readonly string $type;
+
     public array $rules;
+
     public readonly bool $isRequired;
+
     public readonly ?ValidationConstraints $constraints;
 
     public function __construct(
@@ -25,7 +31,7 @@ class ValidationRule
         $this->rules = $rules;
         $this->isRequired = $isRequired; // Only use explicit parameter, not derived from rules
         $this->constraints = $constraints;
-        
+
         $this->validateProperty();
         $this->validateType();
     }
@@ -38,13 +44,13 @@ class ValidationRule
         if ($name === 'fieldPath') {
             return $this->property;
         }
-        
+
         if ($name === 'rule') {
             // Return the first rule since each ValidationRule now represents a single rule
-            return !empty($this->rules) ? $this->rules[0] : null;
+            return ! empty($this->rules) ? $this->rules[0] : null;
         }
-        
-        throw new \InvalidArgumentException("Property '{$name}' does not exist on ValidationRule");
+
+        throw new InvalidArgumentException("Property '{$name}' does not exist on ValidationRule");
     }
 
     /**
@@ -146,7 +152,7 @@ class ValidationRule
      */
     public function isNested(): bool
     {
-        return str_contains($this->property, '.') && !str_contains($this->property, '*');
+        return str_contains($this->property, '.') && ! str_contains($this->property, '*');
     }
 
     /**
@@ -154,7 +160,7 @@ class ValidationRule
      */
     public function hasConstraints(): bool
     {
-        return $this->constraints !== null && !$this->constraints->isEmpty();
+        return $this->constraints !== null && ! $this->constraints->isEmpty();
     }
 
     /**
@@ -162,7 +168,7 @@ class ValidationRule
      */
     public function addRule(string $rule): void
     {
-        if (!in_array($rule, $this->rules)) {
+        if (! in_array($rule, $this->rules)) {
             $this->rules[] = $rule;
         }
     }
@@ -172,7 +178,7 @@ class ValidationRule
      */
     public function removeRule(string $ruleToRemove): void
     {
-        $this->rules = array_values(array_filter($this->rules, fn($rule) => $rule !== $ruleToRemove));
+        $this->rules = array_values(array_filter($this->rules, fn ($rule) => $rule !== $ruleToRemove));
     }
 
     /**
@@ -211,9 +217,10 @@ class ValidationRule
             if ($firstStar !== false) {
                 return substr($this->property, 0, $firstStar - 1); // Remove '.*'
             }
+
             return $this->property;
         }
-        
+
         return substr($this->property, 0, $firstDot);
     }
 
@@ -270,11 +277,11 @@ class ValidationRule
     private function validateProperty(): void
     {
         if (empty($this->property)) {
-            throw new \InvalidArgumentException('Property cannot be empty');
+            throw new InvalidArgumentException('Property cannot be empty');
         }
 
-        if (!preg_match('/^[a-zA-Z0-9._*]+$/', $this->property)) {
-            throw new \InvalidArgumentException(
+        if (! preg_match('/^[a-zA-Z0-9._*]+$/', $this->property)) {
+            throw new InvalidArgumentException(
                 "Invalid property name: {$this->property}. Must contain only letters, numbers, dots, underscores, and asterisks."
             );
         }
@@ -286,12 +293,12 @@ class ValidationRule
     private function validateType(): void
     {
         if (empty($this->type)) {
-            throw new \InvalidArgumentException('Type cannot be empty');
+            throw new InvalidArgumentException('Type cannot be empty');
         }
 
         $validTypes = ['string', 'integer', 'number', 'boolean', 'array', 'object'];
-        if (!in_array($this->type, $validTypes)) {
-            throw new \InvalidArgumentException(
+        if (! in_array($this->type, $validTypes)) {
+            throw new InvalidArgumentException(
                 "Invalid type: {$this->type}. Must be one of: " . implode(', ', $validTypes)
             );
         }

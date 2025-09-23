@@ -2,6 +2,8 @@
 
 namespace Maan511\OpenapiToLaravel\Models;
 
+use InvalidArgumentException;
+
 /**
  * Represents a single API operation (GET, POST, etc.) with its request schema
  */
@@ -72,7 +74,7 @@ class EndpointDefinition
      */
     public function hasParameters(): bool
     {
-        return !empty($this->parameters);
+        return ! empty($this->parameters);
     }
 
     /**
@@ -89,7 +91,7 @@ class EndpointDefinition
     public function getRequiredParameterNames(): array
     {
         return array_column(
-            array_filter($this->parameters, fn($param) => $param['required'] ?? false),
+            array_filter($this->parameters, fn ($param) => $param['required'] ?? false),
             'name'
         );
     }
@@ -116,7 +118,7 @@ class EndpointDefinition
     public function generateFormRequestClassName(): string
     {
         // Use operationId if available and convert to PascalCase
-        if (!empty($this->operationId)) {
+        if (! empty($this->operationId)) {
             $className = $this->convertToPascalCase($this->operationId);
         } else {
             // Fallback: generate from method and path
@@ -124,7 +126,7 @@ class EndpointDefinition
         }
 
         // Ensure it ends with "Request"
-        if (!str_ends_with($className, 'Request')) {
+        if (! str_ends_with($className, 'Request')) {
             $className .= 'Request';
         }
 
@@ -137,6 +139,7 @@ class EndpointDefinition
     public function getPathParameters(): array
     {
         preg_match_all('/\{([^}]+)\}/', $this->path, $matches);
+
         return $matches[1] ?? [];
     }
 
@@ -145,7 +148,7 @@ class EndpointDefinition
      */
     public function hasPathParameters(): bool
     {
-        return !empty($this->getPathParameters());
+        return ! empty($this->getPathParameters());
     }
 
     /**
@@ -170,11 +173,11 @@ class EndpointDefinition
     private function validatePath(): void
     {
         if (empty($this->path)) {
-            throw new \InvalidArgumentException('Path cannot be empty');
+            throw new InvalidArgumentException('Path cannot be empty');
         }
 
-        if (!str_starts_with($this->path, '/')) {
-            throw new \InvalidArgumentException('Path must start with /');
+        if (! str_starts_with($this->path, '/')) {
+            throw new InvalidArgumentException('Path must start with /');
         }
     }
 
@@ -185,8 +188,8 @@ class EndpointDefinition
     {
         $validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
 
-        if (!in_array($this->method, $validMethods)) {
-            throw new \InvalidArgumentException(
+        if (! in_array($this->method, $validMethods)) {
+            throw new InvalidArgumentException(
                 "Invalid HTTP method: {$this->method}. Must be one of: " . implode(', ', $validMethods)
             );
         }
@@ -198,11 +201,11 @@ class EndpointDefinition
     private function validateOperationId(): void
     {
         if (empty($this->operationId)) {
-            throw new \InvalidArgumentException('Operation ID cannot be empty');
+            throw new InvalidArgumentException('Operation ID cannot be empty');
         }
 
-        if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $this->operationId)) {
-            throw new \InvalidArgumentException(
+        if (! preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $this->operationId)) {
+            throw new InvalidArgumentException(
                 "Invalid operation ID: {$this->operationId}. Must start with letter and contain only letters, numbers, and underscores."
             );
         }
@@ -234,6 +237,7 @@ class EndpointDefinition
         // Handle camelCase and snake_case
         $string = preg_replace('/[_\-]/', ' ', $string);
         $string = ucwords($string);
+
         return str_replace(' ', '', $string);
     }
 
