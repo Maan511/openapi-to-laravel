@@ -12,12 +12,8 @@ jobs:
     
     strategy:
       matrix:
-        php-version: [8.1, 8.2, 8.3]
+        php-version: [8.3]
         laravel-version: [10, 11]
-        exclude:
-          # Laravel 11 requires PHP 8.2+
-          - php-version: 8.1
-            laravel-version: 11
 
     name: PHP ${{ matrix.php-version }} - Laravel ${{ matrix.laravel-version }}
 
