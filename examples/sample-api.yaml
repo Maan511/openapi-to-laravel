@@ -1,0 +1,837 @@
+openapi: 3.0.0
+info:
+  title: Sample E-Commerce API
+  description: |
+    A comprehensive sample API demonstrating various OpenAPI features
+    for testing the Laravel FormRequest generator.
+
+    This API includes:
+    - User management with authentication
+    - Product catalog with categories
+    - Order processing with payment
+    - Complex nested schemas
+    - Various validation constraints
+  version: 1.2.0
+  contact:
+    name: API Support
+    email: support@example.com
+    url: https://example.com/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+
+tags:
+  - name: users
+    description: User management operations
+  - name: products
+    description: Product catalog operations
+  - name: orders
+    description: Order processing operations
+  - name: categories
+    description: Category management
+
+paths:
+  /users:
+    post:
+      operationId: createUser
+      summary: Create a new user
+      description: Register a new user in the system
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Invalid input data
+        '422':
+          description: Validation errors
+
+  /users/{id}:
+    put:
+      operationId: updateUser
+      summary: Update user information
+      description: Update an existing user's profile
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+        '404':
+          description: User not found
+
+  /products:
+    post:
+      operationId: createProduct
+      summary: Create a new product
+      description: Add a new product to the catalog
+      tags:
+        - products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateProductFormRequest'
+      responses:
+        '201':
+          description: Product created successfully
+
+  /products/{id}:
+    patch:
+      operationId: updateProduct
+      summary: Partially update product
+      description: Update specific fields of a product
+      tags:
+        - products
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Product updated successfully
+
+  /orders:
+    post:
+      operationId: createOrder
+      summary: Create a new order
+      description: Place a new order with items and payment information
+      tags:
+        - orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created successfully
+
+  /categories:
+    post:
+      operationId: createCategory
+      summary: Create a new category
+      description: Add a new product category
+      tags:
+        - categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Category created successfully
+
+  /categories/{id}/products:
+    post:
+      operationId: addProductToCategory
+      summary: Add product to category
+      description: Associate a product with a category
+      tags:
+        - categories
+        - products
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: string
+                  format: uuid
+                  description: UUID of the product to add
+                featured:
+                  type: boolean
+                  default: false
+                  description: Whether this product is featured in the category
+                sort_order:
+                  type: integer
+                  minimum: 0
+                  maximum: 999
+                  description: Sort order within the category
+              required:
+                - product_id
+      responses:
+        '200':
+          description: Product added to category successfully
+
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      description: Request schema for creating a new user
+      properties:
+        personal_info:
+          $ref: '#/components/schemas/PersonalInfo'
+        account_info:
+          $ref: '#/components/schemas/AccountInfo'
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        terms_accepted:
+          type: boolean
+          description: Must be true to create account
+        marketing_consent:
+          type: boolean
+          default: false
+          description: Consent to receive marketing communications
+      required:
+        - personal_info
+        - account_info
+        - terms_accepted
+
+    UpdateUserRequest:
+      type: object
+      description: Request schema for updating user information
+      properties:
+        personal_info:
+          $ref: '#/components/schemas/PersonalInfo'
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        marketing_consent:
+          type: boolean
+
+    PersonalInfo:
+      type: object
+      description: Personal information schema
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: "^[a-zA-Z\\s\\-'\\.]+$"
+          description: First name (letters, spaces, hyphens, apostrophes, dots only)
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: "^[a-zA-Z\\s\\-'\\.]+$"
+          description: Last name (letters, spaces, hyphens, apostrophes, dots only)
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Valid email address
+        phone:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: Phone number in E.164 format
+        date_of_birth:
+          type: string
+          format: date
+          description: Date of birth (YYYY-MM-DD)
+        gender:
+          type: string
+          enum: [male, female, other, prefer_not_to_say]
+          description: Gender identification
+        address:
+          $ref: '#/components/schemas/Address'
+      required:
+        - first_name
+        - last_name
+        - email
+
+    AccountInfo:
+      type: object
+      description: Account credentials and settings
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-zA-Z0-9_-]+$'
+          description: Username (alphanumeric, underscore, hyphen only)
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$'
+          description: Strong password with mixed case, numbers, and special characters
+        password_confirmation:
+          type: string
+          description: Must match password field
+        timezone:
+          type: string
+          default: 'UTC'
+          description: User's timezone identifier
+      required:
+        - username
+        - password
+        - password_confirmation
+
+    UserPreferences:
+      type: object
+      description: User preferences and settings
+      properties:
+        language:
+          type: string
+          enum: [en, es, fr, de, it, pt, ja, zh]
+          default: 'en'
+          description: Preferred language code
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          default: 'USD'
+          description: Preferred currency (ISO 4217)
+        notifications:
+          $ref: '#/components/schemas/NotificationSettings'
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          default: 'auto'
+          description: UI theme preference
+
+    NotificationSettings:
+      type: object
+      description: Notification preferences
+      properties:
+        email_notifications:
+          type: boolean
+          default: true
+        push_notifications:
+          type: boolean
+          default: true
+        sms_notifications:
+          type: boolean
+          default: false
+        notification_types:
+          type: array
+          items:
+            type: string
+            enum: [orders, promotions, security, updates, newsletters]
+          uniqueItems: true
+          minItems: 0
+          maxItems: 5
+          description: Types of notifications to receive
+
+    Address:
+      type: object
+      description: Physical address information
+      properties:
+        street_line_1:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Primary street address
+        street_line_2:
+          type: string
+          maxLength: 100
+          description: Apartment, suite, unit, etc.
+        city:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: City name
+        state_province:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: State or province
+        postal_code:
+          type: string
+          pattern: '^[A-Z0-9\s\-]{3,10}$'
+          description: Postal or ZIP code
+        country_code:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          description: ISO 3166-1 alpha-2 country code
+      required:
+        - street_line_1
+        - city
+        - country_code
+
+    CreateProductRequest:
+      type: object
+      description: Request schema for creating a new product
+      properties:
+        basic_info:
+          $ref: '#/components/schemas/ProductBasicInfo'
+        pricing:
+          $ref: '#/components/schemas/ProductPricing'
+        inventory:
+          $ref: '#/components/schemas/ProductInventory'
+        categories:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 10
+          uniqueItems: true
+          description: Category IDs this product belongs to
+        tags:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 20
+            pattern: '^[a-zA-Z0-9\-_]+$'
+          minItems: 0
+          maxItems: 20
+          uniqueItems: true
+          description: Product tags for searchability
+        attributes:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: number
+              - type: boolean
+          description: Custom product attributes
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+          minItems: 1
+          maxItems: 10
+          description: Product images
+      required:
+        - basic_info
+        - pricing
+        - categories
+
+    CreateProductFormRequest:
+      type: object
+      description: Form data request for creating product with file uploads
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 2000
+        price:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+        category_id:
+          type: integer
+          minimum: 1
+        images:
+          type: array
+          items:
+            type: string
+            format: binary
+          minItems: 1
+          maxItems: 5
+      required:
+        - name
+        - price
+        - category_id
+        - images
+
+    UpdateProductRequest:
+      type: object
+      description: Request schema for updating product (partial update)
+      properties:
+        basic_info:
+          $ref: '#/components/schemas/ProductBasicInfo'
+        pricing:
+          $ref: '#/components/schemas/ProductPricing'
+        inventory:
+          $ref: '#/components/schemas/ProductInventory'
+        status:
+          type: string
+          enum: [draft, active, inactive, discontinued]
+
+    ProductBasicInfo:
+      type: object
+      description: Basic product information
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Product name
+        description:
+          type: string
+          maxLength: 2000
+          description: Product description
+        short_description:
+          type: string
+          maxLength: 255
+          description: Brief product summary
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: '^[A-Z0-9\-_]+$'
+          description: Stock Keeping Unit (uppercase letters, numbers, hyphens, underscores)
+        brand:
+          type: string
+          maxLength: 50
+          description: Product brand
+        model:
+          type: string
+          maxLength: 50
+          description: Product model
+        weight:
+          type: number
+          minimum: 0
+          maximum: 9999.99
+          multipleOf: 0.01
+          description: Product weight in kg
+        dimensions:
+          $ref: '#/components/schemas/ProductDimensions'
+      required:
+        - name
+        - sku
+
+    ProductDimensions:
+      type: object
+      description: Product dimensions
+      properties:
+        length:
+          type: number
+          minimum: 0
+          maximum: 999.99
+          multipleOf: 0.01
+          description: Length in cm
+        width:
+          type: number
+          minimum: 0
+          maximum: 999.99
+          multipleOf: 0.01
+          description: Width in cm
+        height:
+          type: number
+          minimum: 0
+          maximum: 999.99
+          multipleOf: 0.01
+          description: Height in cm
+      required:
+        - length
+        - width
+        - height
+
+    ProductPricing:
+      type: object
+      description: Product pricing information
+      properties:
+        base_price:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+          description: Base price before discounts
+        sale_price:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+          description: Sale price (must be less than base_price)
+        cost_price:
+          type: number
+          minimum: 0
+          multipleOf: 0.01
+          description: Cost price for margin calculation
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          default: 'USD'
+          description: Currency code (ISO 4217)
+        tax_class:
+          type: string
+          enum: [standard, reduced, exempt, zero]
+          default: 'standard'
+          description: Tax classification
+      required:
+        - base_price
+
+    ProductInventory:
+      type: object
+      description: Product inventory information
+      properties:
+        track_inventory:
+          type: boolean
+          default: true
+          description: Whether to track inventory levels
+        stock_quantity:
+          type: integer
+          minimum: 0
+          maximum: 999999
+          description: Current stock quantity
+        low_stock_threshold:
+          type: integer
+          minimum: 0
+          maximum: 999
+          description: Alert when stock falls below this level
+        allow_backorder:
+          type: boolean
+          default: false
+          description: Allow orders when out of stock
+        stock_status:
+          type: string
+          enum: [in_stock, out_of_stock, on_backorder]
+          description: Current stock status
+
+    ProductImage:
+      type: object
+      description: Product image information
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Image URL
+        alt_text:
+          type: string
+          maxLength: 255
+          description: Alternative text for accessibility
+        is_primary:
+          type: boolean
+          default: false
+          description: Whether this is the primary product image
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 999
+          description: Display order
+      required:
+        - url
+
+    CreateOrderRequest:
+      type: object
+      description: Request schema for creating a new order
+      properties:
+        customer_info:
+          $ref: '#/components/schemas/CustomerInfo'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          minItems: 1
+          maxItems: 100
+          description: Order items
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        billing_address:
+          $ref: '#/components/schemas/Address'
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethod'
+        shipping_method:
+          type: string
+          enum: [standard, express, overnight, pickup]
+          description: Shipping method selection
+        special_instructions:
+          type: string
+          maxLength: 500
+          description: Special delivery instructions
+        promo_code:
+          type: string
+          minLength: 3
+          maxLength: 20
+          pattern: '^[A-Z0-9]+$'
+          description: Promotional code
+      required:
+        - customer_info
+        - items
+        - shipping_address
+        - payment_method
+        - shipping_method
+
+    CustomerInfo:
+      type: object
+      description: Customer information for order
+      properties:
+        user_id:
+          type: integer
+          minimum: 1
+          description: Registered user ID (optional for guest orders)
+        email:
+          type: string
+          format: email
+          description: Customer email address
+        phone:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: Customer phone number
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required:
+        - email
+        - first_name
+        - last_name
+
+    OrderItem:
+      type: object
+      description: Individual order item
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          description: Product UUID
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 999
+          description: Quantity to order
+        unit_price:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+          description: Price per unit at time of order
+        customization:
+          type: object
+          additionalProperties:
+            type: string
+          description: Product customization options
+      required:
+        - product_id
+        - quantity
+        - unit_price
+
+    PaymentMethod:
+      type: object
+      description: Payment method information
+      properties:
+        type:
+          type: string
+          enum: [credit_card, debit_card, paypal, bank_transfer, cryptocurrency]
+          description: Payment method type
+        card_info:
+          $ref: '#/components/schemas/CardInfo'
+        billing_same_as_shipping:
+          type: boolean
+          default: true
+          description: Whether billing address is same as shipping
+      required:
+        - type
+
+    CardInfo:
+      type: object
+      description: Credit card information (for credit_card/debit_card payments)
+      properties:
+        card_number:
+          type: string
+          pattern: '^[0-9]{13,19}$'
+          description: Card number (13-19 digits)
+        expiry_month:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: Expiry month (1-12)
+        expiry_year:
+          type: integer
+          minimum: 2024
+          maximum: 2040
+          description: Expiry year
+        cvv:
+          type: string
+          pattern: '^[0-9]{3,4}$'
+          description: Card verification value (3-4 digits)
+        cardholder_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: "^[a-zA-Z\\s\\-'\\.]+$"
+          description: Name on card
+      required:
+        - card_number
+        - expiry_month
+        - expiry_year
+        - cvv
+        - cardholder_name
+
+    CreateCategoryRequest:
+      type: object
+      description: Request schema for creating a product category
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Category name
+        description:
+          type: string
+          maxLength: 500
+          description: Category description
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-z0-9\-]+$'
+          description: URL-friendly slug (lowercase letters, numbers, hyphens only)
+        parent_id:
+          type: integer
+          minimum: 1
+          description: Parent category ID (for subcategories)
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 999
+          default: 0
+          description: Sort order for display
+        is_active:
+          type: boolean
+          default: true
+          description: Whether category is active
+        meta_title:
+          type: string
+          maxLength: 60
+          description: SEO meta title
+        meta_description:
+          type: string
+          maxLength: 160
+          description: SEO meta description
+        icon:
+          type: string
+          format: uri
+          description: Category icon URL
+        banner_image:
+          type: string
+          format: uri
+          description: Category banner image URL
+      required:
+        - name
+        - slug
