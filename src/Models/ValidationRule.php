@@ -367,7 +367,13 @@ class ValidationRule
      */
     public static function in(string $property, array $values): self
     {
-        $valueString = implode(',', array_map('strval', $values));
+        $valueString = implode(',', array_map(function (mixed $value): string {
+            if ($value === null) {
+                return '';
+            }
+
+            return (string) $value;
+        }, $values));
 
         return new self(
             property: $property,

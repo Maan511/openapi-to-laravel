@@ -229,7 +229,7 @@ class OpenApiParser
     /**
      * Extract request schema from operation
      *
-     * @param array<string, mixed> $operation
+     * @param  array<string, mixed>  $operation
      */
     private function extractRequestSchema(array $operation, OpenApiSpecification $specification): ?SchemaObject
     {

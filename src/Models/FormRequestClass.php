@@ -42,11 +42,13 @@ class FormRequestClass
     public function getValidationRuleObjects(): array
     {
         // Check if ValidationRule objects were passed in options
-        if (isset($this->options['validationRuleObjects'])) {
+        if (isset($this->options['validationRuleObjects']) && is_array($this->options['validationRuleObjects'])) {
+            /** @var array<ValidationRule> */
             return $this->options['validationRuleObjects'];
         }
 
         // Convert string rules back to ValidationRule objects
+        /** @var array<ValidationRule> $ruleObjects */
         $ruleObjects = [];
         foreach ($this->validationRules as $field => $ruleString) {
             $rules = explode('|', $ruleString);
@@ -80,10 +82,10 @@ class FormRequestClass
     /**
      * Create instance for endpoint and schema
      *
-     * @param array<string, string> $validationRules
-     * @param array<string, string> $customMessages
-     * @param array<string, string> $customAttributes
-     * @param array<string, mixed> $options
+     * @param  array<string, string>  $validationRules
+     * @param  array<string, string>  $customMessages
+     * @param  array<string, string>  $customAttributes
+     * @param  array<string, mixed>  $options
      */
     public static function create(
         string $className,
@@ -97,13 +99,22 @@ class FormRequestClass
         array $options = []
     ): self {
         // Handle both 'authorizationMethod' and 'authorize_return' options for backwards compatibility
-        $authorizationMethod = $options['authorizationMethod']
-            ?? $options['authorize_return']
+        $authorizationMethod = self::validateString($options['authorizationMethod'] ?? null)
+            ?? self::validateString($options['authorize_return'] ?? null)
             ?? 'return true;';
 
         // Handle custom messages and attributes from options
-        $finalCustomMessages = array_merge($customMessages, $options['customMessages'] ?? []);
-        $finalCustomAttributes = array_merge($customAttributes, $options['customAttributes'] ?? []);
+        $optionsCustomMessages = isset($options['customMessages']) && is_array($options['customMessages'])
+            ? $options['customMessages']
+            : [];
+        $optionsCustomAttributes = isset($options['customAttributes']) && is_array($options['customAttributes'])
+            ? $options['customAttributes']
+            : [];
+
+        /** @var array<string, string> $finalCustomMessages */
+        $finalCustomMessages = array_merge($customMessages, $optionsCustomMessages);
+        /** @var array<string, string> $finalCustomAttributes */
+        $finalCustomAttributes = array_merge($customAttributes, $optionsCustomAttributes);
 
         return new self(
             $className,
@@ -488,5 +499,21 @@ class FormRequestClass
             'fileSizeEstimate' => $this->getFileSizeEstimate(),
             'estimatedSize' => $this->getFileSizeEstimate(), // Alias for test compatibility
         ];
+    }
+
+    /**
+     * Validate and cast to string or null
+     */
+    private static function validateString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return null;
     }
 }

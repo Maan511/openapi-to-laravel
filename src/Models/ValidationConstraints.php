@@ -28,21 +28,21 @@ class ValidationConstraints
     /**
      * Create instance from OpenAPI schema array
      *
-     * @param array<string, mixed> $schema
+     * @param  array<string, mixed>  $schema
      */
     public static function fromSchema(array $schema): self
     {
         return new self(
-            minLength: $schema['minLength'] ?? null,
-            maxLength: $schema['maxLength'] ?? null,
-            minimum: $schema['minimum'] ?? null,
-            maximum: $schema['maximum'] ?? null,
-            pattern: $schema['pattern'] ?? null,
-            enum: isset($schema['enum']) ? $schema['enum'] : null,
-            multipleOf: $schema['multipleOf'] ?? null,
-            minItems: $schema['minItems'] ?? null,
-            maxItems: $schema['maxItems'] ?? null,
-            uniqueItems: $schema['uniqueItems'] ?? null
+            minLength: self::validateInt($schema['minLength'] ?? null),
+            maxLength: self::validateInt($schema['maxLength'] ?? null),
+            minimum: self::validateNumeric($schema['minimum'] ?? null),
+            maximum: self::validateNumeric($schema['maximum'] ?? null),
+            pattern: self::validateString($schema['pattern'] ?? null),
+            enum: isset($schema['enum']) && is_array($schema['enum']) ? $schema['enum'] : null,
+            multipleOf: self::validateNumeric($schema['multipleOf'] ?? null),
+            minItems: self::validateInt($schema['minItems'] ?? null),
+            maxItems: self::validateInt($schema['maxItems'] ?? null),
+            uniqueItems: self::validateBool($schema['uniqueItems'] ?? null)
         );
     }
 
@@ -246,25 +246,44 @@ class ValidationConstraints
             return ['valid' => true, 'errors' => []];
         }
 
-        // Clear any previous errors
-        $previousErrorReporting = error_reporting(0);
+        // Basic syntax checks before attempting preg_match
+        $pattern = $this->pattern;
+        $errors = [];
 
-        try {
-            $result = preg_match("/{$this->getEscapedPattern()}/", '');
-
-            if ($result === false) {
-                $lastError = preg_last_error_msg();
-
-                return [
-                    'valid' => false,
-                    'errors' => ["Invalid regex pattern: {$this->pattern}. Error: {$lastError}"],
-                ];
-            }
-
-            return ['valid' => true, 'errors' => []];
-        } finally {
-            error_reporting($previousErrorReporting);
+        // Check for basic bracket matching
+        if (substr_count($pattern, '[') !== substr_count($pattern, ']')) {
+            $errors[] = 'Unmatched square brackets in pattern';
         }
+
+        if (substr_count($pattern, '(') !== substr_count($pattern, ')')) {
+            $errors[] = 'Unmatched parentheses in pattern';
+        }
+
+        if (substr_count($pattern, '{') !== substr_count($pattern, '}')) {
+            $errors[] = 'Unmatched curly braces in pattern';
+        }
+
+        // If basic checks failed, don't attempt preg_match
+        if (! empty($errors)) {
+            return [
+                'valid' => false,
+                'errors' => array_map(fn ($error) => "Invalid regex pattern: {$this->pattern}. Error: {$error}", $errors),
+            ];
+        }
+
+        // Now safely test the pattern
+        $testResult = @preg_match("/{$this->getEscapedPattern()}/", '');
+
+        if ($testResult === false) {
+            $lastError = preg_last_error_msg();
+
+            return [
+                'valid' => false,
+                'errors' => ["Invalid regex pattern: {$this->pattern}. Error: {$lastError}"],
+            ];
+        }
+
+        return ['valid' => true, 'errors' => []];
     }
 
     /**
@@ -409,21 +428,21 @@ class ValidationConstraints
     /**
      * Create from array data
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
-            minLength: $data['minLength'] ?? null,
-            maxLength: $data['maxLength'] ?? null,
-            minimum: $data['minimum'] ?? null,
-            maximum: $data['maximum'] ?? null,
-            pattern: $data['pattern'] ?? null,
-            enum: isset($data['enum']) ? $data['enum'] : null,
-            multipleOf: $data['multipleOf'] ?? null,
-            minItems: $data['minItems'] ?? null,
-            maxItems: $data['maxItems'] ?? null,
-            uniqueItems: $data['uniqueItems'] ?? null
+            minLength: self::validateInt($data['minLength'] ?? null),
+            maxLength: self::validateInt($data['maxLength'] ?? null),
+            minimum: self::validateNumeric($data['minimum'] ?? null),
+            maximum: self::validateNumeric($data['maximum'] ?? null),
+            pattern: self::validateString($data['pattern'] ?? null),
+            enum: isset($data['enum']) && is_array($data['enum']) ? $data['enum'] : null,
+            multipleOf: self::validateNumeric($data['multipleOf'] ?? null),
+            minItems: self::validateInt($data['minItems'] ?? null),
+            maxItems: self::validateInt($data['maxItems'] ?? null),
+            uniqueItems: self::validateBool($data['uniqueItems'] ?? null)
         );
     }
 
@@ -509,5 +528,80 @@ class ValidationConstraints
         }
 
         return $score;
+    }
+
+    /**
+     * Validate and cast to int or null
+     */
+    private static function validateInt(mixed $value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to numeric or null
+     */
+    private static function validateNumeric(mixed $value): int|float|null
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            $floatValue = (float) $value;
+            $intValue = (int) $value;
+
+            return $floatValue == $intValue ? $intValue : $floatValue;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to string or null
+     */
+    private static function validateString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to bool or null
+     */
+    private static function validateBool(mixed $value): ?bool
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        return null;
     }
 }

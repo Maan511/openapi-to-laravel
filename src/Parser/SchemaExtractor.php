@@ -75,8 +75,8 @@ class SchemaExtractor
     /**
      * Merge two schema arrays
      *
-     * @param array<mixed> $schema1
-     * @param array<mixed> $schema2
+     * @param  array<mixed>  $schema1
+     * @param  array<mixed>  $schema2
      * @return array<mixed>
      */
     public function mergeSchemas(array $schema1, array $schema2): array
@@ -466,6 +466,7 @@ class SchemaExtractor
         }
 
         $keys = array_keys($requestBody['content']);
+
         return array_values(array_filter($keys, 'is_string'));
     }
 
@@ -484,7 +485,7 @@ class SchemaExtractor
      */
     private function generateOperationId(string $path, string $method): string
     {
-        $cleanPath = preg_replace('/\{[^}]+\}/', 'Id', $path);
+        $cleanPath = preg_replace('/\{[^}]+\}/', 'Id', $path) ?? $path;
         $parts = explode('/', trim($cleanPath, '/'));
         $parts = array_filter($parts);
 

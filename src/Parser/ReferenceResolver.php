@@ -72,7 +72,7 @@ class ReferenceResolver
     /**
      * Resolve all references in a schema recursively
      *
-     * @param array<string, mixed> $schema
+     * @param  array<string, mixed>  $schema
      * @return array<string, mixed>
      */
     public function resolveAllReferences(array $schema, OpenApiSpecification $specification, int $maxDepth = 10, int $currentDepth = 0): array
@@ -140,7 +140,7 @@ class ReferenceResolver
     /**
      * Get all references used in a schema
      *
-     * @param array<string, mixed> $schema
+     * @param  array<string, mixed>  $schema
      * @return array<string>
      */
     public function getReferences(array $schema): array
@@ -256,8 +256,8 @@ class ReferenceResolver
     /**
      * Check for circular references in schema
      *
-     * @param array<string, mixed> $schema
-     * @param array<string> $visited
+     * @param  array<string, mixed>  $schema
+     * @param  array<string>  $visited
      */
     public function hasCircularReferences(array $schema, OpenApiSpecification $specification, array $visited = []): bool
     {
@@ -318,7 +318,7 @@ class ReferenceResolver
     /**
      * Check if a schema object is a reference
      *
-     * @param mixed $data
+     * @param  mixed  $data
      */
     public function isReference($data): bool
     {
@@ -462,8 +462,8 @@ class ReferenceResolver
     /**
      * Validate references in request body
      *
-     * @param array<string, mixed> $requestBody
-     * @param array<string> $errors
+     * @param  array<string, mixed>  $requestBody
+     * @param  array<string>  $errors
      */
     private function validateRequestBodyReferences(
         array $requestBody,

@@ -59,7 +59,7 @@ class ValidationRuleMapper
                 $prefix = $isRequired ? 'required' : 'nullable';
 
                 // Remove existing required/nullable rules
-                $existingRules = array_values(array_filter($existingRules, fn (string $rule): bool => !in_array($rule, ['required', 'nullable'], true)));
+                $existingRules = array_values(array_filter($existingRules, fn (string $rule): bool => ! in_array($rule, ['required', 'nullable'], true)));
 
                 // Add required/nullable at the beginning
                 array_unshift($existingRules, $prefix);
@@ -131,7 +131,7 @@ class ValidationRuleMapper
         }
 
         // Validation constraints
-        if ($schema->hasValidation()) {
+        if ($schema->validation !== null) {
             $constraintRules = $schema->validation->getValidationRules($schema->type);
             $ruleParts = array_merge($ruleParts, $constraintRules);
         }
@@ -178,7 +178,7 @@ class ValidationRuleMapper
                 // Array validation
                 $ruleParts = ['array'];
 
-                if ($schema->hasValidation()) {
+                if ($schema->validation !== null) {
                     $arrayRules = $schema->validation->getArrayValidationRules();
                     $ruleParts = array_merge($ruleParts, $arrayRules);
                 }
@@ -266,7 +266,7 @@ class ValidationRuleMapper
                 }
 
                 // Add constraint rules
-                if ($propertySchema->hasValidation()) {
+                if ($propertySchema->validation !== null) {
                     $constraintRules = $propertySchema->validation->getValidationRules($propertySchema->type);
                     $allRules = array_merge($allRules, $constraintRules);
                 }
@@ -295,7 +295,7 @@ class ValidationRuleMapper
             if ($fieldPrefix) {
                 // Create rule for the array itself
                 $arrayRules = ['array'];
-                if ($schema->hasValidation()) {
+                if ($schema->validation !== null) {
                     $arrayConstraints = $schema->validation->getArrayValidationRules();
                     $arrayRules = array_merge($arrayRules, $arrayConstraints);
                 }
@@ -327,7 +327,7 @@ class ValidationRuleMapper
             }
 
             // Add constraint rules
-            if ($schema->hasValidation()) {
+            if ($schema->validation !== null) {
                 $constraintRules = $schema->validation->getValidationRules($schema->type);
                 $scalarRules = array_merge($scalarRules, $constraintRules);
             }
@@ -351,7 +351,7 @@ class ValidationRuleMapper
     /**
      * Sort validation rules by priority
      *
-     * @param array<string, string> $rules
+     * @param  array<string, string>  $rules
      * @return array<string, string>
      */
     public function sortValidationRules(array $rules): array
@@ -369,7 +369,7 @@ class ValidationRuleMapper
     /**
      * Combine multiple validation rules for the same field
      *
-     * @param array<string, string> $rules
+     * @param  array<string, string>  $rules
      * @return array<string, string>
      */
     public function combineRules(array $rules): array
@@ -397,7 +397,7 @@ class ValidationRuleMapper
     /**
      * Validate that generated rules are valid Laravel validation syntax
      *
-     * @param array<string, mixed> $rules
+     * @param  array<string, mixed>  $rules
      * @return array<string>
      */
     public function validateLaravelRules(array $rules): array
@@ -405,7 +405,7 @@ class ValidationRuleMapper
         $errors = [];
 
         foreach ($rules as $field => $ruleString) {
-            if (!is_string($ruleString) || empty($ruleString)) {
+            if (! is_string($ruleString) || empty($ruleString)) {
                 $errors[] = "Invalid rule for field '{$field}': must be non-empty string";
 
                 continue;

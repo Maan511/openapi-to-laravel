@@ -26,17 +26,17 @@ class OpenApiSpecification
     /**
      * Create instance from parsed specification array
      *
-     * @param array<string, mixed> $spec
+     * @param  array<string, mixed>  $spec
      */
     public static function fromArray(array $spec, string $filePath): self
     {
         return new self(
             filePath: $filePath,
-            version: $spec['openapi'] ?? '',
-            info: $spec['info'] ?? [],
-            paths: $spec['paths'] ?? [],
-            components: $spec['components'] ?? [],
-            servers: $spec['servers'] ?? []
+            version: self::validateString($spec['openapi'] ?? '') ?? '',
+            info: self::validateArray($spec['info'] ?? []),
+            paths: self::validateArray($spec['paths'] ?? []),
+            components: self::validateArray($spec['components'] ?? []),
+            servers: self::validateArray($spec['servers'] ?? [])
         );
     }
 
@@ -45,7 +45,9 @@ class OpenApiSpecification
      */
     public function getTitle(): string
     {
-        return $this->info['title'] ?? 'Untitled API';
+        $title = $this->info['title'] ?? 'Untitled API';
+
+        return is_string($title) ? $title : 'Untitled API';
     }
 
     /**
@@ -53,7 +55,9 @@ class OpenApiSpecification
      */
     public function getSpecVersion(): string
     {
-        return $this->info['version'] ?? '1.0.0';
+        $version = $this->info['version'] ?? '1.0.0';
+
+        return is_string($version) ? $version : '1.0.0';
     }
 
     /**
@@ -61,7 +65,9 @@ class OpenApiSpecification
      */
     public function getDescription(): string
     {
-        return $this->info['description'] ?? '';
+        $description = $this->info['description'] ?? '';
+
+        return is_string($description) ? $description : '';
     }
 
     /**
@@ -81,7 +87,9 @@ class OpenApiSpecification
      */
     public function getOperationsForPath(string $path): array
     {
-        return $this->paths[$path] ?? [];
+        $operations = $this->paths[$path] ?? [];
+
+        return is_array($operations) ? $operations : [];
     }
 
     /**
@@ -91,7 +99,9 @@ class OpenApiSpecification
      */
     public function getSchemas(): array
     {
-        return $this->components['schemas'] ?? [];
+        $schemas = $this->components['schemas'] ?? [];
+
+        return is_array($schemas) ? $schemas : [];
     }
 
     /**
@@ -108,8 +118,9 @@ class OpenApiSpecification
 
         $schemaName = substr($ref, strlen('#/components/schemas/'));
         $schemas = $this->getSchemas();
+        $schema = $schemas[$schemaName] ?? null;
 
-        return $schemas[$schemaName] ?? null;
+        return is_array($schema) ? $schema : null;
     }
 
     /**
@@ -138,10 +149,12 @@ class OpenApiSpecification
         $methods = [];
 
         foreach ($this->paths as $operations) {
-            $methods = array_merge($methods, array_keys($operations));
+            if (is_array($operations)) {
+                $methods = array_merge($methods, array_keys($operations));
+            }
         }
 
-        return array_unique(array_map(fn($method): string => strtoupper((string) $method), $methods));
+        return array_unique(array_map(fn ($method): string => strtoupper((string) $method), $methods));
     }
 
     /**
@@ -152,7 +165,9 @@ class OpenApiSpecification
         $count = 0;
 
         foreach ($this->paths as $operations) {
-            $count += count($operations);
+            if (is_array($operations)) {
+                $count += count($operations);
+            }
         }
 
         return $count;
@@ -172,5 +187,35 @@ class OpenApiSpecification
             'components' => $this->components,
             'servers' => $this->servers,
         ];
+    }
+
+    /**
+     * Validate and cast to string or null
+     */
+    private static function validateString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to array
+     *
+     * @return array<string, mixed>
+     */
+    private static function validateArray(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        return [];
     }
 }

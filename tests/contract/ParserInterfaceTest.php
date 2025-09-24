@@ -15,7 +15,7 @@ use ReflectionClass;
  */
 class ParserInterfaceTest extends TestCase
 {
-    public function test_parser_class_exists()
+    public function test_parser_class_exists(): void
     {
         // Try to instantiate the parser class
         $reflection = new ReflectionClass(OpenApiParser::class);
@@ -24,14 +24,13 @@ class ParserInterfaceTest extends TestCase
         $this->assertTrue($reflection->isInstantiable());
     }
 
-    public function test_parser_can_parse_json_specification()
+    public function test_parser_can_parse_json_specification(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
-        $spec = json_encode($this->getSampleOpenApiSpec());
+        $spec = json_encode($this->getSampleOpenApiSpec()) ?: '{}';
         $result = $parser->parseFromString($spec, 'json');
 
         $this->assertInstanceOf(\Maan511\OpenapiToLaravel\Models\OpenApiSpecification::class, $result);
@@ -40,11 +39,10 @@ class ParserInterfaceTest extends TestCase
         $this->assertNotEmpty($result->paths);
     }
 
-    public function test_parser_can_parse_yaml_specification()
+    public function test_parser_can_parse_yaml_specification(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
         $specArray = $this->getSampleOpenApiSpec();
@@ -58,14 +56,13 @@ class ParserInterfaceTest extends TestCase
         $this->assertNotEmpty($result->paths);
     }
 
-    public function test_parser_validates_openapi_version()
+    public function test_parser_validates_openapi_version(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
-        $spec = json_encode(['openapi' => '2.0.0', 'info' => ['title' => 'Test', 'version' => '1.0'], 'paths' => []]);
+        $spec = json_encode(['openapi' => '2.0.0', 'info' => ['title' => 'Test', 'version' => '1.0'], 'paths' => []]) ?: '{}';
         $specification = $parser->parseFromString($spec, 'json');
 
         // Validation should warn about unsupported version
@@ -74,14 +71,13 @@ class ParserInterfaceTest extends TestCase
         $this->assertStringContainsString('2.0.0', $validation['warnings'][0]);
     }
 
-    public function test_parser_extracts_specification_metadata()
+    public function test_parser_extracts_specification_metadata(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
-        $spec = json_encode($this->getSampleOpenApiSpec());
+        $spec = json_encode($this->getSampleOpenApiSpec()) ?: '{}';
         $specification = $parser->parseFromString($spec, 'json');
 
         // Verify metadata extraction
@@ -93,14 +89,13 @@ class ParserInterfaceTest extends TestCase
         $this->assertNotEmpty($specification->components);
     }
 
-    public function test_parser_extracts_endpoint_definitions()
+    public function test_parser_extracts_endpoint_definitions(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
-        $spec = json_encode($this->getSampleOpenApiSpec());
+        $spec = json_encode($this->getSampleOpenApiSpec()) ?: '{}';
         $specification = $parser->parseFromString($spec, 'json');
         $endpoints = $parser->extractEndpoints($specification);
 
@@ -116,14 +111,13 @@ class ParserInterfaceTest extends TestCase
         $this->assertTrue($endpoint->hasRequestBody());
     }
 
-    public function test_parser_extracts_request_schemas()
+    public function test_parser_extracts_request_schemas(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
-        $spec = json_encode($this->getSampleOpenApiSpec());
+        $spec = json_encode($this->getSampleOpenApiSpec()) ?: '{}';
         $specification = $parser->parseFromString($spec, 'json');
         $endpoints = $parser->getEndpointsWithRequestBodies($specification);
 
@@ -140,7 +134,7 @@ class ParserInterfaceTest extends TestCase
         $this->assertEquals(['name', 'email'], $schema->required);
     }
 
-    public function test_parser_resolves_reference_objects()
+    public function test_parser_resolves_reference_objects(): void
     {
         // Test basic reference resolution capabilities
         $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
@@ -159,7 +153,7 @@ class ParserInterfaceTest extends TestCase
         $this->assertArrayHasKey('email', $userSchema['properties']);
     }
 
-    public function test_parser_handles_parameters_as_request_source()
+    public function test_parser_handles_parameters_as_request_source(): void
     {
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(
             new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
@@ -180,11 +174,10 @@ class ParserInterfaceTest extends TestCase
         $this->assertEquals(['id'], $schema->required);
     }
 
-    public function test_parser_validates_required_specification_sections()
+    public function test_parser_validates_required_specification_sections(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
         // Test spec missing required sections
@@ -201,11 +194,10 @@ class ParserInterfaceTest extends TestCase
         $this->assertContains('Missing required paths section', $validation['errors']);
     }
 
-    public function test_parser_handles_malformed_specifications()
+    public function test_parser_handles_malformed_specifications(): void
     {
         $parser = new OpenApiParser(
-            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver),
-            new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver
+            new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor(new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver)
         );
 
         $this->expectException(InvalidArgumentException::class);

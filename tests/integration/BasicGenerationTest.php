@@ -19,15 +19,15 @@ use Maan511\OpenapiToLaravel\Tests\TestCase;
  */
 class BasicGenerationTest extends TestCase
 {
-    public function test_complete_generation_workflow_with_simple_spec()
+    public function test_complete_generation_workflow_with_simple_spec(): void
     {
         // Create components for testing
         $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
+        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
         $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
         $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
+        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
 
         // Create a temporary OpenAPI spec file
         $tempSpecFile = $this->createTempOpenApiSpec();
@@ -62,7 +62,7 @@ class BasicGenerationTest extends TestCase
             $this->assertFileExists($generatedFile);
 
             // Verify generated content
-            $content = file_get_contents($generatedFile);
+            $content = file_get_contents($generatedFile) ?: '';
             $this->assertStringContainsString('class CreateUserRequest', $content);
             $this->assertStringContainsString('extends FormRequest', $content);
             $this->assertStringContainsString('rules()', $content);
@@ -73,7 +73,7 @@ class BasicGenerationTest extends TestCase
                 unlink($tempSpecFile);
             }
             if (is_dir($tempDir)) {
-                $files = glob($tempDir . '/*');
+                $files = glob($tempDir . '/*') ?: [];
                 foreach ($files as $file) {
                     unlink($file);
                 }
@@ -82,7 +82,7 @@ class BasicGenerationTest extends TestCase
         }
     }
 
-    public function test_generation_with_default_options()
+    public function test_generation_with_default_options(): void
     {
         $tempSpec = $this->createTempOpenApiSpec();
         $parser = $this->createParser();
@@ -107,7 +107,7 @@ class BasicGenerationTest extends TestCase
         unlink($tempSpec);
     }
 
-    public function test_generation_with_custom_output_directory()
+    public function test_generation_with_custom_output_directory(): void
     {
         $tempSpec = $this->createTempOpenApiSpec();
         $customDir = $this->createTempOutputDirectory();
@@ -137,7 +137,7 @@ class BasicGenerationTest extends TestCase
         rmdir($customDir);
     }
 
-    public function test_generation_with_custom_namespace()
+    public function test_generation_with_custom_namespace(): void
     {
         $tempSpec = $this->createTempOpenApiSpec();
         $tempDir = $this->createTempOutputDirectory();
@@ -164,7 +164,7 @@ class BasicGenerationTest extends TestCase
         rmdir($tempDir);
     }
 
-    public function test_generation_with_force_option()
+    public function test_generation_with_force_option(): void
     {
         $tempSpec = $this->createTempOpenApiSpec();
         $tempDir = $this->createTempOutputDirectory();
@@ -197,7 +197,7 @@ class BasicGenerationTest extends TestCase
         rmdir($tempDir);
     }
 
-    public function test_generation_with_dry_run_option()
+    public function test_generation_with_dry_run_option(): void
     {
         $tempSpec = $this->createTempOpenApiSpec();
         $tempDir = $this->createTempOutputDirectory();
@@ -229,7 +229,7 @@ class BasicGenerationTest extends TestCase
         rmdir($tempDir);
     }
 
-    public function test_generation_produces_valid_laravel_form_requests()
+    public function test_generation_produces_valid_laravel_form_requests(): void
     {
         $tempSpec = $this->createTempOpenApiSpec();
         $tempDir = $this->createTempOutputDirectory();
@@ -270,7 +270,7 @@ class BasicGenerationTest extends TestCase
         rmdir($tempDir);
     }
 
-    public function test_generation_handles_multiple_endpoints()
+    public function test_generation_handles_multiple_endpoints(): void
     {
         // Create a more complex OpenAPI spec with multiple endpoints
         $spec = [
@@ -346,7 +346,7 @@ class BasicGenerationTest extends TestCase
         rmdir($tempDir);
     }
 
-    public function test_generation_error_handling_for_invalid_spec()
+    public function test_generation_error_handling_for_invalid_spec(): void
     {
         $tempDir = $this->createTempOutputDirectory();
 
@@ -365,7 +365,7 @@ class BasicGenerationTest extends TestCase
         rmdir($tempDir);
     }
 
-    public function test_generation_error_handling_for_missing_spec_file()
+    public function test_generation_error_handling_for_missing_spec_file(): void
     {
         $parser = $this->createParser();
         $nonExistentFile = '/path/to/non/existent/file.json';
@@ -375,7 +375,7 @@ class BasicGenerationTest extends TestCase
         $parser->parseFromFile($nonExistentFile);
     }
 
-    public function test_generation_error_handling_for_unwritable_output_directory()
+    public function test_generation_error_handling_for_unwritable_output_directory(): void
     {
         $tempSpec = $this->createTempOpenApiSpec();
         $parser = $this->createParser();
@@ -396,7 +396,7 @@ class BasicGenerationTest extends TestCase
         unlink($tempSpec);
     }
 
-    public function test_class_naming_from_operation_id()
+    public function test_class_naming_from_operation_id(): void
     {
         // Create spec with specific operationId
         $spec = [
@@ -438,7 +438,7 @@ class BasicGenerationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_class_naming_from_path_and_method()
+    public function test_class_naming_from_path_and_method(): void
     {
         // Create spec without operationId (fallback naming)
         $spec = [
@@ -483,7 +483,7 @@ class BasicGenerationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_performance_with_medium_sized_spec()
+    public function test_performance_with_medium_sized_spec(): void
     {
         // Create a medium-sized spec with multiple endpoints
         $spec = [
@@ -597,7 +597,7 @@ class BasicGenerationTest extends TestCase
         $referenceResolver = new ReferenceResolver;
         $schemaExtractor = new SchemaExtractor($referenceResolver);
 
-        return new OpenApiParser($schemaExtractor, $referenceResolver);
+        return new OpenApiParser($schemaExtractor);
     }
 
     /**
@@ -608,6 +608,6 @@ class BasicGenerationTest extends TestCase
         $ruleMapper = new ValidationRuleMapper;
         $templateEngine = new TemplateEngine;
 
-        return new FormRequestGenerator($ruleMapper, $templateEngine);
+        return new FormRequestGenerator($ruleMapper);
     }
 }

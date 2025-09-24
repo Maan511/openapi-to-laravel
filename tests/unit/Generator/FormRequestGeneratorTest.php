@@ -3,7 +3,7 @@
 beforeEach(function () {
     $this->ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
     $this->templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-    $this->generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($this->ruleMapper, $this->templateEngine);
+    $this->generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($this->ruleMapper);
 });
 
 describe('FormRequestGenerator', function () {

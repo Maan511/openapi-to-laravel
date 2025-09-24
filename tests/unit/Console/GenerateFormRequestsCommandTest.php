@@ -201,8 +201,7 @@ describe('GenerateFormRequestsCommand', function () {
             ];
 
             $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator(
-                new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper,
-                new \Maan511\OpenapiToLaravel\Generator\TemplateEngine
+                new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper
             );
 
             $reflection = new ReflectionClass($this->command);

@@ -292,7 +292,7 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Display generation statistics
      *
-     * @param  array{totalClasses: int, totalRules: int, averageComplexity: float, estimatedTotalSize: int, namespaces: array<string>, mostComplex?: array{className: string, complexity: int}}  $stats
+     * @param  array{totalClasses: int, totalRules: int, averageComplexity: float, estimatedTotalSize: int, namespaces: array<string>, mostComplex: array{className: string, complexity: int}|null}  $stats
      */
     private function displayStats(array $stats): void
     {

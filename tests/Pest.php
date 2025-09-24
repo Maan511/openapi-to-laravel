@@ -11,7 +11,7 @@
 |
 */
 
-uses(\PHPUnit\Framework\TestCase::class)->in('contract', 'integration', 'unit');
+uses(\Maan511\OpenapiToLaravel\Tests\TestCase::class)->in('contract', 'integration', 'unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +25,7 @@ uses(\PHPUnit\Framework\TestCase::class)->in('contract', 'integration', 'unit');
 */
 
 expect()->extend('toBeOne', function () {
+    // @phpstan-ignore-next-line
     return $this->toBe(1);
 });
 
@@ -39,7 +40,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function something(): void
 {
-    // ..
+    // Helper function for tests
 }

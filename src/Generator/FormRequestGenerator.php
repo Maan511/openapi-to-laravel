@@ -27,7 +27,7 @@ class FormRequestGenerator
         string $outputDir,
         array $options = []
     ): FormRequestClass {
-        if (! $endpoint->hasRequestBody()) {
+        if (! $endpoint->hasRequestBody() || $endpoint->requestSchema === null) {
             throw new InvalidArgumentException("Endpoint {$endpoint->getDisplayName()} has no request body");
         }
 
@@ -99,7 +99,7 @@ class FormRequestGenerator
 
         foreach ($endpoints as $endpoint) {
 
-            if (! $endpoint->hasRequestBody()) {
+            if (! $endpoint->hasRequestBody() || $endpoint->requestSchema === null) {
                 continue; // Skip endpoints without request bodies
             }
 
@@ -183,7 +183,7 @@ class FormRequestGenerator
     /**
      * Generate multiple FormRequest classes and write to files
      *
-     * @param array<FormRequestClass> $formRequests
+     * @param  array<FormRequestClass>  $formRequests
      * @return array{summary: array{total: int, success: int, skipped: int, failed: int}, results: array<array{success: bool, message: string, filePath: string, className: string}>}
      */
     public function generateAndWriteMultiple(
@@ -220,7 +220,7 @@ class FormRequestGenerator
     /**
      * Dry run - show what would be generated without writing files
      *
-     * @param array<FormRequestClass> $formRequests
+     * @param  array<FormRequestClass>  $formRequests
      * @return array<array{className: string, namespace: string, filePath: string, sourceEndpoint: string, rulesCount: int, complexity: int, fileExists: bool, estimatedSize: int}>
      */
     public function dryRun(array $formRequests): array
@@ -247,7 +247,7 @@ class FormRequestGenerator
     /**
      * Validate generated FormRequest classes
      *
-     * @param array<FormRequestClass> $formRequests
+     * @param  array<FormRequestClass>  $formRequests
      * @return array{valid: bool, errors: array<string>, warnings: array<string>}
      */
     public function validate(array $formRequests): array
@@ -299,7 +299,7 @@ class FormRequestGenerator
     /**
      * Get generation statistics
      *
-     * @param array<FormRequestClass> $formRequests
+     * @param  array<FormRequestClass>  $formRequests
      * @return array{totalClasses: int, totalRules: int, totalComplexity: int, estimatedTotalSize: int, namespaces: array<string>, mostComplex: ?array{className: string, complexity: int}, averageComplexity: float}
      */
     public function getStats(array $formRequests): array

@@ -35,14 +35,16 @@ class SchemaObject
     public static function fromArray(array $schema): self
     {
         $properties = [];
-        if (isset($schema['properties'])) {
+        if (isset($schema['properties']) && is_array($schema['properties'])) {
             foreach ($schema['properties'] as $name => $propSchema) {
-                $properties[$name] = self::fromArray($propSchema);
+                if (is_string($name) && is_array($propSchema)) {
+                    $properties[$name] = self::fromArray($propSchema);
+                }
             }
         }
 
         $items = null;
-        if (isset($schema['items'])) {
+        if (isset($schema['items']) && is_array($schema['items'])) {
             $items = self::fromArray($schema['items']);
         }
 
@@ -52,15 +54,15 @@ class SchemaObject
         }
 
         return new self(
-            type: $schema['type'] ?? 'string',
-            format: $schema['format'] ?? null,
+            type: self::validateString($schema['type'] ?? 'string') ?? 'string',
+            format: self::validateString($schema['format'] ?? null),
             properties: $properties,
             items: $items,
-            required: $schema['required'] ?? [],
+            required: self::validateStringArray($schema['required'] ?? []),
             validation: $validation,
-            ref: $schema['$ref'] ?? null,
-            title: $schema['title'] ?? '',
-            description: $schema['description'] ?? ''
+            ref: self::validateString($schema['$ref'] ?? null),
+            title: self::validateString($schema['title'] ?? '') ?? '',
+            description: self::validateString($schema['description'] ?? '') ?? ''
         );
     }
 
@@ -266,7 +268,7 @@ class SchemaObject
     /**
      * Check if schema has circular references
      *
-     * @param array<string> $visited
+     * @param  array<string>  $visited
      */
     public function hasCircularReference(array $visited = []): bool
     {
@@ -323,7 +325,7 @@ class SchemaObject
     /**
      * Check if schema array has validation constraints
      *
-     * @param array<string, mixed> $schema
+     * @param  array<string, mixed>  $schema
      */
     private static function hasValidationConstraints(array $schema): bool
     {
@@ -497,5 +499,42 @@ class SchemaObject
             $validationProperty->setAccessible(true);
             $validationProperty->setValue($this, clone $this->validation);
         }
+    }
+
+    /**
+     * Validate and cast to string or null
+     */
+    private static function validateString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to string array
+     *
+     * @return array<string>
+     */
+    private static function validateStringArray(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($value as $item) {
+            if (is_string($item)) {
+                $result[] = $item;
+            }
+        }
+
+        return $result;
     }
 }
