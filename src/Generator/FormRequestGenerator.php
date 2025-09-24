@@ -13,12 +13,13 @@ use Maan511\OpenapiToLaravel\Models\SchemaObject;
 class FormRequestGenerator
 {
     public function __construct(
-        private readonly ValidationRuleMapper $ruleMapper,
-        private readonly TemplateEngine $templateEngine
+        private readonly ValidationRuleMapper $ruleMapper
     ) {}
 
     /**
      * Generate FormRequest class from endpoint and schema
+     *
+     * @param array<string, mixed> $options
      */
     public function generateFromEndpoint(
         EndpointDefinition $endpoint,
@@ -55,6 +56,8 @@ class FormRequestGenerator
 
     /**
      * Generate FormRequest class from schema directly
+     *
+     * @param array<string, mixed> $options
      */
     public function generateFromSchema(
         SchemaObject $schema,
@@ -79,6 +82,10 @@ class FormRequestGenerator
 
     /**
      * Generate multiple FormRequest classes from endpoints
+     *
+     * @param array<EndpointDefinition> $endpoints
+     * @param array<string, mixed> $options
+     * @return array<FormRequestClass>
      */
     public function generateFromEndpoints(
         array $endpoints,

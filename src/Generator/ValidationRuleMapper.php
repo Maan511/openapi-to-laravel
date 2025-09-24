@@ -12,6 +12,8 @@ class ValidationRuleMapper
 {
     /**
      * Map schema to Laravel validation rules
+     *
+     * @return array<string, ValidationRule>
      */
     public function mapSchema(SchemaObject $schema, string $fieldPrefix = ''): array
     {
@@ -30,6 +32,8 @@ class ValidationRuleMapper
 
     /**
      * Map object schema to validation rules
+     *
+     * @return array<string, ValidationRule>
      */
     public function mapObjectSchema(SchemaObject $schema, string $fieldPrefix = ''): array
     {

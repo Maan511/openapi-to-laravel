@@ -49,8 +49,7 @@ class GenerateFormRequestsCommand extends Command
             $schemaExtractor = new SchemaExtractor($referenceResolver);
             $parser = new OpenApiParser($schemaExtractor, $referenceResolver);
             $ruleMapper = new ValidationRuleMapper;
-            $templateEngine = new TemplateEngine;
-            $generator = new FormRequestGenerator($ruleMapper, $templateEngine);
+            $generator = new FormRequestGenerator($ruleMapper);
 
             if ($verbose) {
                 $this->info('Starting generation process...');
@@ -162,6 +161,9 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Validate command inputs
      */
+    /**
+     * @return array{success: bool, message?: string}
+     */
     private function validateInputs(string $specPath, string $outputDir, string $namespace, bool $dryRun = false): array
     {
         // Check spec file exists
@@ -215,6 +217,9 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Handle dry run mode
      */
+    /**
+     * @param array<\Maan511\OpenapiToLaravel\Models\FormRequestClass> $formRequests
+     */
     private function handleDryRun(array $formRequests, FormRequestGenerator $generator): int
     {
         $this->info('Dry run mode - showing what would be generated:');
@@ -249,6 +254,9 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Display generation results
      */
+    /**
+     * @param array{summary: array{total: int, success: int, skipped: int, failed: int}, results?: array<array{className: string, message: string, success: bool}>} $results
+     */
     private function displayResults(array $results, bool $verbose): void
     {
         $summary = $results['summary'];
@@ -280,6 +288,8 @@ class GenerateFormRequestsCommand extends Command
 
     /**
      * Display generation statistics
+     *
+     * @param array{totalClasses: int, totalRules: int, averageComplexity: float, estimatedTotalSize: int, namespaces: array<string>, mostComplex?: array{className: string, complexity: int}} $stats
      */
     private function displayStats(array $stats): void
     {
