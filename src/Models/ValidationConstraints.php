@@ -15,6 +15,7 @@ class ValidationConstraints
         public readonly int|float|null $minimum = null,
         public readonly int|float|null $maximum = null,
         public readonly ?string $pattern = null,
+        /** @var array<mixed>|null */
         public readonly ?array $enum = null,
         public readonly int|float|null $multipleOf = null,
         public readonly ?int $minItems = null,
@@ -26,6 +27,8 @@ class ValidationConstraints
 
     /**
      * Create instance from OpenAPI schema array
+     *
+     * @param array<string, mixed> $schema
      */
     public static function fromSchema(array $schema): self
     {
@@ -62,6 +65,8 @@ class ValidationConstraints
 
     /**
      * Get Laravel validation rules for string type
+     *
+     * @return array<string>
      */
     public function getStringValidationRules(): array
     {
@@ -89,6 +94,8 @@ class ValidationConstraints
 
     /**
      * Get Laravel validation rules for numeric type
+     *
+     * @return array<string>
      */
     public function getNumericValidationRules(): array
     {
@@ -118,6 +125,8 @@ class ValidationConstraints
 
     /**
      * Get Laravel validation rules for array type
+     *
+     * @return array<string>
      */
     public function getArrayValidationRules(): array
     {
@@ -140,6 +149,8 @@ class ValidationConstraints
 
     /**
      * Get all validation rules based on type
+     *
+     * @return array<string>
      */
     public function getValidationRules(string $type): array
     {
@@ -226,6 +237,8 @@ class ValidationConstraints
 
     /**
      * Validate pattern is a valid regex
+     *
+     * @return array<string, mixed>
      */
     public function validatePattern(): array
     {
@@ -256,6 +269,8 @@ class ValidationConstraints
 
     /**
      * Get constraint summary for debugging
+     *
+     * @return array<string>
      */
     public function getSummary(): array
     {
@@ -342,6 +357,8 @@ class ValidationConstraints
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -391,6 +408,8 @@ class ValidationConstraints
 
     /**
      * Create from array data
+     *
+     * @param array<string, mixed> $data
      */
     public static function fromArray(array $data): self
     {

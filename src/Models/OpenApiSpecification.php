@@ -10,9 +10,13 @@ class OpenApiSpecification
     public function __construct(
         public readonly string $filePath,
         public readonly string $version,
+        /** @var array<string, mixed> */
         public readonly array $info,
+        /** @var array<string, mixed> */
         public readonly array $paths,
+        /** @var array<string, mixed> */
         public readonly array $components = [],
+        /** @var array<string, mixed> */
         public readonly array $servers = []
     ) {
         // Minimal validation in constructor to allow test scenarios
@@ -21,6 +25,8 @@ class OpenApiSpecification
 
     /**
      * Create instance from parsed specification array
+     *
+     * @param array<string, mixed> $spec
      */
     public static function fromArray(array $spec, string $filePath): self
     {
@@ -60,6 +66,8 @@ class OpenApiSpecification
 
     /**
      * Get all endpoint paths
+     *
+     * @return array<string>
      */
     public function getPaths(): array
     {
@@ -68,6 +76,8 @@ class OpenApiSpecification
 
     /**
      * Get operations for a specific path
+     *
+     * @return array<string, mixed>
      */
     public function getOperationsForPath(string $path): array
     {
@@ -76,6 +86,8 @@ class OpenApiSpecification
 
     /**
      * Get all schemas from components
+     *
+     * @return array<string, mixed>
      */
     public function getSchemas(): array
     {
@@ -84,6 +96,8 @@ class OpenApiSpecification
 
     /**
      * Get schema by reference
+     *
+     * @return array<string, mixed>|null
      */
     public function getSchemaByRef(string $ref): ?array
     {
@@ -116,6 +130,8 @@ class OpenApiSpecification
 
     /**
      * Get all HTTP methods used in the specification
+     *
+     * @return array<string>
      */
     public function getAllMethods(): array
     {
@@ -125,7 +141,7 @@ class OpenApiSpecification
             $methods = array_merge($methods, array_keys($operations));
         }
 
-        return array_unique(array_map('strtoupper', $methods));
+        return array_unique(array_map(fn($method): string => strtoupper((string) $method), $methods));
     }
 
     /**
@@ -144,6 +160,8 @@ class OpenApiSpecification
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

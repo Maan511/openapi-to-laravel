@@ -15,13 +15,17 @@ class FormRequestClass
         public readonly string $className,
         public readonly string $namespace,
         public readonly string $filePath,
+        /** @var array<string, string> */
         public readonly array $validationRules,
         public readonly string $authorizationMethod = 'return true;',
         public readonly ?SchemaObject $sourceSchema = null,
         public readonly ?EndpointDefinition $endpoint = null,
+        /** @var array<string, string> */
         public readonly array $customMessages = [],
+        /** @var array<string, string> */
         public readonly array $customAttributes = [],
         public readonly ?DateTimeInterface $generatedAt = null,
+        /** @var array<string, mixed> */
         public readonly array $options = []
     ) {
         $this->validateClassName();
@@ -32,6 +36,8 @@ class FormRequestClass
 
     /**
      * Get validation rules as ValidationRule objects for testing
+     *
+     * @return array<ValidationRule>
      */
     public function getValidationRuleObjects(): array
     {
@@ -70,6 +76,14 @@ class FormRequestClass
 
     /**
      * Create instance for endpoint and schema
+     */
+    /**
+     * Create instance for endpoint and schema
+     *
+     * @param array<string, string> $validationRules
+     * @param array<string, string> $customMessages
+     * @param array<string, string> $customAttributes
+     * @param array<string, mixed> $options
      */
     public static function create(
         string $className,
@@ -350,6 +364,8 @@ class FormRequestClass
 
     /**
      * Validate FormRequest structure
+     *
+     * @return array<string, mixed>
      */
     public function validate(): array
     {
@@ -368,7 +384,7 @@ class FormRequestClass
 
         // Validate validation rules
         foreach ($this->validationRules as $field => $rules) {
-            if (! is_string($rules) || empty($rules)) {
+            if (empty($rules)) {
                 $errors[] = "Invalid validation rule for field '{$field}'";
             }
         }
@@ -443,12 +459,8 @@ class FormRequestClass
         }
 
         foreach ($this->validationRules as $field => $rules) {
-            if (! is_string($field) || empty($field)) {
-                throw new InvalidArgumentException('Field names must be non-empty strings');
-            }
-
-            if (! is_string($rules)) {
-                throw new InvalidArgumentException("Validation rules for field '{$field}' must be string");
+            if (empty($field)) {
+                throw new InvalidArgumentException('Field names cannot be empty');
             }
             // Allow empty rules - they will be caught by the validate() method
         }
@@ -456,6 +468,8 @@ class FormRequestClass
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

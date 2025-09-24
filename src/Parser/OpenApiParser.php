@@ -18,8 +18,7 @@ use Throwable;
 class OpenApiParser
 {
     public function __construct(
-        private readonly SchemaExtractor $schemaExtractor,
-        private readonly ReferenceResolver $referenceResolver
+        private readonly SchemaExtractor $schemaExtractor
     ) {}
 
     /**
@@ -83,6 +82,8 @@ class OpenApiParser
 
     /**
      * Extract all endpoints with request schemas from specification
+     *
+     * @return array<EndpointDefinition>
      */
     public function extractEndpoints(OpenApiSpecification $specification): array
     {
@@ -111,6 +112,8 @@ class OpenApiParser
 
     /**
      * Get endpoints that have request bodies (for FormRequest generation)
+     *
+     * @return array<EndpointDefinition>
      */
     public function getEndpointsWithRequestBodies(OpenApiSpecification $specification): array
     {
@@ -121,6 +124,8 @@ class OpenApiParser
 
     /**
      * Parse specification and return complete analysis
+     *
+     * @return array{specification: OpenApiSpecification, endpoints: array<EndpointDefinition>}
      */
     public function parseSpecification(string $content, string $format): array
     {
@@ -135,6 +140,8 @@ class OpenApiParser
 
     /**
      * Validate OpenAPI specification structure
+     *
+     * @return array{valid: bool, errors: array<string>, warnings: array<string>}
      */
     public function validateSpecification(OpenApiSpecification $specification): array
     {
@@ -170,6 +177,8 @@ class OpenApiParser
 
     /**
      * Get specification statistics
+     *
+     * @return array{totalEndpoints: int, endpointsWithRequestBodies: int, httpMethods: array<string>, tags: array<string>, hasComponents: bool, schemaCount: int}
      */
     public function getSpecificationStats(OpenApiSpecification $specification): array
     {
@@ -203,8 +212,14 @@ class OpenApiParser
 
         // Convert stdClass to array if necessary
         if ($specData instanceof stdClass) {
-            $specArray = json_decode(json_encode($specData), true);
+            $jsonString = json_encode($specData);
+            if ($jsonString === false) {
+                throw new InvalidArgumentException('Failed to encode OpenAPI specification to JSON');
+            }
+            /** @var array<string, mixed> $specArray */
+            $specArray = json_decode($jsonString, true);
         } else {
+            /** @var array<string, mixed> $specArray */
             $specArray = $specData;
         }
 
@@ -213,6 +228,8 @@ class OpenApiParser
 
     /**
      * Extract request schema from operation
+     *
+     * @param array<string, mixed> $operation
      */
     private function extractRequestSchema(array $operation, OpenApiSpecification $specification): ?SchemaObject
     {
@@ -259,6 +276,8 @@ class OpenApiParser
 
     /**
      * Get supported file extensions
+     *
+     * @return array<string>
      */
     public function getSupportedExtensions(): array
     {

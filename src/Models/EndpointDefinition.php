@@ -16,7 +16,9 @@ class EndpointDefinition
         public readonly ?SchemaObject $requestSchema = null,
         public readonly string $summary = '',
         public readonly string $description = '',
+        /** @var array<string> */
         public readonly array $tags = [],
+        /** @var array<string, mixed> */
         public readonly array $parameters = []
     ) {
         $this->validatePath();
@@ -26,6 +28,11 @@ class EndpointDefinition
 
     /**
      * Create instance from OpenAPI operation definition
+     */
+    /**
+     * Create instance from OpenAPI operation definition
+     *
+     * @param array<string, mixed> $operation
      */
     public static function fromOperation(
         string $path,
@@ -79,6 +86,8 @@ class EndpointDefinition
 
     /**
      * Get parameter names
+     *
+     * @return array<string>
      */
     public function getParameterNames(): array
     {
@@ -87,6 +96,8 @@ class EndpointDefinition
 
     /**
      * Get required parameter names
+     *
+     * @return array<string>
      */
     public function getRequiredParameterNames(): array
     {
@@ -135,12 +146,14 @@ class EndpointDefinition
 
     /**
      * Get path parameters (from path like /users/{id})
+     *
+     * @return array<string>
      */
     public function getPathParameters(): array
     {
         preg_match_all('/\{([^}]+)\}/', $this->path, $matches);
 
-        return $matches[1] ?? [];
+        return $matches[1];
     }
 
     /**
@@ -265,6 +278,8 @@ class EndpointDefinition
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
