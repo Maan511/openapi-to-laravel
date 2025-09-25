@@ -98,3 +98,4 @@ The project uses Laravel Pint for code formatting with custom rules defined in `
 - Customizable output directories and namespaces
 - Dry-run mode for preview
 - Performance optimized for large specifications (100+ endpoints)
+- Generate test coverage reports using: ./vendor/bin/pest --coverage (or herd coverage ./vendor/bin/pest --coverage if using Laravel Herd)

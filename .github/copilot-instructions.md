@@ -19,7 +19,7 @@ This is a PHP library that generates Laravel FormRequest classes from OpenAPI 3.
 
 ## Technical Specifications
 
-- **Language**: PHP 8.1+
+- **Language**: PHP 8.3+
 - **Framework**: Laravel (components only - illuminate/support, illuminate/console, illuminate/validation)
 - **OpenAPI Library**: cebe/php-openapi for specification parsing
 - **Testing**: PestPHP framework
@@ -30,7 +30,7 @@ This is a PHP library that generates Laravel FormRequest classes from OpenAPI 3.
 
 ### Code Standards
 - Follow Laravel Pint formatting rules defined in `pint.json`
-- Use PSR-4 autoloading with `MartinAndersen\OpenApiLaravel` namespace
+- Use PSR-4 autoloading with `Maan511\OpenapiToLaravel` namespace
 - Alpha-sort imports and use statements
 - Single space around binary operators
 - Prefer explicit type declarations where beneficial
