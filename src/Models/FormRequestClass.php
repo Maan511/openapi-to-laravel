@@ -65,7 +65,7 @@ class FormRequestClass
                 }
             }
 
-            $ruleObjects[] = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $ruleObjects[] = new ValidationRule(
                 property: $field,
                 type: $type,
                 rules: $rules,

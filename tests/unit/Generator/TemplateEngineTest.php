@@ -1,18 +1,22 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+
 beforeEach(function () {
-    $this->templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
+    $this->templateEngine = new TemplateEngine;
 });
 
 describe('TemplateEngine', function () {
     describe('renderFormRequest', function () {
         it('should render basic FormRequest template', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -31,12 +35,12 @@ describe('TemplateEngine', function () {
         });
 
         it('should render FormRequest with custom authorization', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'AuthorizedRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/AuthorizedRequest.php',
@@ -51,12 +55,12 @@ describe('TemplateEngine', function () {
         });
 
         it('should render FormRequest with custom messages', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'MessageRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/MessageRequest.php',
@@ -72,12 +76,12 @@ describe('TemplateEngine', function () {
         });
 
         it('should render FormRequest with custom attributes', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'AttributeRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/AttributeRequest.php',
@@ -93,15 +97,15 @@ describe('TemplateEngine', function () {
         });
 
         it('should handle complex validation rules formatting', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'nested' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object'),
+                    'name' => new SchemaObject(type: 'string'),
+                    'nested' => new SchemaObject(type: 'object'),
                 ]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'ComplexRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/ComplexRequest.php',
@@ -121,12 +125,12 @@ describe('TemplateEngine', function () {
         });
 
         it('should properly escape strings in templates', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'EscapeRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/EscapeRequest.php',
@@ -153,7 +157,7 @@ describe('TemplateEngine', function () {
 
         it('should throw exception for unknown template', function () {
             expect(fn () => $this->templateEngine->getTemplate('unknown_template'))
-                ->toThrow(\InvalidArgumentException::class, 'Unknown template: unknown_template');
+                ->toThrow(InvalidArgumentException::class, 'Unknown template: unknown_template');
         });
     });
 
@@ -348,7 +352,7 @@ describe('TemplateEngine', function () {
 
         it('should throw exception for unknown template type', function () {
             expect(fn () => $this->templateEngine->getAvailableVariables('unknown'))
-                ->toThrow(\InvalidArgumentException::class);
+                ->toThrow(InvalidArgumentException::class);
         });
     });
 });

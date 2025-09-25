@@ -1,14 +1,17 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+
 describe('FormRequestClass', function () {
     describe('create', function () {
         it('should create FormRequestClass with valid data', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -16,7 +19,7 @@ describe('FormRequestClass', function () {
                 sourceSchema: $schema
             );
 
-            expect($formRequest)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class);
+            expect($formRequest)->toBeInstanceOf(FormRequestClass::class);
             expect($formRequest->className)->toBe('TestRequest');
             expect($formRequest->namespace)->toBe('App\\Http\\Requests');
             expect($formRequest->filePath)->toBe('/app/Http/Requests/TestRequest.php');
@@ -25,46 +28,46 @@ describe('FormRequestClass', function () {
         });
 
         it('should throw exception for invalid class name', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            expect(fn () => FormRequestClass::create(
                 className: 'invalid-class-name',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/invalid-class-name.php',
                 validationRules: ['name' => 'required'],
                 sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Invalid class name: invalid-class-name');
+            ))->toThrow(InvalidArgumentException::class, 'Invalid class name: invalid-class-name');
         });
 
         it('should throw exception for invalid namespace', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            expect(fn () => FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'invalid-namespace',
                 filePath: '/app/Http/Requests/TestRequest.php',
                 validationRules: ['name' => 'required'],
                 sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Invalid namespace: invalid-namespace');
+            ))->toThrow(InvalidArgumentException::class, 'Invalid namespace: invalid-namespace');
         });
 
         it('should throw exception for empty validation rules', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            expect(fn () => FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
                 validationRules: [],
                 sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Validation rules cannot be empty');
+            ))->toThrow(InvalidArgumentException::class, 'Validation rules cannot be empty');
         });
 
         it('should accept custom options', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
             $options = ['authorize_return' => 'false', 'include_comments' => true];
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -79,9 +82,9 @@ describe('FormRequestClass', function () {
 
     describe('generatePhpCode', function () {
         it('should generate valid PHP code', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -101,9 +104,9 @@ describe('FormRequestClass', function () {
         });
 
         it('should include custom messages when provided', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -119,9 +122,9 @@ describe('FormRequestClass', function () {
         });
 
         it('should include custom attributes when provided', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -139,9 +142,9 @@ describe('FormRequestClass', function () {
 
     describe('getComplexity', function () {
         it('should calculate complexity based on rules and nesting', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -161,9 +164,9 @@ describe('FormRequestClass', function () {
         });
 
         it('should return 0 complexity for empty rules', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -179,9 +182,9 @@ describe('FormRequestClass', function () {
 
     describe('getEstimatedSize', function () {
         it('should estimate file size based on content', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -196,9 +199,9 @@ describe('FormRequestClass', function () {
         });
 
         it('should return larger size for more complex FormRequests', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $simpleRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $simpleRequest = FormRequestClass::create(
                 className: 'SimpleRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/SimpleRequest.php',
@@ -206,7 +209,7 @@ describe('FormRequestClass', function () {
                 sourceSchema: $schema
             );
 
-            $complexRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $complexRequest = FormRequestClass::create(
                 className: 'ComplexRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/ComplexRequest.php',
@@ -227,9 +230,9 @@ describe('FormRequestClass', function () {
 
     describe('validate', function () {
         it('should validate correct FormRequest structure', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -244,9 +247,9 @@ describe('FormRequestClass', function () {
         });
 
         it('should detect invalid validation rules', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -263,9 +266,9 @@ describe('FormRequestClass', function () {
 
     describe('toArray', function () {
         it('should convert FormRequest to array representation', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',

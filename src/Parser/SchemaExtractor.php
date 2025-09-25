@@ -5,6 +5,7 @@ namespace Maan511\OpenapiToLaravel\Parser;
 use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
 /**
  * Extracts schemas from OpenAPI operations and components
@@ -31,9 +32,9 @@ class SchemaExtractor
      *
      * @param  array<string, mixed>  $schemaData
      */
-    public function extractValidationConstraints(array $schemaData): \Maan511\OpenapiToLaravel\Models\ValidationConstraints
+    public function extractValidationConstraints(array $schemaData): ValidationConstraints
     {
-        return \Maan511\OpenapiToLaravel\Models\ValidationConstraints::fromSchema($schemaData);
+        return ValidationConstraints::fromSchema($schemaData);
     }
 
     /**

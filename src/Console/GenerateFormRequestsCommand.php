@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Console\Command;
 use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
 use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
 use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
@@ -221,7 +222,7 @@ class GenerateFormRequestsCommand extends Command
      * Handle dry run mode
      */
     /**
-     * @param  array<\Maan511\OpenapiToLaravel\Models\FormRequestClass>  $formRequests
+     * @param  array<FormRequestClass>  $formRequests
      */
     private function handleDryRun(array $formRequests, FormRequestGenerator $generator): int
     {

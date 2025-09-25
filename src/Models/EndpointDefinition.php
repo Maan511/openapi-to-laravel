@@ -9,6 +9,9 @@ use InvalidArgumentException;
  */
 class EndpointDefinition
 {
+    /**
+     * @param  array<array<string, mixed>>  $parameters
+     */
     public function __construct(
         public readonly string $path,
         public readonly string $method,
@@ -18,7 +21,7 @@ class EndpointDefinition
         public readonly string $description = '',
         /** @var array<string> */
         public readonly array $tags = [],
-        /** @var array<string, mixed> */
+        /** @var array<array<string, mixed>> */
         public readonly array $parameters = []
     ) {
         $this->validatePath();
@@ -102,7 +105,7 @@ class EndpointDefinition
     public function getRequiredParameterNames(): array
     {
         return array_column(
-            array_filter($this->parameters, fn ($param) => is_array($param) && ($param['required'] ?? false)),
+            array_filter($this->parameters, fn ($param) => $param['required'] ?? false),
             'name'
         );
     }
@@ -335,7 +338,7 @@ class EndpointDefinition
     /**
      * Validate and cast to array
      *
-     * @return array<string, mixed>
+     * @return array<array<string, mixed>>
      */
     private static function validateArray(mixed $value): array
     {

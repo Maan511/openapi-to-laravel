@@ -1,8 +1,13 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
+use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
+
 beforeEach(function () {
-    $this->referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-    $this->schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($this->referenceResolver);
+    $this->referenceResolver = new ReferenceResolver;
+    $this->schemaExtractor = new SchemaExtractor($this->referenceResolver);
 });
 
 describe('SchemaExtractor', function () {
@@ -23,14 +28,14 @@ describe('SchemaExtractor', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             $schema = $this->schemaExtractor->extractFromRequestBody($requestBody, $specification);
 
-            expect($schema)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\SchemaObject::class);
+            expect($schema)->toBeInstanceOf(SchemaObject::class);
             expect($schema->type)->toBe('object');
             expect($schema->properties)->toHaveKey('name');
             expect($schema->properties)->toHaveKey('email');
@@ -55,7 +60,7 @@ describe('SchemaExtractor', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
@@ -84,7 +89,7 @@ describe('SchemaExtractor', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
@@ -103,7 +108,7 @@ describe('SchemaExtractor', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
                 'components' => [
@@ -129,13 +134,13 @@ describe('SchemaExtractor', function () {
         it('should throw exception for missing content', function () {
             $requestBody = [];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
 
             expect(fn () => $this->schemaExtractor->extractFromRequestBody($requestBody, $specification))
-                ->toThrow(\InvalidArgumentException::class, 'No content found in request body');
+                ->toThrow(InvalidArgumentException::class, 'No content found in request body');
         });
     });
 
@@ -162,7 +167,7 @@ describe('SchemaExtractor', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
@@ -199,7 +204,7 @@ describe('SchemaExtractor', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
@@ -221,7 +226,7 @@ describe('SchemaExtractor', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
                 'components' => [
@@ -246,7 +251,7 @@ describe('SchemaExtractor', function () {
         it('should return null for empty parameters', function () {
             $parameters = [];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray([
+            $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ], 'test.json');
@@ -267,7 +272,7 @@ describe('SchemaExtractor', function () {
 
             $schema = $this->schemaExtractor->createSchemaObject($schemaData);
 
-            expect($schema)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\SchemaObject::class);
+            expect($schema)->toBeInstanceOf(SchemaObject::class);
             expect($schema->type)->toBe('string');
             expect($schema->validation->minLength)->toBe(3);
             expect($schema->validation->maxLength)->toBe(50);
@@ -529,6 +534,312 @@ describe('SchemaExtractor', function () {
 
             expect($result['valid'])->toBeFalse();
             expect($result['errors'])->toContain('Schema must have either type, properties, or items');
+        });
+    });
+
+    describe('extractFromComponents', function () {
+        it('should extract schema from component reference', function () {
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+                'components' => [
+                    'schemas' => [
+                        'User' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'id' => ['type' => 'integer'],
+                                'name' => ['type' => 'string'],
+                                'email' => ['type' => 'string', 'format' => 'email'],
+                            ],
+                            'required' => ['id', 'name'],
+                        ],
+                    ],
+                ],
+            ], 'test.json');
+
+            $schema = $this->schemaExtractor->extractFromComponents('#/components/schemas/User', $specification);
+
+            expect($schema)->toBeInstanceOf(SchemaObject::class);
+            expect($schema->type)->toBe('object');
+            expect($schema->properties)->toHaveKey('id');
+            expect($schema->properties)->toHaveKey('name');
+            expect($schema->properties)->toHaveKey('email');
+            expect($schema->required)->toBe(['id', 'name']);
+            expect($schema->properties['email']->format)->toBe('email');
+        });
+
+        it('should return null for non-existent component reference', function () {
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+                'components' => ['schemas' => []],
+            ], 'test.json');
+
+            $schema = $this->schemaExtractor->extractFromComponents('#/components/schemas/NonExistent', $specification);
+
+            expect($schema)->toBeNull();
+        });
+    });
+
+    describe('error handling edge cases', function () {
+        it('should handle request body with no schema in content', function () {
+            $requestBody = [
+                'content' => [
+                    'application/json' => [
+                        'example' => 'some example data',
+                    ],
+                ],
+            ];
+
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+            ], 'test.json');
+
+            expect(fn () => $this->schemaExtractor->extractFromRequestBody($requestBody, $specification))
+                ->toThrow(InvalidArgumentException::class, 'No content found in request body');
+        });
+
+        it('should handle parameters with missing names gracefully', function () {
+            $parameters = [
+                [
+                    'in' => 'query',
+                    'required' => true,
+                    'schema' => ['type' => 'string'],
+                ],
+                [
+                    'name' => 'valid_param',
+                    'in' => 'query',
+                    'schema' => ['type' => 'string'],
+                ],
+            ];
+
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+            ], 'test.json');
+
+            $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
+
+            expect($schema->properties)->toHaveKey('valid_param');
+            expect($schema->properties)->not->toHaveKey('');
+            expect(count($schema->properties))->toBe(1);
+        });
+
+        it('should handle parameters with default schema when missing', function () {
+            $parameters = [
+                [
+                    'name' => 'param_without_schema',
+                    'in' => 'query',
+                    'required' => false,
+                ],
+            ];
+
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+            ], 'test.json');
+
+            $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
+
+            expect($schema->properties)->toHaveKey('param_without_schema');
+            expect($schema->properties['param_without_schema']->type)->toBe('string'); // Default type
+        });
+    });
+
+    describe('complex merging scenarios', function () {
+        it('should handle merging schemas with partial properties', function () {
+            $schema1 = [
+                'type' => 'object',
+                'properties' => [
+                    'name' => ['type' => 'string'],
+                ],
+            ];
+
+            $schema2 = [
+                'type' => 'object',
+                'required' => ['name'],
+            ];
+
+            $merged = $this->schemaExtractor->mergeSchemas($schema1, $schema2);
+
+            expect($merged['type'])->toBe('object');
+            expect($merged['properties']['name']['type'])->toBe('string');
+            expect($merged['required'])->toBe(['name']);
+        });
+
+        it('should handle merging when only first schema has properties', function () {
+            $schema1 = [
+                'type' => 'object',
+                'properties' => [
+                    'name' => ['type' => 'string'],
+                ],
+                'required' => ['name'],
+            ];
+
+            $schema2 = [
+                'type' => 'object',
+                'description' => 'Updated description',
+            ];
+
+            $merged = $this->schemaExtractor->mergeSchemas($schema1, $schema2);
+
+            expect($merged['properties']['name']['type'])->toBe('string');
+            expect($merged['required'])->toBe(['name']);
+            expect($merged['description'])->toBe('Updated description');
+        });
+
+        it('should handle merging when only first schema has required fields', function () {
+            $schema1 = [
+                'type' => 'object',
+                'required' => ['existing_field'],
+            ];
+
+            $schema2 = [
+                'type' => 'object',
+                'properties' => [
+                    'new_field' => ['type' => 'string'],
+                ],
+            ];
+
+            $merged = $this->schemaExtractor->mergeSchemas($schema1, $schema2);
+
+            expect($merged['properties']['new_field']['type'])->toBe('string');
+            expect($merged['required'])->toBe(['existing_field']);
+        });
+    });
+
+    describe('additional validation edge cases', function () {
+        it('should validate schemas with items array structure', function () {
+            $schemaData = [
+                'type' => 'array',
+                'items' => 'invalid_items_format',
+            ];
+
+            $result = $this->schemaExtractor->validateSchemaData($schemaData);
+
+            expect($result['valid'])->toBeFalse();
+            expect($result['errors'])->toContain('Items must be an array');
+        });
+
+        it('should validate schemas with required field array structure', function () {
+            $schemaData = [
+                'type' => 'object',
+                'properties' => ['name' => ['type' => 'string']],
+                'required' => 'invalid_required_format',
+            ];
+
+            $result = $this->schemaExtractor->validateSchemaData($schemaData);
+
+            expect($result['valid'])->toBeFalse();
+            expect($result['errors'])->toContain('Required field must be an array');
+        });
+
+        it('should accept schema with valid type field only', function () {
+            $schemaData = ['type' => 'string'];
+
+            $result = $this->schemaExtractor->validateSchemaData($schemaData);
+
+            expect($result['valid'])->toBeTrue();
+            expect($result['errors'])->toBeEmpty();
+        });
+
+        it('should accept schema with properties only', function () {
+            $schemaData = [
+                'properties' => [
+                    'name' => ['type' => 'string'],
+                ],
+            ];
+
+            $result = $this->schemaExtractor->validateSchemaData($schemaData);
+
+            expect($result['valid'])->toBeTrue();
+            expect($result['errors'])->toBeEmpty();
+        });
+
+        it('should accept schema with items only', function () {
+            $schemaData = [
+                'items' => ['type' => 'string'],
+            ];
+
+            $result = $this->schemaExtractor->validateSchemaData($schemaData);
+
+            expect($result['valid'])->toBeTrue();
+            expect($result['errors'])->toBeEmpty();
+        });
+    });
+
+    describe('parameter extraction edge cases', function () {
+        it('should handle parameters with missing schema gracefully', function () {
+            $parameters = [
+                [
+                    'name' => 'param1',
+                    'in' => 'query',
+                    'description' => 'A parameter without schema',
+                ],
+                [
+                    'name' => 'param2',
+                    'in' => 'path',
+                    'required' => true,
+                    'schema' => ['type' => 'integer'],
+                ],
+            ];
+
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+            ], 'test.json');
+
+            $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
+
+            expect($schema->properties)->toHaveKey('param1');
+            expect($schema->properties)->toHaveKey('param2');
+            expect($schema->properties['param1']->type)->toBe('string'); // Default
+            expect($schema->properties['param2']->type)->toBe('integer');
+            expect($schema->required)->toBe(['param2']);
+        });
+
+        it('should handle parameters with missing in field', function () {
+            $parameters = [
+                [
+                    'name' => 'param1',
+                    'schema' => ['type' => 'string'],
+                ],
+            ];
+
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+            ], 'test.json');
+
+            $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
+
+            expect($schema->properties)->toHaveKey('param1'); // Defaults to 'query'
+            expect($schema->properties['param1']->type)->toBe('string');
+        });
+
+        it('should correctly parse schema for parameters', function () {
+            $parameters = [
+                [
+                    'name' => 'complex_param',
+                    'in' => 'query',
+                    'schema' => [
+                        'type' => 'string',
+                        'enum' => ['option1', 'option2'],
+                        'pattern' => '^[a-z]+$',
+                    ],
+                ],
+            ];
+
+            $specification = OpenApiSpecification::fromArray([
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+            ], 'test.json');
+
+            $schema = $this->schemaExtractor->extractFromParameters($parameters, $specification);
+
+            expect($schema->properties['complex_param']->validation->enum)->toBe(['option1', 'option2']);
+            expect($schema->properties['complex_param']->validation->pattern)->toBe('^[a-z]+$');
         });
     });
 });

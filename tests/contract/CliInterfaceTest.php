@@ -2,8 +2,16 @@
 
 namespace Maan511\OpenapiToLaravel\Tests\Contract;
 
+use Illuminate\Console\Command;
 use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand;
+use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
+use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
+use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 use Maan511\OpenapiToLaravel\Tests\TestCase;
 use ReflectionClass;
 
@@ -24,7 +32,7 @@ class CliInterfaceTest extends TestCase
         $this->assertTrue($reflection->isInstantiable());
 
         // Should extend Laravel's Command class
-        $this->assertTrue($reflection->isSubclassOf(\Illuminate\Console\Command::class));
+        $this->assertTrue($reflection->isSubclassOf(Command::class));
     }
 
     public function test_command_accepts_spec_path_argument(): void
@@ -106,10 +114,10 @@ class CliInterfaceTest extends TestCase
         $definition = $command->getDefinition();
 
         // Verify the command extends Laravel's Command class which supports verbose
-        $this->assertInstanceOf(\Illuminate\Console\Command::class, $command);
+        $this->assertInstanceOf(Command::class, $command);
 
         // Verify the command extends the correct base class with output functionality
-        $this->assertInstanceOf(\Illuminate\Console\Command::class, $command);
+        $this->assertInstanceOf(Command::class, $command);
     }
 
     public function test_command_returns_success_response_structure(): void
@@ -121,7 +129,7 @@ class CliInterfaceTest extends TestCase
         try {
             // Verify command follows Laravel command structure
             $command = new GenerateFormRequestsCommand;
-            $this->assertInstanceOf(\Illuminate\Console\Command::class, $command);
+            $this->assertInstanceOf(Command::class, $command);
 
         } finally {
             if (file_exists($tempSpec)) {
@@ -136,14 +144,19 @@ class CliInterfaceTest extends TestCase
     public function test_command_returns_error_response_for_invalid_spec(): void
     {
         // Create a temporary invalid OpenAPI spec file
-        $tempSpec = tempnam(sys_get_temp_dir(), 'invalid_spec') . '.json';
+        $tempSpec = tempnam(sys_get_temp_dir(), 'invalid_spec');
+        if ($tempSpec === false) {
+            $this->fail('tempnam() failed to create a temporary file');
+        }
+        unlink($tempSpec); // Remove the empty temp file created by tempnam()
+        $tempSpec .= '.json'; // Add .json extension
         file_put_contents($tempSpec, '{"invalid": "spec"}');
 
         try {
             // Test the parser directly since we can't easily mock Artisan
-            $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-            $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-            $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
+            $referenceResolver = new ReferenceResolver;
+            $schemaExtractor = new SchemaExtractor($referenceResolver);
+            $parser = new OpenApiParser($schemaExtractor);
 
             $specification = $parser->parseFromFile($tempSpec);
 
@@ -160,9 +173,9 @@ class CliInterfaceTest extends TestCase
     public function test_command_returns_error_response_for_missing_spec_file(): void
     {
         // Test the parser with a non-existent file
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-        $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
+        $referenceResolver = new ReferenceResolver;
+        $schemaExtractor = new SchemaExtractor($referenceResolver);
+        $parser = new OpenApiParser($schemaExtractor);
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('OpenAPI specification file not found');
         $parser->parseFromFile('/non/existent/file.json');
@@ -172,9 +185,9 @@ class CliInterfaceTest extends TestCase
     {
         // Test generation failure by providing an invalid file path that would cause write failure
         // but doesn't involve directory creation to avoid mkdir warnings
-        $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+        $schema = new SchemaObject(
             type: 'object',
-            properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+            properties: ['name' => new SchemaObject(type: 'string')]
         );
 
         // Use a path that exists but is not writable (if the system allows)
@@ -187,7 +200,7 @@ class CliInterfaceTest extends TestCase
         file_put_contents($testPath, '<?php // existing file');
 
         try {
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: $testPath,
@@ -195,8 +208,8 @@ class CliInterfaceTest extends TestCase
                 sourceSchema: $schema
             );
 
-            $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-            $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
+            $ruleMapper = new ValidationRuleMapper;
+            $generator = new FormRequestGenerator($ruleMapper);
 
             // This should fail because file exists and force=false
             $result = $generator->generateAndWrite($formRequest, false);
@@ -217,7 +230,12 @@ class CliInterfaceTest extends TestCase
 
     private function createTempSpecFile(): string
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'openapi_spec') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'openapi_spec');
+        if ($tempFile === false) {
+            $this->fail('tempnam() failed to create a temporary file');
+        }
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         $spec = [
             'openapi' => '3.0.0',
             'info' => ['title' => 'Test API', 'version' => '1.0.0'],

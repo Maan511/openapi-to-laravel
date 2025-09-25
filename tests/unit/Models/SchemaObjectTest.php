@@ -1,9 +1,12 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use Maan511\OpenapiToLaravel\Models\ValidationConstraints;
+
 describe('SchemaObject', function () {
     describe('construction', function () {
         it('should create simple schema object', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'string'
             );
 
@@ -16,10 +19,10 @@ describe('SchemaObject', function () {
         });
 
         it('should create object schema with properties', function () {
-            $nameProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $ageProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer');
+            $nameProperty = new SchemaObject(type: 'string');
+            $ageProperty = new SchemaObject(type: 'integer');
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => $nameProperty, 'age' => $ageProperty],
                 required: ['name']
@@ -34,9 +37,9 @@ describe('SchemaObject', function () {
         });
 
         it('should create array schema with items', function () {
-            $itemSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
+            $itemSchema = new SchemaObject(type: 'string');
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'array',
                 items: $itemSchema
             );
@@ -47,13 +50,13 @@ describe('SchemaObject', function () {
         });
 
         it('should create schema with validation constraints', function () {
-            $validation = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+            $validation = new ValidationConstraints(
                 minLength: 5,
                 maxLength: 100,
                 pattern: '^[a-zA-Z]+$'
             );
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'string',
                 validation: $validation
             );
@@ -65,7 +68,7 @@ describe('SchemaObject', function () {
         });
 
         it('should create schema with format', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'string',
                 format: 'email'
             );
@@ -77,14 +80,14 @@ describe('SchemaObject', function () {
 
     describe('isObject', function () {
         it('should return true for object type', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
             expect($schema->isObject())->toBeTrue();
         });
 
         it('should return false for non-object types', function () {
-            $stringSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $arraySchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'array');
+            $stringSchema = new SchemaObject(type: 'string');
+            $arraySchema = new SchemaObject(type: 'array');
 
             expect($stringSchema->isObject())->toBeFalse();
             expect($arraySchema->isObject())->toBeFalse();
@@ -93,14 +96,14 @@ describe('SchemaObject', function () {
 
     describe('isArray', function () {
         it('should return true for array type', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'array');
+            $schema = new SchemaObject(type: 'array');
 
             expect($schema->isArray())->toBeTrue();
         });
 
         it('should return false for non-array types', function () {
-            $stringSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $objectSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $stringSchema = new SchemaObject(type: 'string');
+            $objectSchema = new SchemaObject(type: 'object');
 
             expect($stringSchema->isArray())->toBeFalse();
             expect($objectSchema->isArray())->toBeFalse();
@@ -109,10 +112,10 @@ describe('SchemaObject', function () {
 
     describe('isPrimitive', function () {
         it('should return true for primitive types', function () {
-            $stringSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $integerSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer');
-            $numberSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'number');
-            $booleanSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'boolean');
+            $stringSchema = new SchemaObject(type: 'string');
+            $integerSchema = new SchemaObject(type: 'integer');
+            $numberSchema = new SchemaObject(type: 'number');
+            $booleanSchema = new SchemaObject(type: 'boolean');
 
             expect($stringSchema->isPrimitive())->toBeTrue();
             expect($integerSchema->isPrimitive())->toBeTrue();
@@ -121,8 +124,8 @@ describe('SchemaObject', function () {
         });
 
         it('should return false for complex types', function () {
-            $objectSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
-            $arraySchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'array');
+            $objectSchema = new SchemaObject(type: 'object');
+            $arraySchema = new SchemaObject(type: 'array');
 
             expect($objectSchema->isPrimitive())->toBeFalse();
             expect($arraySchema->isPrimitive())->toBeFalse();
@@ -131,8 +134,8 @@ describe('SchemaObject', function () {
 
     describe('hasValidation', function () {
         it('should return true when validation constraints exist', function () {
-            $validation = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(minLength: 5);
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $validation = new ValidationConstraints(minLength: 5);
+            $schema = new SchemaObject(
                 type: 'string',
                 validation: $validation
             );
@@ -141,7 +144,7 @@ describe('SchemaObject', function () {
         });
 
         it('should return false when no validation constraints exist', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
+            $schema = new SchemaObject(type: 'string');
 
             expect($schema->hasValidation())->toBeFalse();
         });
@@ -149,10 +152,10 @@ describe('SchemaObject', function () {
 
     describe('getProperty', function () {
         it('should return property schema by name', function () {
-            $nameProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $ageProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer');
+            $nameProperty = new SchemaObject(type: 'string');
+            $ageProperty = new SchemaObject(type: 'integer');
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => $nameProperty, 'age' => $ageProperty]
             );
@@ -162,7 +165,7 @@ describe('SchemaObject', function () {
         });
 
         it('should return null for non-existent property', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
             expect($schema->getProperty('nonexistent'))->toBeNull();
         });
@@ -170,9 +173,9 @@ describe('SchemaObject', function () {
 
     describe('hasProperty', function () {
         it('should return true for existing properties', function () {
-            $nameProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
+            $nameProperty = new SchemaObject(type: 'string');
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => $nameProperty]
             );
@@ -181,7 +184,7 @@ describe('SchemaObject', function () {
         });
 
         it('should return false for non-existing properties', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
+            $schema = new SchemaObject(type: 'object');
 
             expect($schema->hasProperty('nonexistent'))->toBeFalse();
         });
@@ -189,7 +192,7 @@ describe('SchemaObject', function () {
 
     describe('isRequired', function () {
         it('should return true for required properties', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 required: ['name', 'email']
             );
@@ -199,7 +202,7 @@ describe('SchemaObject', function () {
         });
 
         it('should return false for optional properties', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 required: ['name']
             );
@@ -210,15 +213,15 @@ describe('SchemaObject', function () {
 
     describe('getNestingLevel', function () {
         it('should return 0 for primitive schemas', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
+            $schema = new SchemaObject(type: 'string');
 
             expect($schema->getNestingLevel())->toBe(0);
         });
 
         it('should return 1 for simple object schemas', function () {
-            $nameProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
+            $nameProperty = new SchemaObject(type: 'string');
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => $nameProperty]
             );
@@ -227,17 +230,17 @@ describe('SchemaObject', function () {
         });
 
         it('should return correct level for nested object schemas', function () {
-            $bioProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $profileProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $bioProperty = new SchemaObject(type: 'string');
+            $profileProperty = new SchemaObject(
                 type: 'object',
                 properties: ['bio' => $bioProperty]
             );
-            $userProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $userProperty = new SchemaObject(
                 type: 'object',
                 properties: ['profile' => $profileProperty]
             );
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: ['user' => $userProperty]
             );
@@ -246,13 +249,13 @@ describe('SchemaObject', function () {
         });
 
         it('should handle array nesting', function () {
-            $itemProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $arrayProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $itemProperty = new SchemaObject(type: 'string');
+            $arrayProperty = new SchemaObject(
                 type: 'array',
                 items: $itemProperty
             );
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: ['tags' => $arrayProperty]
             );
@@ -263,7 +266,7 @@ describe('SchemaObject', function () {
 
     describe('toArray', function () {
         it('should convert simple schema to array', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'string',
                 format: 'email'
             );
@@ -277,10 +280,10 @@ describe('SchemaObject', function () {
         });
 
         it('should convert complex schema to array', function () {
-            $nameProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $validation = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(minLength: 2);
+            $nameProperty = new SchemaObject(type: 'string');
+            $validation = new ValidationConstraints(minLength: 2);
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => $nameProperty],
                 required: ['name'],
@@ -305,7 +308,7 @@ describe('SchemaObject', function () {
                 'format' => 'email',
             ];
 
-            $schema = \Maan511\OpenapiToLaravel\Models\SchemaObject::fromArray($data);
+            $schema = SchemaObject::fromArray($data);
 
             expect($schema->type)->toBe('string');
             expect($schema->format)->toBe('email');
@@ -321,7 +324,7 @@ describe('SchemaObject', function () {
                 'required' => ['name'],
             ];
 
-            $schema = \Maan511\OpenapiToLaravel\Models\SchemaObject::fromArray($data);
+            $schema = SchemaObject::fromArray($data);
 
             expect($schema->type)->toBe('object');
             expect($schema->properties)->toHaveKey('name');
@@ -337,7 +340,7 @@ describe('SchemaObject', function () {
                 'items' => ['type' => 'string'],
             ];
 
-            $schema = \Maan511\OpenapiToLaravel\Models\SchemaObject::fromArray($data);
+            $schema = SchemaObject::fromArray($data);
 
             expect($schema->type)->toBe('array');
             expect($schema->items)->not->toBeNull();
@@ -347,10 +350,10 @@ describe('SchemaObject', function () {
 
     describe('clone', function () {
         it('should create deep copy of schema', function () {
-            $nameProperty = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
-            $validation = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(minLength: 2);
+            $nameProperty = new SchemaObject(type: 'string');
+            $validation = new ValidationConstraints(minLength: 2);
 
-            $original = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $original = new SchemaObject(
                 type: 'object',
                 properties: ['name' => $nameProperty],
                 validation: $validation

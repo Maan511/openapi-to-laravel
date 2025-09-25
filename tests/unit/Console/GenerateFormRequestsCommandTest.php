@@ -1,13 +1,24 @@
 <?php
 
+use Illuminate\Console\OutputStyle;
+use Illuminate\Contracts\Foundation\Application;
+use Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand;
+use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Input\InputInterface;
+
 beforeEach(function () {
-    $this->command = new \Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand;
+    $this->command = new GenerateFormRequestsCommand;
 
     // Create mock application and set up command
     $this->application = Mockery::mock(\Illuminate\Console\Application::class);
-    $this->application->shouldReceive('getHelperSet')->andReturn(Mockery::mock(\Symfony\Component\Console\Helper\HelperSet::class));
+    $this->application->shouldReceive('getHelperSet')->andReturn(Mockery::mock(HelperSet::class));
 
-    $this->command->setLaravel(Mockery::mock(\Illuminate\Contracts\Foundation\Application::class));
+    $this->command->setLaravel(Mockery::mock(Application::class));
     $this->command->setApplication($this->application);
 });
 
@@ -30,7 +41,9 @@ describe('GenerateFormRequestsCommand', function () {
 
     describe('validateInputs', function () {
         it('should validate existing readable spec file', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, json_encode([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -70,7 +83,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should reject invalid namespace format', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             $reflection = new ReflectionClass($this->command);
@@ -91,7 +106,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should create output directory if it does not exist', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             $tempDir = sys_get_temp_dir() . '/test_output_' . uniqid();
@@ -116,7 +133,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should reject non-writable output directory', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             // Create a directory with no write permissions
@@ -144,7 +163,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should not create output directory in dry-run mode', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             $tempDir = sys_get_temp_dir() . '/dry_run_test_' . uniqid();
@@ -185,13 +206,13 @@ describe('GenerateFormRequestsCommand', function () {
 
     describe('handleDryRun', function () {
         it('should display dry run results without creating files', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
             $formRequests = [
-                \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+                FormRequestClass::create(
                     className: 'TestRequest',
                     namespace: 'App\\Http\\Requests',
                     filePath: '/app/Http/Requests/TestRequest.php',
@@ -200,8 +221,8 @@ describe('GenerateFormRequestsCommand', function () {
                 ),
             ];
 
-            $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator(
-                new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper
+            $generator = new FormRequestGenerator(
+                new ValidationRuleMapper
             );
 
             $reflection = new ReflectionClass($this->command);
@@ -209,12 +230,12 @@ describe('GenerateFormRequestsCommand', function () {
             $method->setAccessible(true);
 
             // Mock the console output
-            $outputMock = Mockery::mock(\Illuminate\Console\OutputStyle::class);
+            $outputMock = Mockery::mock(OutputStyle::class);
             $outputMock->shouldReceive('writeln')->andReturn(null);
             $outputMock->shouldReceive('write')->andReturn(null);
             $outputMock->shouldReceive('table')->andReturn(null);
             $outputMock->shouldReceive('info')->andReturn(null);
-            $formatterMock = Mockery::mock(\Symfony\Component\Console\Formatter\OutputFormatterInterface::class);
+            $formatterMock = Mockery::mock(OutputFormatterInterface::class);
             $formatterMock->shouldReceive('isDecorated')->andReturn(false);
             $formatterMock->shouldReceive('setDecorated')->andReturn(null);
             $formatterMock->shouldReceive('format')->andReturn('');
@@ -256,14 +277,14 @@ describe('GenerateFormRequestsCommand', function () {
             $method->setAccessible(true);
 
             // Mock the console output
-            $outputMock = Mockery::mock(\Illuminate\Console\OutputStyle::class);
+            $outputMock = Mockery::mock(OutputStyle::class);
             $outputMock->shouldReceive('writeln')->andReturn(null);
             $outputMock->shouldReceive('write')->andReturn(null);
 
             $this->command->setOutput($outputMock);
 
             // Should not throw any exceptions
-            expect(fn () => $method->invoke($this->command, $results, true))->not->toThrow(\Exception::class);
+            expect(fn () => $method->invoke($this->command, $results, true))->not->toThrow(Exception::class);
         });
     });
 
@@ -286,21 +307,23 @@ describe('GenerateFormRequestsCommand', function () {
             $method->setAccessible(true);
 
             // Mock the console output
-            $outputMock = Mockery::mock(\Illuminate\Console\OutputStyle::class);
+            $outputMock = Mockery::mock(OutputStyle::class);
             $outputMock->shouldReceive('writeln')->andReturn(null);
             $outputMock->shouldReceive('write')->andReturn(null);
 
             $this->command->setOutput($outputMock);
 
             // Should not throw any exceptions
-            expect(fn () => $method->invoke($this->command, $stats))->not->toThrow(\Exception::class);
+            expect(fn () => $method->invoke($this->command, $stats))->not->toThrow(Exception::class);
         });
     });
 
     describe('handle method flow', function () {
         it('should handle valid OpenAPI specification file', function () {
             // Create a valid OpenAPI spec file
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             $validSpec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -331,8 +354,8 @@ describe('GenerateFormRequestsCommand', function () {
             $tempDir = sys_get_temp_dir() . '/test_output_' . uniqid();
 
             // Mock console input/output
-            $inputMock = Mockery::mock(\Symfony\Component\Console\Input\InputInterface::class);
-            $outputMock = Mockery::mock(\Illuminate\Console\OutputStyle::class);
+            $inputMock = Mockery::mock(InputInterface::class);
+            $outputMock = Mockery::mock(OutputStyle::class);
 
             $inputMock->shouldReceive('getArgument')->with('spec')->andReturn($tempFile);
             $inputMock->shouldReceive('getOption')->with('output')->andReturn($tempDir);
@@ -357,12 +380,14 @@ describe('GenerateFormRequestsCommand', function () {
 
         it('should return error code for invalid specification', function () {
             // Create an invalid spec file
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, 'invalid json');
 
             // Mock console input/output
-            $inputMock = Mockery::mock(\Symfony\Component\Console\Input\InputInterface::class);
-            $outputMock = Mockery::mock(\Illuminate\Console\OutputStyle::class);
+            $inputMock = Mockery::mock(InputInterface::class);
+            $outputMock = Mockery::mock(OutputStyle::class);
 
             $inputMock->shouldReceive('getArgument')->with('spec')->andReturn($tempFile);
             $inputMock->shouldReceive('getOption')->with('output')->andReturn(sys_get_temp_dir());
@@ -389,8 +414,8 @@ describe('GenerateFormRequestsCommand', function () {
     describe('error handling', function () {
         it('should handle exceptions gracefully', function () {
             // Mock console input/output to trigger an exception
-            $inputMock = Mockery::mock(\Symfony\Component\Console\Input\InputInterface::class);
-            $outputMock = Mockery::mock(\Illuminate\Console\OutputStyle::class);
+            $inputMock = Mockery::mock(InputInterface::class);
+            $outputMock = Mockery::mock(OutputStyle::class);
 
             $inputMock->shouldReceive('getArgument')->with('spec')->andReturn('/non/existent/file.json');
             $inputMock->shouldReceive('getOption')->with('output')->andReturn(sys_get_temp_dir());

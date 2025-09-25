@@ -1,24 +1,31 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
+use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Models\EndpointDefinition;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+
 beforeEach(function () {
-    $this->ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-    $this->templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-    $this->generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($this->ruleMapper);
+    $this->ruleMapper = new ValidationRuleMapper;
+    $this->templateEngine = new TemplateEngine;
+    $this->generator = new FormRequestGenerator($this->ruleMapper);
 });
 
 describe('FormRequestGenerator', function () {
     describe('generateFromEndpoint', function () {
         it('should generate FormRequest from endpoint with request body', function () {
-            $requestSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $requestSchema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'email' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string', format: 'email'),
+                    'name' => new SchemaObject(type: 'string'),
+                    'email' => new SchemaObject(type: 'string', format: 'email'),
                 ],
                 required: ['name', 'email']
             );
 
-            $endpoint = new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+            $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
                 operationId: 'createUser',
@@ -32,7 +39,7 @@ describe('FormRequestGenerator', function () {
                 '/app/Http/Requests'
             );
 
-            expect($formRequest)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class);
+            expect($formRequest)->toBeInstanceOf(FormRequestClass::class);
             expect($formRequest->className)->toBe('CreateUserRequest');
             expect($formRequest->namespace)->toBe('App\\Http\\Requests');
             expect($formRequest->filePath)->toBe('/app/Http/Requests/CreateUserRequest.php');
@@ -41,7 +48,7 @@ describe('FormRequestGenerator', function () {
         });
 
         it('should throw exception for endpoint without request body', function () {
-            $endpoint = new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+            $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
                 operationId: 'getUsers',
@@ -52,18 +59,18 @@ describe('FormRequestGenerator', function () {
                 $endpoint,
                 'App\\Http\\Requests',
                 '/app/Http/Requests'
-            ))->toThrow(\InvalidArgumentException::class, 'has no request body');
+            ))->toThrow(InvalidArgumentException::class, 'has no request body');
         });
 
         it('should handle options parameter', function () {
-            $requestSchema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $requestSchema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
+                    'name' => new SchemaObject(type: 'string'),
                 ]
             );
 
-            $endpoint = new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+            $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
                 operationId: 'createUser',
@@ -85,11 +92,11 @@ describe('FormRequestGenerator', function () {
 
     describe('generateFromSchema', function () {
         it('should generate FormRequest from schema directly', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'title' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'content' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
+                    'title' => new SchemaObject(type: 'string'),
+                    'content' => new SchemaObject(type: 'string'),
                 ],
                 required: ['title']
             );
@@ -101,7 +108,7 @@ describe('FormRequestGenerator', function () {
                 '/app/Http/Requests'
             );
 
-            expect($formRequest)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class);
+            expect($formRequest)->toBeInstanceOf(FormRequestClass::class);
             expect($formRequest->className)->toBe('CreatePostRequest');
             expect($formRequest->namespace)->toBe('App\\Http\\Requests');
             expect($formRequest->validationRules)->toHaveKey('title');
@@ -113,24 +120,24 @@ describe('FormRequestGenerator', function () {
 
     describe('generateFromEndpoints', function () {
         it('should generate multiple FormRequests from endpoints', function () {
-            $schema1 = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema1 = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $schema2 = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema2 = new SchemaObject(
                 type: 'object',
-                properties: ['title' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['title' => new SchemaObject(type: 'string')]
             );
 
             $endpoints = [
-                new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+                new EndpointDefinition(
                     path: '/users',
                     method: 'POST',
                     operationId: 'createUser',
                     requestSchema: $schema1
                 ),
-                new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+                new EndpointDefinition(
                     path: '/posts',
                     method: 'POST',
                     operationId: 'createPost',
@@ -150,19 +157,19 @@ describe('FormRequestGenerator', function () {
         });
 
         it('should handle naming conflicts', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['data' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['data' => new SchemaObject(type: 'string')]
             );
 
             $endpoints = [
-                new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+                new EndpointDefinition(
                     path: '/users',
                     method: 'POST',
                     operationId: 'createUser',
                     requestSchema: $schema
                 ),
-                new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+                new EndpointDefinition(
                     path: '/users/{id}',
                     method: 'PUT',
                     operationId: 'createUser',  // Same operationId to create conflict
@@ -182,18 +189,18 @@ describe('FormRequestGenerator', function () {
         });
 
         it('should skip endpoints without request bodies', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
             $endpoints = [
-                new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+                new EndpointDefinition(
                     path: '/users',
                     method: 'GET',
                     operationId: 'getUsers'
                 ),
-                new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
+                new EndpointDefinition(
                     path: '/users',
                     method: 'POST',
                     operationId: 'createUser',
@@ -218,12 +225,12 @@ describe('FormRequestGenerator', function () {
             $tempDir = sys_get_temp_dir() . '/openapi_test_' . uniqid();
             mkdir($tempDir, 0755, true);
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: $tempDir . '/TestRequest.php',
@@ -253,12 +260,12 @@ describe('FormRequestGenerator', function () {
             $filePath = $tempDir . '/ExistingRequest.php';
             file_put_contents($filePath, '<?php // existing content');
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'ExistingRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: $filePath,
@@ -286,12 +293,12 @@ describe('FormRequestGenerator', function () {
             $filePath = $tempDir . '/ForceRequest.php';
             file_put_contents($filePath, '<?php // old content');
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
-            $formRequest = \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+            $formRequest = FormRequestClass::create(
                 className: 'ForceRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: $filePath,
@@ -317,20 +324,20 @@ describe('FormRequestGenerator', function () {
             $tempDir = sys_get_temp_dir() . '/openapi_test_' . uniqid();
             mkdir($tempDir, 0755, true);
 
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
             $formRequests = [
-                \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+                FormRequestClass::create(
                     className: 'FirstRequest',
                     namespace: 'App\\Http\\Requests',
                     filePath: $tempDir . '/FirstRequest.php',
                     validationRules: ['name' => 'required|string'],
                     sourceSchema: $schema
                 ),
-                \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+                FormRequestClass::create(
                     className: 'SecondRequest',
                     namespace: 'App\\Http\\Requests',
                     filePath: $tempDir . '/SecondRequest.php',
@@ -357,13 +364,13 @@ describe('FormRequestGenerator', function () {
 
     describe('validate', function () {
         it('should validate correct FormRequest classes', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
             $formRequests = [
-                \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+                FormRequestClass::create(
                     className: 'ValidRequest',
                     namespace: 'App\\Http\\Requests',
                     filePath: '/app/Http/Requests/ValidRequest.php',
@@ -378,71 +385,27 @@ describe('FormRequestGenerator', function () {
             expect($validation['errors'])->toBeEmpty();
         });
 
-        it('should detect invalid class names', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
-            );
-
-            // Test should check that the creation itself throws the exception
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
-                className: 'invalid-class-name',
-                namespace: 'App\\Http\\Requests',
-                filePath: '/app/Http/Requests/invalid-class-name.php',
-                validationRules: ['name' => 'required|string'],
-                sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Invalid class name: invalid-class-name');
-        });
-
-        it('should detect invalid namespaces', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
-            );
-
-            // Test should check that the creation itself throws the exception
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
-                className: 'TestRequest',
-                namespace: 'invalid-namespace',
-                filePath: '/app/Http/Requests/TestRequest.php',
-                validationRules: ['name' => 'required|string'],
-                sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Invalid namespace: invalid-namespace');
-        });
-
-        it('should warn about missing validation rules', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
-
-            // Test should check that the creation itself throws the exception for empty rules
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
-                className: 'EmptyRequest',
-                namespace: 'App\\Http\\Requests',
-                filePath: '/app/Http/Requests/EmptyRequest.php',
-                validationRules: [],
-                sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Validation rules cannot be empty');
-        });
     });
 
     describe('getStats', function () {
         it('should generate correct statistics', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'email' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
+                    'name' => new SchemaObject(type: 'string'),
+                    'email' => new SchemaObject(type: 'string'),
                 ]
             );
 
             $formRequests = [
-                \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+                FormRequestClass::create(
                     className: 'FirstRequest',
                     namespace: 'App\\Http\\Requests',
                     filePath: '/app/Http/Requests/FirstRequest.php',
                     validationRules: ['name' => 'required|string', 'email' => 'nullable|email'],
                     sourceSchema: $schema
                 ),
-                \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+                FormRequestClass::create(
                     className: 'SecondRequest',
                     namespace: 'App\\Http\\Requests',
                     filePath: '/app/Http/Requests/SecondRequest.php',
@@ -474,13 +437,13 @@ describe('FormRequestGenerator', function () {
 
     describe('dryRun', function () {
         it('should show what would be generated without creating files', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
+                properties: ['name' => new SchemaObject(type: 'string')]
             );
 
             $formRequests = [
-                \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+                FormRequestClass::create(
                     className: 'DryRunRequest',
                     namespace: 'App\\Http\\Requests',
                     filePath: '/app/Http/Requests/DryRunRequest.php',
