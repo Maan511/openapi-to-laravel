@@ -12,8 +12,10 @@ use RuntimeException;
  */
 class ReferenceResolver
 {
+    /** @var array<string, array<string, mixed>|null> */
     private array $resolutionCache = [];
 
+    /** @var array<string> */
     private array $resolutionStack = [];
 
     private int $maxCacheSize = 1000; // Prevent unbounded cache growth
@@ -22,6 +24,8 @@ class ReferenceResolver
 
     /**
      * Resolve a reference to its actual schema
+     *
+     * @return array<string, mixed>|null
      */
     public function resolve(string $ref, OpenApiSpecification $specification): ?array
     {
@@ -43,7 +47,7 @@ class ReferenceResolver
             $resolved = $this->resolveReference($ref, $specification);
 
             // If the resolved schema contains references, resolve them too
-            if ($resolved && is_array($resolved)) {
+            if ($resolved) {
                 $resolved = $this->resolveAllReferences($resolved, $specification);
             }
 
@@ -67,6 +71,9 @@ class ReferenceResolver
 
     /**
      * Resolve all references in a schema recursively
+     *
+     * @param  array<string, mixed>  $schema
+     * @return array<string, mixed>
      */
     public function resolveAllReferences(array $schema, OpenApiSpecification $specification, int $maxDepth = 10, int $currentDepth = 0): array
     {
@@ -132,6 +139,9 @@ class ReferenceResolver
 
     /**
      * Get all references used in a schema
+     *
+     * @param  array<string, mixed>  $schema
+     * @return array<string>
      */
     public function getReferences(array $schema): array
     {
@@ -168,6 +178,8 @@ class ReferenceResolver
 
     /**
      * Validate all references in specification
+     *
+     * @return array<string, mixed>
      */
     public function validateReferences(OpenApiSpecification $specification): array
     {
@@ -205,6 +217,8 @@ class ReferenceResolver
 
     /**
      * Flatten nested references (resolve reference chains)
+     *
+     * @return array<string, mixed>
      */
     public function flattenReferences(string $ref, OpenApiSpecification $specification): array
     {
@@ -225,6 +239,8 @@ class ReferenceResolver
 
     /**
      * Get reference path parts
+     *
+     * @return array<string>
      */
     public function parseReference(string $ref): array
     {
@@ -239,6 +255,9 @@ class ReferenceResolver
 
     /**
      * Check for circular references in schema
+     *
+     * @param  array<string, mixed>  $schema
+     * @param  array<string>  $visited
      */
     public function hasCircularReferences(array $schema, OpenApiSpecification $specification, array $visited = []): bool
     {
@@ -283,6 +302,8 @@ class ReferenceResolver
 
     /**
      * Get cache statistics
+     *
+     * @return array<string, int>
      */
     public function getCacheStats(): array
     {
@@ -296,6 +317,8 @@ class ReferenceResolver
 
     /**
      * Check if a schema object is a reference
+     *
+     * @param  mixed  $data
      */
     public function isReference($data): bool
     {
@@ -332,6 +355,8 @@ class ReferenceResolver
 
     /**
      * Extract the path components from a reference
+     *
+     * @return array<string>
      */
     public function extractReferencePath(string $ref): array
     {
@@ -350,6 +375,8 @@ class ReferenceResolver
 
     /**
      * Validate reference format and structure
+     *
+     * @return array<string, mixed>
      */
     public function validateReference(string $ref): array
     {
@@ -391,6 +418,8 @@ class ReferenceResolver
 
     /**
      * Resolve a single reference to its schema
+     *
+     * @return array<string, mixed>|null
      */
     private function resolveReference(string $ref, OpenApiSpecification $specification): ?array
     {
@@ -432,6 +461,9 @@ class ReferenceResolver
 
     /**
      * Validate references in request body
+     *
+     * @param  array<string, mixed>  $requestBody
+     * @param  array<string>  $errors
      */
     private function validateRequestBodyReferences(
         array $requestBody,

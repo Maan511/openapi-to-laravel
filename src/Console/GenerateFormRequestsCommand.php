@@ -5,7 +5,6 @@ namespace Maan511\OpenapiToLaravel\Console;
 use Exception;
 use Illuminate\Console\Command;
 use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
-use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
 use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
 use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
@@ -36,21 +35,24 @@ class GenerateFormRequestsCommand extends Command
      */
     public function handle(): int
     {
-        $specPath = $this->argument('spec');
-        $outputDir = $this->option('output');
-        $namespace = $this->option('namespace');
-        $force = $this->option('force');
-        $dryRun = $this->option('dry-run');
+        $specPathValue = $this->argument('spec');
+        $outputDirValue = $this->option('output');
+        $namespaceValue = $this->option('namespace');
+
+        $specPath = is_string($specPathValue) ? $specPathValue : '';
+        $outputDir = is_string($outputDirValue) ? $outputDirValue : './app/Http/Requests';
+        $namespace = is_string($namespaceValue) ? $namespaceValue : 'App\\Http\\Requests';
+        $force = (bool) $this->option('force');
+        $dryRun = (bool) $this->option('dry-run');
         $verbose = $this->getOutput()->isVerbose();
 
         try {
             // Initialize services
             $referenceResolver = new ReferenceResolver;
             $schemaExtractor = new SchemaExtractor($referenceResolver);
-            $parser = new OpenApiParser($schemaExtractor, $referenceResolver);
+            $parser = new OpenApiParser($schemaExtractor);
             $ruleMapper = new ValidationRuleMapper;
-            $templateEngine = new TemplateEngine;
-            $generator = new FormRequestGenerator($ruleMapper, $templateEngine);
+            $generator = new FormRequestGenerator($ruleMapper);
 
             if ($verbose) {
                 $this->info('Starting generation process...');
@@ -62,7 +64,7 @@ class GenerateFormRequestsCommand extends Command
             // Validate inputs
             $validationResult = $this->validateInputs($specPath, $outputDir, $namespace, $dryRun);
             if (! $validationResult['success']) {
-                $this->error($validationResult['message']);
+                $this->error($validationResult['message'] ?? 'Validation failed');
 
                 return 1;
             }
@@ -162,6 +164,9 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Validate command inputs
      */
+    /**
+     * @return array{success: bool, message?: string}
+     */
     private function validateInputs(string $specPath, string $outputDir, string $namespace, bool $dryRun = false): array
     {
         // Check spec file exists
@@ -215,6 +220,9 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Handle dry run mode
      */
+    /**
+     * @param  array<\Maan511\OpenapiToLaravel\Models\FormRequestClass>  $formRequests
+     */
     private function handleDryRun(array $formRequests, FormRequestGenerator $generator): int
     {
         $this->info('Dry run mode - showing what would be generated:');
@@ -249,6 +257,9 @@ class GenerateFormRequestsCommand extends Command
     /**
      * Display generation results
      */
+    /**
+     * @param  array{summary: array{total: int, success: int, skipped: int, failed: int}, results: array<array{success: bool, message: string, filePath: string, className: string}>}  $results
+     */
     private function displayResults(array $results, bool $verbose): void
     {
         $summary = $results['summary'];
@@ -280,6 +291,8 @@ class GenerateFormRequestsCommand extends Command
 
     /**
      * Display generation statistics
+     *
+     * @param  array{totalClasses: int, totalRules: int, averageComplexity: float, estimatedTotalSize: int, namespaces: array<string>, mostComplex: array{className: string, complexity: int}|null}  $stats
      */
     private function displayStats(array $stats): void
     {
@@ -291,7 +304,7 @@ class GenerateFormRequestsCommand extends Command
         $this->info('Estimated total size: ' . number_format($stats['estimatedTotalSize']) . ' bytes');
         $this->info('Namespaces used: ' . count($stats['namespaces']));
 
-        if ($stats['mostComplex']) {
+        if (isset($stats['mostComplex'])) {
             $this->info("Most complex class: {$stats['mostComplex']['className']} (score: {$stats['mostComplex']['complexity']})");
         }
     }

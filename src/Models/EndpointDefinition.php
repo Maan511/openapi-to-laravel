@@ -16,7 +16,9 @@ class EndpointDefinition
         public readonly ?SchemaObject $requestSchema = null,
         public readonly string $summary = '',
         public readonly string $description = '',
+        /** @var array<string> */
         public readonly array $tags = [],
+        /** @var array<string, mixed> */
         public readonly array $parameters = []
     ) {
         $this->validatePath();
@@ -27,6 +29,11 @@ class EndpointDefinition
     /**
      * Create instance from OpenAPI operation definition
      */
+    /**
+     * Create instance from OpenAPI operation definition
+     *
+     * @param  array<string, mixed>  $operation
+     */
     public static function fromOperation(
         string $path,
         string $method,
@@ -36,12 +43,12 @@ class EndpointDefinition
         return new self(
             path: $path,
             method: strtoupper($method),
-            operationId: $operation['operationId'] ?? self::generateOperationId($path, $method),
+            operationId: self::validateString($operation['operationId'] ?? null) ?? self::generateOperationId($path, $method),
             requestSchema: $requestSchema,
-            summary: $operation['summary'] ?? '',
-            description: $operation['description'] ?? '',
-            tags: $operation['tags'] ?? [],
-            parameters: $operation['parameters'] ?? []
+            summary: self::validateString($operation['summary'] ?? null) ?? '',
+            description: self::validateString($operation['description'] ?? null) ?? '',
+            tags: self::validateStringArray($operation['tags'] ?? []),
+            parameters: self::validateArray($operation['parameters'] ?? [])
         );
     }
 
@@ -79,6 +86,8 @@ class EndpointDefinition
 
     /**
      * Get parameter names
+     *
+     * @return array<string>
      */
     public function getParameterNames(): array
     {
@@ -87,11 +96,13 @@ class EndpointDefinition
 
     /**
      * Get required parameter names
+     *
+     * @return array<string>
      */
     public function getRequiredParameterNames(): array
     {
         return array_column(
-            array_filter($this->parameters, fn ($param) => $param['required'] ?? false),
+            array_filter($this->parameters, fn ($param) => is_array($param) && ($param['required'] ?? false)),
             'name'
         );
     }
@@ -135,12 +146,14 @@ class EndpointDefinition
 
     /**
      * Get path parameters (from path like /users/{id})
+     *
+     * @return array<string>
      */
     public function getPathParameters(): array
     {
         preg_match_all('/\{([^}]+)\}/', $this->path, $matches);
 
-        return $matches[1] ?? [];
+        return $matches[1];
     }
 
     /**
@@ -217,7 +230,7 @@ class EndpointDefinition
     private static function generateOperationId(string $path, string $method): string
     {
         // Remove path parameters and convert to camelCase
-        $cleanPath = preg_replace('/\{[^}]+\}/', 'Id', $path);
+        $cleanPath = preg_replace('/\{[^}]+\}/', 'Id', $path) ?? $path;
         $parts = explode('/', trim($cleanPath, '/'));
         $parts = array_filter($parts); // Remove empty parts
 
@@ -235,7 +248,7 @@ class EndpointDefinition
     private function convertToPascalCase(string $string): string
     {
         // Handle camelCase and snake_case
-        $string = preg_replace('/[_\-]/', ' ', $string);
+        $string = preg_replace('/[_\-]/', ' ', $string) ?? $string;
         $string = ucwords($string);
 
         return str_replace(' ', '', $string);
@@ -265,6 +278,8 @@ class EndpointDefinition
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -278,5 +293,56 @@ class EndpointDefinition
             'parameters' => $this->parameters,
             'requestSchema' => $this->requestSchema?->toArray(),
         ];
+    }
+
+    /**
+     * Validate and cast to string or null
+     */
+    private static function validateString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to string array
+     *
+     * @return array<string>
+     */
+    private static function validateStringArray(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($value as $item) {
+            if (is_string($item)) {
+                $result[] = $item;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Validate and cast to array
+     *
+     * @return array<string, mixed>
+     */
+    private static function validateArray(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        return [];
     }
 }

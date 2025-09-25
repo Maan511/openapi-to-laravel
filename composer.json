@@ -29,12 +29,18 @@
     "require-dev": {
         "pestphp/pest": "^4.1",
         "laravel/pint": "^1.25",
-        "mockery/mockery": "^1.5"
+        "mockery/mockery": "^1.5",
+        "larastan/larastan": "^3.7"
     },
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
+    },
+    "scripts": {
+        "test": "./vendor/bin/pest",
+        "format": "./vendor/bin/pint",
+        "analyse": "./vendor/bin/phpstan analyse --memory-limit=2G"
     },
     "extra": {
         "laravel": {

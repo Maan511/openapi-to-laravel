@@ -10,9 +10,13 @@ class OpenApiSpecification
     public function __construct(
         public readonly string $filePath,
         public readonly string $version,
+        /** @var array<string, mixed> */
         public readonly array $info,
+        /** @var array<string, mixed> */
         public readonly array $paths,
+        /** @var array<string, mixed> */
         public readonly array $components = [],
+        /** @var array<string, mixed> */
         public readonly array $servers = []
     ) {
         // Minimal validation in constructor to allow test scenarios
@@ -21,16 +25,18 @@ class OpenApiSpecification
 
     /**
      * Create instance from parsed specification array
+     *
+     * @param  array<string, mixed>  $spec
      */
     public static function fromArray(array $spec, string $filePath): self
     {
         return new self(
             filePath: $filePath,
-            version: $spec['openapi'] ?? '',
-            info: $spec['info'] ?? [],
-            paths: $spec['paths'] ?? [],
-            components: $spec['components'] ?? [],
-            servers: $spec['servers'] ?? []
+            version: self::validateString($spec['openapi'] ?? '') ?? '',
+            info: self::validateArray($spec['info'] ?? []),
+            paths: self::validateArray($spec['paths'] ?? []),
+            components: self::validateArray($spec['components'] ?? []),
+            servers: self::validateArray($spec['servers'] ?? [])
         );
     }
 
@@ -39,7 +45,9 @@ class OpenApiSpecification
      */
     public function getTitle(): string
     {
-        return $this->info['title'] ?? 'Untitled API';
+        $title = $this->info['title'] ?? 'Untitled API';
+
+        return is_string($title) ? $title : 'Untitled API';
     }
 
     /**
@@ -47,7 +55,9 @@ class OpenApiSpecification
      */
     public function getSpecVersion(): string
     {
-        return $this->info['version'] ?? '1.0.0';
+        $version = $this->info['version'] ?? '1.0.0';
+
+        return is_string($version) ? $version : '1.0.0';
     }
 
     /**
@@ -55,11 +65,15 @@ class OpenApiSpecification
      */
     public function getDescription(): string
     {
-        return $this->info['description'] ?? '';
+        $description = $this->info['description'] ?? '';
+
+        return is_string($description) ? $description : '';
     }
 
     /**
      * Get all endpoint paths
+     *
+     * @return array<string>
      */
     public function getPaths(): array
     {
@@ -68,22 +82,32 @@ class OpenApiSpecification
 
     /**
      * Get operations for a specific path
+     *
+     * @return array<string, mixed>
      */
     public function getOperationsForPath(string $path): array
     {
-        return $this->paths[$path] ?? [];
+        $operations = $this->paths[$path] ?? [];
+
+        return is_array($operations) ? $operations : [];
     }
 
     /**
      * Get all schemas from components
+     *
+     * @return array<string, mixed>
      */
     public function getSchemas(): array
     {
-        return $this->components['schemas'] ?? [];
+        $schemas = $this->components['schemas'] ?? [];
+
+        return is_array($schemas) ? $schemas : [];
     }
 
     /**
      * Get schema by reference
+     *
+     * @return array<string, mixed>|null
      */
     public function getSchemaByRef(string $ref): ?array
     {
@@ -94,8 +118,9 @@ class OpenApiSpecification
 
         $schemaName = substr($ref, strlen('#/components/schemas/'));
         $schemas = $this->getSchemas();
+        $schema = $schemas[$schemaName] ?? null;
 
-        return $schemas[$schemaName] ?? null;
+        return is_array($schema) ? $schema : null;
     }
 
     /**
@@ -116,16 +141,20 @@ class OpenApiSpecification
 
     /**
      * Get all HTTP methods used in the specification
+     *
+     * @return array<string>
      */
     public function getAllMethods(): array
     {
         $methods = [];
 
         foreach ($this->paths as $operations) {
-            $methods = array_merge($methods, array_keys($operations));
+            if (is_array($operations)) {
+                $methods = array_merge($methods, array_keys($operations));
+            }
         }
 
-        return array_unique(array_map('strtoupper', $methods));
+        return array_unique(array_map(fn ($method): string => strtoupper((string) $method), $methods));
     }
 
     /**
@@ -136,7 +165,9 @@ class OpenApiSpecification
         $count = 0;
 
         foreach ($this->paths as $operations) {
-            $count += count($operations);
+            if (is_array($operations)) {
+                $count += count($operations);
+            }
         }
 
         return $count;
@@ -144,6 +175,8 @@ class OpenApiSpecification
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -154,5 +187,35 @@ class OpenApiSpecification
             'components' => $this->components,
             'servers' => $this->servers,
         ];
+    }
+
+    /**
+     * Validate and cast to string or null
+     */
+    private static function validateString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to array
+     *
+     * @return array<string, mixed>
+     */
+    private static function validateArray(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        return [];
     }
 }

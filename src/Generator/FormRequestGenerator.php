@@ -13,12 +13,13 @@ use Maan511\OpenapiToLaravel\Models\SchemaObject;
 class FormRequestGenerator
 {
     public function __construct(
-        private readonly ValidationRuleMapper $ruleMapper,
-        private readonly TemplateEngine $templateEngine
+        private readonly ValidationRuleMapper $ruleMapper
     ) {}
 
     /**
      * Generate FormRequest class from endpoint and schema
+     *
+     * @param  array<string, mixed>  $options
      */
     public function generateFromEndpoint(
         EndpointDefinition $endpoint,
@@ -26,7 +27,7 @@ class FormRequestGenerator
         string $outputDir,
         array $options = []
     ): FormRequestClass {
-        if (! $endpoint->hasRequestBody()) {
+        if (! $endpoint->hasRequestBody() || $endpoint->requestSchema === null) {
             throw new InvalidArgumentException("Endpoint {$endpoint->getDisplayName()} has no request body");
         }
 
@@ -55,6 +56,8 @@ class FormRequestGenerator
 
     /**
      * Generate FormRequest class from schema directly
+     *
+     * @param  array<string, mixed>  $options
      */
     public function generateFromSchema(
         SchemaObject $schema,
@@ -79,6 +82,10 @@ class FormRequestGenerator
 
     /**
      * Generate multiple FormRequest classes from endpoints
+     *
+     * @param  array<EndpointDefinition>  $endpoints
+     * @param  array<string, mixed>  $options
+     * @return array<FormRequestClass>
      */
     public function generateFromEndpoints(
         array $endpoints,
@@ -86,15 +93,13 @@ class FormRequestGenerator
         string $outputDir,
         array $options = []
     ): array {
+
         $formRequests = [];
         $classNames = [];
 
         foreach ($endpoints as $endpoint) {
-            if (! $endpoint instanceof EndpointDefinition) {
-                throw new InvalidArgumentException('All items must be EndpointDefinition instances');
-            }
 
-            if (! $endpoint->hasRequestBody()) {
+            if (! $endpoint->hasRequestBody() || $endpoint->requestSchema === null) {
                 continue; // Skip endpoints without request bodies
             }
 
@@ -128,6 +133,8 @@ class FormRequestGenerator
 
     /**
      * Generate and write FormRequest class to file
+     *
+     * @return array{success: bool, message: string, filePath: string, className: string}
      */
     public function generateAndWrite(
         FormRequestClass $formRequest,
@@ -175,6 +182,9 @@ class FormRequestGenerator
 
     /**
      * Generate multiple FormRequest classes and write to files
+     *
+     * @param  array<FormRequestClass>  $formRequests
+     * @return array{summary: array{total: int, success: int, skipped: int, failed: int}, results: array<array{success: bool, message: string, filePath: string, className: string}>}
      */
     public function generateAndWriteMultiple(
         array $formRequests,
@@ -189,18 +199,6 @@ class FormRequestGenerator
         ];
 
         foreach ($formRequests as $formRequest) {
-            if (! $formRequest instanceof FormRequestClass) {
-                $results[] = [
-                    'success' => false,
-                    'message' => 'Invalid FormRequestClass instance',
-                    'filePath' => '',
-                    'className' => '',
-                ];
-                $summary['failed']++;
-
-                continue;
-            }
-
             $result = $this->generateAndWrite($formRequest, $force);
             $results[] = $result;
 
@@ -221,15 +219,15 @@ class FormRequestGenerator
 
     /**
      * Dry run - show what would be generated without writing files
+     *
+     * @param  array<FormRequestClass>  $formRequests
+     * @return array<array{className: string, namespace: string, filePath: string, sourceEndpoint: string, rulesCount: int, complexity: int, fileExists: bool, estimatedSize: int}>
      */
     public function dryRun(array $formRequests): array
     {
         $results = [];
 
         foreach ($formRequests as $formRequest) {
-            if (! $formRequest instanceof FormRequestClass) {
-                continue;
-            }
 
             $results[] = [
                 'className' => $formRequest->className,
@@ -248,6 +246,9 @@ class FormRequestGenerator
 
     /**
      * Validate generated FormRequest classes
+     *
+     * @param  array<FormRequestClass>  $formRequests
+     * @return array{valid: bool, errors: array<string>, warnings: array<string>}
      */
     public function validate(array $formRequests): array
     {
@@ -255,11 +256,6 @@ class FormRequestGenerator
         $warnings = [];
 
         foreach ($formRequests as $formRequest) {
-            if (! $formRequest instanceof FormRequestClass) {
-                $errors[] = 'Invalid FormRequestClass instance';
-
-                continue;
-            }
 
             // Validate class name
             if (! preg_match('/^[A-Z][a-zA-Z0-9]*Request$/', $formRequest->className)) {
@@ -302,6 +298,9 @@ class FormRequestGenerator
 
     /**
      * Get generation statistics
+     *
+     * @param  array<FormRequestClass>  $formRequests
+     * @return array{totalClasses: int, totalRules: int, totalComplexity: int, estimatedTotalSize: int, namespaces: array<string>, mostComplex: ?array{className: string, complexity: int}, averageComplexity: float}
      */
     public function getStats(array $formRequests): array
     {
@@ -318,10 +317,6 @@ class FormRequestGenerator
         $complexities = [];
 
         foreach ($formRequests as $formRequest) {
-            if (! $formRequest instanceof FormRequestClass) {
-                continue;
-            }
-
             $stats['totalRules'] += $formRequest->getValidationRulesCount();
             $complexity = $formRequest->getComplexityScore();
             $stats['totalComplexity'] += $complexity;
@@ -360,6 +355,8 @@ class FormRequestGenerator
 
     /**
      * Resolve naming conflicts by appending method or path info
+     *
+     * @param  array<string>  $existingNames
      */
     private function resolveNamingConflict(
         string $className,

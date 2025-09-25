@@ -103,10 +103,10 @@ describe('Large OpenAPI Specification Performance', function () {
         // Initialize services
         $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
+        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
         $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
         $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
+        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
 
         // Parse specification
         $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
@@ -213,10 +213,10 @@ describe('Large OpenAPI Specification Performance', function () {
         // Initialize services
         $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
+        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
         $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
         $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
+        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
 
         // Parse and generate
         $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
@@ -340,10 +340,10 @@ describe('Large OpenAPI Specification Performance', function () {
         // Initialize services
         $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
+        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
         $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
         $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
+        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
 
         // Parse and generate
         $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'large-test-spec.json');

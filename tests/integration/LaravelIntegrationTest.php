@@ -18,7 +18,7 @@ use Maan511\OpenapiToLaravel\Tests\TestCase;
  */
 class LaravelIntegrationTest extends TestCase
 {
-    public function test_generated_form_request_extends_laravel_form_request()
+    public function test_generated_form_request_extends_laravel_form_request(): void
     {
         // Create temp spec and generate FormRequest
         $spec = [
@@ -69,7 +69,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_implements_rules_method()
+    public function test_generated_form_request_implements_rules_method(): void
     {
         // Create temp spec and generate FormRequest
         $spec = [
@@ -125,7 +125,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_implements_authorize_method()
+    public function test_generated_form_request_implements_authorize_method(): void
     {
         // Create temp spec and generate FormRequest
         $spec = [
@@ -173,7 +173,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_can_be_used_in_controller()
+    public function test_generated_form_request_can_be_used_in_controller(): void
     {
         // This test verifies the structure is correct for controller usage
         $spec = [
@@ -224,7 +224,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_validation_works()
+    public function test_generated_form_request_validation_works(): void
     {
         // Create spec with comprehensive validation rules
         $spec = [
@@ -311,7 +311,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_supports_custom_messages()
+    public function test_generated_form_request_supports_custom_messages(): void
     {
         // Create spec with descriptions that should become custom messages
         $spec = [
@@ -394,7 +394,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_supports_custom_attributes()
+    public function test_generated_form_request_supports_custom_attributes(): void
     {
         // Create spec with titles that should become custom attribute names
         $spec = [
@@ -485,7 +485,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_follows_laravel_naming_conventions()
+    public function test_generated_form_request_follows_laravel_naming_conventions(): void
     {
         // Create spec with different operation IDs to test naming
         $spec = [
@@ -552,7 +552,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_handles_file_uploads()
+    public function test_generated_form_request_handles_file_uploads(): void
     {
         // Create spec with file upload fields
         $spec = [
@@ -645,7 +645,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_handles_nested_validation()
+    public function test_generated_form_request_handles_nested_validation(): void
     {
         // Create spec with nested objects
         $spec = [
@@ -752,7 +752,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_works_with_laravel_validation()
+    public function test_generated_form_request_works_with_laravel_validation(): void
     {
         // Create comprehensive spec to test Laravel validation integration
         $spec = [
@@ -841,7 +841,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_supports_conditional_validation()
+    public function test_generated_form_request_supports_conditional_validation(): void
     {
         // Create spec with conditional validation scenarios
         $spec = [
@@ -934,7 +934,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_performance_in_laravel()
+    public function test_generated_form_request_performance_in_laravel(): void
     {
         // Create large spec to test performance
         $properties = [];
@@ -1011,7 +1011,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_error_handling()
+    public function test_generated_form_request_error_handling(): void
     {
         // Create spec that might trigger edge cases
         $spec = [
@@ -1088,7 +1088,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_middleware_compatibility()
+    public function test_generated_form_request_middleware_compatibility(): void
     {
         // Create spec to test middleware compatibility
         $spec = [
@@ -1174,7 +1174,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_api_resource_compatibility()
+    public function test_generated_form_request_api_resource_compatibility(): void
     {
         // Create spec that would work with API resources
         $spec = [
@@ -1275,7 +1275,7 @@ class LaravelIntegrationTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generated_form_request_testing_support()
+    public function test_generated_form_request_testing_support(): void
     {
         // Create spec for testing integration
         $spec = [
@@ -1377,7 +1377,7 @@ class LaravelIntegrationTest extends TestCase
         $referenceResolver = new ReferenceResolver;
         $schemaExtractor = new SchemaExtractor($referenceResolver);
 
-        return new OpenApiParser($schemaExtractor, $referenceResolver);
+        return new OpenApiParser($schemaExtractor);
     }
 
     /**
@@ -1388,11 +1388,16 @@ class LaravelIntegrationTest extends TestCase
         $ruleMapper = new ValidationRuleMapper;
         $templateEngine = new TemplateEngine;
 
-        return new FormRequestGenerator($ruleMapper, $templateEngine);
+        return new FormRequestGenerator($ruleMapper);
     }
 
     /**
      * Helper method to simulate a Laravel request with data
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     *
+     * @phpstan-ignore-next-line method.unused
      */
     private function createLaravelRequest(array $data): array
     {
@@ -1408,6 +1413,10 @@ class LaravelIntegrationTest extends TestCase
 
     /**
      * Helper method to get valid request data for testing
+     *
+     * @return array<string, mixed>
+     *
+     * @phpstan-ignore-next-line method.unused
      */
     private function getValidRequestData(): array
     {
@@ -1427,6 +1436,10 @@ class LaravelIntegrationTest extends TestCase
 
     /**
      * Helper method to get invalid request data for testing
+     *
+     * @return array<string, mixed>
+     *
+     * @phpstan-ignore-next-line method.unused
      */
     private function getInvalidRequestData(): array
     {

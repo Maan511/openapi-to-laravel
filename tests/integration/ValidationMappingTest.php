@@ -23,7 +23,7 @@ class ValidationMappingTest extends TestCase
         $referenceResolver = new ReferenceResolver;
         $schemaExtractor = new SchemaExtractor($referenceResolver);
 
-        return new OpenApiParser($schemaExtractor, $referenceResolver);
+        return new OpenApiParser($schemaExtractor);
     }
 
     protected function createGenerator(): FormRequestGenerator
@@ -31,10 +31,10 @@ class ValidationMappingTest extends TestCase
         $ruleMapper = new ValidationRuleMapper;
         $templateEngine = new TemplateEngine;
 
-        return new FormRequestGenerator($ruleMapper, $templateEngine);
+        return new FormRequestGenerator($ruleMapper);
     }
 
-    public function test_string_constraint_mapping()
+    public function test_string_constraint_mapping(): void
     {
         // Test basic string constraint mapping
         $spec = [
@@ -123,7 +123,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_numeric_constraint_mapping()
+    public function test_numeric_constraint_mapping(): void
     {
         // Test numeric constraint mapping
         $spec = [
@@ -198,7 +198,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_array_constraint_mapping()
+    public function test_array_constraint_mapping(): void
     {
         // Test array constraint mapping
         $spec = [
@@ -265,7 +265,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_object_constraint_mapping()
+    public function test_object_constraint_mapping(): void
     {
         // Test object constraint mapping
         $spec = [
@@ -328,7 +328,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_boolean_constraint_mapping()
+    public function test_boolean_constraint_mapping(): void
     {
         // Test boolean constraint mapping
         $spec = [
@@ -387,7 +387,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_required_field_mapping()
+    public function test_required_field_mapping(): void
     {
         // Test required field mapping
         $spec = [
@@ -446,7 +446,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_nested_object_mapping()
+    public function test_nested_object_mapping(): void
     {
         // Test nested object validation mapping
         $spec = [
@@ -538,7 +538,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_array_of_objects_mapping()
+    public function test_array_of_objects_mapping(): void
     {
         // Test array of objects validation mapping
         $spec = [
@@ -632,7 +632,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_complex_format_mapping()
+    public function test_complex_format_mapping(): void
     {
         // Test comprehensive format mapping
         $spec = [
@@ -747,7 +747,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_pattern_regex_mapping()
+    public function test_pattern_regex_mapping(): void
     {
         // Test regex pattern mapping
         $spec = [
@@ -833,7 +833,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_enum_value_mapping()
+    public function test_enum_value_mapping(): void
     {
         // Test enum value mapping
         $spec = [
@@ -903,7 +903,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_combined_constraint_mapping()
+    public function test_combined_constraint_mapping(): void
     {
         // Test multiple constraints on single field
         $spec = [
@@ -1013,7 +1013,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_nullable_field_mapping()
+    public function test_nullable_field_mapping(): void
     {
         // Test nullable field mapping
         $spec = [
@@ -1077,7 +1077,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_default_value_handling()
+    public function test_default_value_handling(): void
     {
         // Test default value handling
         $spec = [
@@ -1140,7 +1140,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_validation_rule_order()
+    public function test_validation_rule_order(): void
     {
         // Test proper rule ordering
         $spec = [
@@ -1229,7 +1229,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_unsupported_constraint_handling()
+    public function test_unsupported_constraint_handling(): void
     {
         // Test handling of unsupported OpenAPI constraints
         $spec = [
@@ -1323,7 +1323,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_custom_validation_rule_generation()
+    public function test_custom_validation_rule_generation(): void
     {
         // Test custom Laravel validation rule handling for complex constraints
         $spec = [
@@ -1406,7 +1406,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_validation_message_customization()
+    public function test_validation_message_customization(): void
     {
         // Test custom validation message handling
         $spec = [
@@ -1499,7 +1499,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_field_attribute_name_customization()
+    public function test_field_attribute_name_customization(): void
     {
         // Test custom field attribute name handling
         $spec = [
@@ -1603,7 +1603,7 @@ class ValidationMappingTest extends TestCase
         }
     }
 
-    public function test_validation_mapping_performance()
+    public function test_validation_mapping_performance(): void
     {
         // Test mapping performance with large schema
         $properties = [];
@@ -1733,6 +1733,10 @@ class ValidationMappingTest extends TestCase
 
     /**
      * Helper method to get a comprehensive validation schema for testing
+     *
+     * @return array<string, mixed>
+     *
+     * @phpstan-ignore-next-line method.unused
      */
     private function getComprehensiveValidationSchema(): array
     {

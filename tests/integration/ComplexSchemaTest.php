@@ -13,7 +13,7 @@ use Maan511\OpenapiToLaravel\Tests\TestCase;
  */
 class ComplexSchemaTest extends TestCase
 {
-    public function test_generation_with_nested_objects()
+    public function test_generation_with_nested_objects(): void
     {
         // Create spec with nested objects
         $spec = [
@@ -91,7 +91,7 @@ class ComplexSchemaTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generation_with_array_validation()
+    public function test_generation_with_array_validation(): void
     {
         // Create spec with array validation
         $spec = [
@@ -157,7 +157,7 @@ class ComplexSchemaTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generation_with_reference_objects()
+    public function test_generation_with_reference_objects(): void
     {
         $spec = [
             'openapi' => '3.0.0',
@@ -230,7 +230,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_all_validation_types()
+    public function test_generation_with_all_validation_types(): void
     {
         $spec = [
             'openapi' => '3.0.0',
@@ -336,7 +336,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_conditional_validation()
+    public function test_generation_with_conditional_validation(): void
     {
         $spec = [
             'openapi' => '3.0.0',
@@ -420,7 +420,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_format_constraints()
+    public function test_generation_with_format_constraints(): void
     {
         // Create spec with various format constraints
         $spec = [
@@ -479,7 +479,7 @@ class ComplexSchemaTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generation_with_enum_constraints()
+    public function test_generation_with_enum_constraints(): void
     {
         // Create spec with enum constraints
         $spec = [
@@ -540,7 +540,7 @@ class ComplexSchemaTest extends TestCase
         unlink($tempFile);
     }
 
-    public function test_generation_with_pattern_constraints()
+    public function test_generation_with_pattern_constraints(): void
     {
         // Test regex pattern mapping
         $spec = [
@@ -613,7 +613,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_deeply_nested_structures()
+    public function test_generation_with_deeply_nested_structures(): void
     {
         // Test multiple nesting levels (4+ levels deep)
         $spec = [
@@ -736,7 +736,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_mixed_data_types()
+    public function test_generation_with_mixed_data_types(): void
     {
         // Test complex mixed structures with all data types
         $spec = [
@@ -889,7 +889,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_optional_and_required_fields()
+    public function test_generation_with_optional_and_required_fields(): void
     {
         // Test required vs optional fields
         $spec = [
@@ -992,7 +992,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_additional_properties()
+    public function test_generation_with_additional_properties(): void
     {
         // Test additionalProperties handling
         $spec = [
@@ -1057,7 +1057,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_large_schema()
+    public function test_generation_with_large_schema(): void
     {
         // Test performance with large schemas
         $properties = [];
@@ -1161,7 +1161,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_error_handling_for_unsupported_features()
+    public function test_generation_error_handling_for_unsupported_features(): void
     {
         // Test unsupported OpenAPI features
         $spec = [
@@ -1238,7 +1238,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_example_values()
+    public function test_generation_with_example_values(): void
     {
         // Test example values in schemas
         $spec = [
@@ -1334,7 +1334,7 @@ class ComplexSchemaTest extends TestCase
         }
     }
 
-    public function test_generation_with_description_and_title()
+    public function test_generation_with_description_and_title(): void
     {
         // Test schema metadata (title and description)
         $spec = [
@@ -1434,6 +1434,10 @@ class ComplexSchemaTest extends TestCase
 
     /**
      * Helper method to get a complex OpenAPI specification for testing
+     *
+     * @return array<string, mixed>
+     *
+     * @phpstan-ignore-next-line method.unused
      */
     private function getComplexNestedSchema(): array
     {
@@ -1528,7 +1532,7 @@ class ComplexSchemaTest extends TestCase
         $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
         $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
 
-        return new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor, $referenceResolver);
+        return new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
     }
 
     /**
@@ -1539,6 +1543,6 @@ class ComplexSchemaTest extends TestCase
         $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
         $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
 
-        return new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper, $templateEngine);
+        return new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
     }
 }

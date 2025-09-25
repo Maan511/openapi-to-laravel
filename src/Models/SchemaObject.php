@@ -13,8 +13,10 @@ class SchemaObject
     public function __construct(
         public readonly string $type,
         public readonly ?string $format = null,
+        /** @var array<string, SchemaObject> */
         public readonly array $properties = [],
         public readonly ?self $items = null,
+        /** @var array<string> */
         public readonly array $required = [],
         public readonly ?ValidationConstraints $validation = null,
         public readonly ?string $ref = null,
@@ -27,18 +29,22 @@ class SchemaObject
 
     /**
      * Create instance from OpenAPI schema array
+     *
+     * @param  array<string, mixed>  $schema
      */
     public static function fromArray(array $schema): self
     {
         $properties = [];
-        if (isset($schema['properties'])) {
+        if (isset($schema['properties']) && is_array($schema['properties'])) {
             foreach ($schema['properties'] as $name => $propSchema) {
-                $properties[$name] = self::fromArray($propSchema);
+                if (is_string($name) && is_array($propSchema)) {
+                    $properties[$name] = self::fromArray($propSchema);
+                }
             }
         }
 
         $items = null;
-        if (isset($schema['items'])) {
+        if (isset($schema['items']) && is_array($schema['items'])) {
             $items = self::fromArray($schema['items']);
         }
 
@@ -48,15 +54,15 @@ class SchemaObject
         }
 
         return new self(
-            type: $schema['type'] ?? 'string',
-            format: $schema['format'] ?? null,
+            type: self::validateString($schema['type'] ?? 'string') ?? 'string',
+            format: self::validateString($schema['format'] ?? null),
             properties: $properties,
             items: $items,
-            required: $schema['required'] ?? [],
+            required: self::validateStringArray($schema['required'] ?? []),
             validation: $validation,
-            ref: $schema['$ref'] ?? null,
-            title: $schema['title'] ?? '',
-            description: $schema['description'] ?? ''
+            ref: self::validateString($schema['$ref'] ?? null),
+            title: self::validateString($schema['title'] ?? '') ?? '',
+            description: self::validateString($schema['description'] ?? '') ?? ''
         );
     }
 
@@ -118,6 +124,8 @@ class SchemaObject
 
     /**
      * Get property names
+     *
+     * @return array<string>
      */
     public function getPropertyNames(): array
     {
@@ -142,6 +150,8 @@ class SchemaObject
 
     /**
      * Get all required property names
+     *
+     * @return array<string>
      */
     public function getRequiredProperties(): array
     {
@@ -150,6 +160,8 @@ class SchemaObject
 
     /**
      * Get all optional property names
+     *
+     * @return array<string>
      */
     public function getOptionalProperties(): array
     {
@@ -207,6 +219,8 @@ class SchemaObject
 
     /**
      * Get all nested schemas (recursive)
+     *
+     * @return array<string, SchemaObject>
      */
     public function getAllNestedSchemas(): array
     {
@@ -253,6 +267,8 @@ class SchemaObject
 
     /**
      * Check if schema has circular references
+     *
+     * @param  array<string>  $visited
      */
     public function hasCircularReference(array $visited = []): bool
     {
@@ -294,27 +310,22 @@ class SchemaObject
      */
     private function validateStructure(): void
     {
-        // Object type should have properties
-        if ($this->type === 'object' && empty($this->properties) && empty($this->ref)) {
-            // Allow empty objects, but warn if no properties and no reference
+        // Validate type is not empty
+        if (empty($this->type)) {
+            throw new InvalidArgumentException('Schema type cannot be empty');
         }
 
-        // Array type should have items (but allow without for testing)
-        // if ($this->type === 'array' && !$this->items && empty($this->ref)) {
-        //     throw new \InvalidArgumentException('Array schema must have items definition');
-        // }
-
-        // Required properties must exist in properties (but allow for testing)
-        // $invalidRequired = array_diff($this->required, array_keys($this->properties));
-        // if (!empty($invalidRequired)) {
-        //     throw new \InvalidArgumentException(
-        //         'Required properties not defined in schema: ' . implode(', ', $invalidRequired)
-        //     );
-        // }
+        // Validate that the type is a valid OpenAPI type
+        $validTypes = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
+        if (! in_array($this->type, $validTypes)) {
+            throw new InvalidArgumentException("Invalid schema type: {$this->type}");
+        }
     }
 
     /**
      * Check if schema array has validation constraints
+     *
+     * @param  array<string, mixed>  $schema
      */
     private static function hasValidationConstraints(array $schema): bool
     {
@@ -334,6 +345,8 @@ class SchemaObject
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -486,5 +499,42 @@ class SchemaObject
             $validationProperty->setAccessible(true);
             $validationProperty->setValue($this, clone $this->validation);
         }
+    }
+
+    /**
+     * Validate and cast to string or null
+     */
+    private static function validateString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate and cast to string array
+     *
+     * @return array<string>
+     */
+    private static function validateStringArray(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($value as $item) {
+            if (is_string($item)) {
+                $result[] = $item;
+            }
+        }
+
+        return $result;
     }
 }

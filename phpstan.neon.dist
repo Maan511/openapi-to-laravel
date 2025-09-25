@@ -1,0 +1,27 @@
+parameters:
+    paths:
+        - src/
+        - tests/
+    level: 8
+    reportUnmatchedIgnoredErrors: true
+    checkUninitializedProperties: true
+    treatPhpDocTypesAsCertain: false
+    excludePaths:
+        - tests/unit/*/stubs/*
+    ignoreErrors:
+        # Pest framework dynamic property assignment in beforeEach() - PHPStan can't understand this pattern
+        - 
+            message: '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$\w+\.#'
+            path: tests/unit/*
+        # Mockery expectation chaining issues with union types
+        - 
+            message: '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::(andReturn|with|once|times|never)\(\)\.#'
+            path: tests/unit/*
+        # Mockery parameter type issues in test mocks
+        - 
+            message: '#Parameter .* expects .*, Mockery\\MockInterface given\.#'
+            path: tests/unit/*
+        # Nullable property access in tests where we control object creation
+        - 
+            message: '#Cannot access property .* on .+\|null\.#'
+            path: tests/unit/Models/*

@@ -3,7 +3,7 @@
 beforeEach(function () {
     $this->ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
     $this->templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-    $this->generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($this->ruleMapper, $this->templateEngine);
+    $this->generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($this->ruleMapper);
 });
 
 describe('FormRequestGenerator', function () {
@@ -211,22 +211,6 @@ describe('FormRequestGenerator', function () {
             expect($formRequests[0]->className)->toBe('CreateUserRequest');
         });
 
-        it('should throw exception for invalid endpoint types', function () {
-            $endpoints = [
-                'not an endpoint',
-                new \Maan511\OpenapiToLaravel\Models\EndpointDefinition(
-                    path: '/users',
-                    method: 'POST',
-                    operationId: 'createUser'
-                ),
-            ];
-
-            expect(fn () => $this->generator->generateFromEndpoints(
-                $endpoints,
-                'App\\Http\\Requests',
-                '/app/Http/Requests'
-            ))->toThrow(\InvalidArgumentException::class, 'All items must be EndpointDefinition instances');
-        });
     });
 
     describe('generateAndWrite', function () {
@@ -369,20 +353,6 @@ describe('FormRequestGenerator', function () {
             rmdir($tempDir);
         });
 
-        it('should handle invalid FormRequestClass instances', function () {
-            $formRequests = [
-                'not a FormRequestClass',
-                null,
-            ];
-
-            $result = $this->generator->generateAndWriteMultiple($formRequests);
-
-            expect($result['summary']['total'])->toBe(2);
-            expect($result['summary']['success'])->toBe(0);
-            expect($result['summary']['failed'])->toBe(2);
-            expect($result['results'][0]['success'])->toBeFalse();
-            expect($result['results'][0]['message'])->toBe('Invalid FormRequestClass instance');
-        });
     });
 
     describe('validate', function () {

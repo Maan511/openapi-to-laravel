@@ -13,12 +13,16 @@ class ValidationRule
 
     public readonly string $type;
 
+    /** @var array<string> */
     public array $rules;
 
     public readonly bool $isRequired;
 
     public readonly ?ValidationConstraints $constraints;
 
+    /**
+     * @param  array<string>  $rules
+     */
     public function __construct(
         string $property,
         string $type,
@@ -39,7 +43,7 @@ class ValidationRule
     /**
      * Magic getter to provide fieldPath as alias for property and rule for first rule
      */
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         if ($name === 'fieldPath') {
             return $this->property;
@@ -191,6 +195,8 @@ class ValidationRule
 
     /**
      * Convert to Laravel validation array format
+     *
+     * @return array<string, array<string>>
      */
     public function toValidationArray(): array
     {
@@ -256,6 +262,8 @@ class ValidationRule
 
     /**
      * Convert to array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -296,11 +304,121 @@ class ValidationRule
             throw new InvalidArgumentException('Type cannot be empty');
         }
 
-        $validTypes = ['string', 'integer', 'number', 'boolean', 'array', 'object'];
+        $validTypes = ['string', 'integer', 'number', 'boolean', 'array', 'object', 'constraint', 'custom'];
         if (! in_array($this->type, $validTypes)) {
             throw new InvalidArgumentException(
                 "Invalid type: {$this->type}. Must be one of: " . implode(', ', $validTypes)
             );
         }
+    }
+
+    /**
+     * Create a min constraint rule
+     */
+    public static function min(string $property, int $value, string $context = 'minimum'): self
+    {
+        return new self(
+            property: $property,
+            type: 'constraint',
+            rules: ["min:{$value}"]
+        );
+    }
+
+    /**
+     * Create a max constraint rule
+     */
+    public static function max(string $property, int $value, string $context = 'maximum'): self
+    {
+        return new self(
+            property: $property,
+            type: 'constraint',
+            rules: ["max:{$value}"]
+        );
+    }
+
+    /**
+     * Create a regex constraint rule
+     */
+    public static function regex(string $property, string $pattern): self
+    {
+        return new self(
+            property: $property,
+            type: 'string',
+            rules: ["regex:{$pattern}"]
+        );
+    }
+
+    /**
+     * Create a distinct constraint rule
+     */
+    public static function distinct(string $property): self
+    {
+        return new self(
+            property: $property,
+            type: 'array',
+            rules: ['distinct']
+        );
+    }
+
+    /**
+     * Create an in constraint rule
+     *
+     * @param  array<mixed>  $values
+     */
+    public static function in(string $property, array $values): self
+    {
+        $valueString = implode(',', array_map(function (mixed $value): string {
+            if ($value === null) {
+                return '';
+            }
+
+            return (string) $value;
+        }, $values));
+
+        return new self(
+            property: $property,
+            type: 'constraint',
+            rules: ["in:{$valueString}"]
+        );
+    }
+
+    /**
+     * Create a custom constraint rule
+     *
+     * @param  array<mixed>  $parameters
+     */
+    public static function custom(string $property, string $rule, array $parameters = []): self
+    {
+        $ruleString = empty($parameters) ? $rule : $rule . ':' . implode(',', $parameters);
+
+        return new self(
+            property: $property,
+            type: 'custom',
+            rules: [$ruleString]
+        );
+    }
+
+    /**
+     * Compare two ValidationRule objects for sorting
+     */
+    public function compareTo(ValidationRule $other): int
+    {
+        // First sort by property name
+        $propertyComparison = strcmp($this->property, $other->property);
+        if ($propertyComparison !== 0) {
+            return $propertyComparison;
+        }
+
+        // Then by type
+        $typeComparison = strcmp($this->type, $other->type);
+        if ($typeComparison !== 0) {
+            return $typeComparison;
+        }
+
+        // Finally by first rule
+        $thisRule = $this->rules[0] ?? '';
+        $otherRule = $other->rules[0] ?? '';
+
+        return strcmp($thisRule, $otherRule);
     }
 }

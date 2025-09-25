@@ -3,7 +3,7 @@
 beforeEach(function () {
     $this->referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
     $this->schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($this->referenceResolver);
-    $this->parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($this->schemaExtractor, $this->referenceResolver);
+    $this->parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($this->schemaExtractor);
 });
 
 describe('OpenApiParser', function () {

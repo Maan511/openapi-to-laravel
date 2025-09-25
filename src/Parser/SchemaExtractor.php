@@ -18,6 +18,9 @@ class SchemaExtractor
     /**
      * Create a SchemaObject from raw schema data
      */
+    /**
+     * @param  array<string, mixed>  $schemaData
+     */
     public function createSchemaObject(array $schemaData): SchemaObject
     {
         return SchemaObject::fromArray($schemaData);
@@ -25,6 +28,8 @@ class SchemaExtractor
 
     /**
      * Extract validation constraints from schema data
+     *
+     * @param  array<string, mixed>  $schemaData
      */
     public function extractValidationConstraints(array $schemaData): \Maan511\OpenapiToLaravel\Models\ValidationConstraints
     {
@@ -33,6 +38,9 @@ class SchemaExtractor
 
     /**
      * Get the schema type from schema data
+     */
+    /**
+     * @param  array<string, mixed>  $schemaData
      */
     public function getSchemaType(array $schemaData): ?string
     {
@@ -56,6 +64,9 @@ class SchemaExtractor
     /**
      * Check if schema data represents an object
      */
+    /**
+     * @param  array<string, mixed>  $schemaData
+     */
     public function isSchemaObject(array $schemaData): bool
     {
         return $this->getSchemaType($schemaData) === 'object';
@@ -63,6 +74,10 @@ class SchemaExtractor
 
     /**
      * Merge two schema arrays
+     *
+     * @param  array<mixed>  $schema1
+     * @param  array<mixed>  $schema2
+     * @return array<mixed>
      */
     public function mergeSchemas(array $schema1, array $schema2): array
     {
@@ -92,6 +107,10 @@ class SchemaExtractor
     /**
      * Validate schema data structure
      */
+    /**
+     * @param  array<string, mixed>  $schemaData
+     * @return array{valid: bool, errors: array<string>, warnings: array<string>}
+     */
     public function validateSchemaData(array $schemaData): array
     {
         $errors = [];
@@ -119,11 +138,14 @@ class SchemaExtractor
         return [
             'valid' => empty($errors),
             'errors' => $errors,
+            'warnings' => [],
         ];
     }
 
     /**
      * Extract schema from request body
+     *
+     * @param  array<string, mixed>  $requestBody
      */
     public function extractFromRequestBody(array $requestBody, OpenApiSpecification $specification): ?SchemaObject
     {
@@ -156,6 +178,8 @@ class SchemaExtractor
 
     /**
      * Extract schema from parameters
+     *
+     * @param  array<mixed>  $parameters
      */
     public function extractFromParameters(array $parameters, OpenApiSpecification $specification): ?SchemaObject
     {
@@ -223,6 +247,8 @@ class SchemaExtractor
 
     /**
      * Parse schema array into SchemaObject
+     *
+     * @param  array<string, mixed>  $schema
      */
     public function parseSchema(array $schema, OpenApiSpecification $specification): SchemaObject
     {
@@ -240,6 +266,8 @@ class SchemaExtractor
 
     /**
      * Extract all unique schemas from specification
+     *
+     * @return array<string, SchemaObject>
      */
     public function extractAllSchemas(OpenApiSpecification $specification): array
     {
@@ -270,6 +298,8 @@ class SchemaExtractor
 
     /**
      * Extract nested schemas recursively
+     *
+     * @return array<string, SchemaObject>
      */
     public function extractNestedSchemas(SchemaObject $schema, OpenApiSpecification $specification): array
     {
@@ -312,6 +342,8 @@ class SchemaExtractor
 
     /**
      * Extract schemas that need FormRequest generation
+     *
+     * @return array<string, array<string, mixed>>
      */
     public function extractFormRequestSchemas(OpenApiSpecification $specification): array
     {
@@ -348,6 +380,8 @@ class SchemaExtractor
 
     /**
      * Validate schema structure
+     *
+     * @return array{valid: bool, errors: array<string>, warnings: array<string>}
      */
     public function validateSchema(SchemaObject $schema): array
     {
@@ -421,6 +455,9 @@ class SchemaExtractor
 
     /**
      * Extract content types from request body
+     *
+     * @param  array<string, mixed>  $requestBody
+     * @return array<string>
      */
     public function extractContentTypes(array $requestBody): array
     {
@@ -428,11 +465,15 @@ class SchemaExtractor
             return [];
         }
 
-        return array_keys($requestBody['content']);
+        $keys = array_keys($requestBody['content']);
+
+        return array_values(array_filter($keys, 'is_string'));
     }
 
     /**
      * Check if request body is required
+     *
+     * @param  array<string, mixed>  $requestBody
      */
     public function isRequestBodyRequired(array $requestBody): bool
     {
@@ -444,7 +485,7 @@ class SchemaExtractor
      */
     private function generateOperationId(string $path, string $method): string
     {
-        $cleanPath = preg_replace('/\{[^}]+\}/', 'Id', $path);
+        $cleanPath = preg_replace('/\{[^}]+\}/', 'Id', $path) ?? $path;
         $parts = explode('/', trim($cleanPath, '/'));
         $parts = array_filter($parts);
 

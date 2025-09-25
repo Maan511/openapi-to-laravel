@@ -12,6 +12,8 @@ class ValidationRuleMapper
 {
     /**
      * Map schema to Laravel validation rules
+     *
+     * @return array<string, string>
      */
     public function mapSchema(SchemaObject $schema, string $fieldPrefix = ''): array
     {
@@ -30,6 +32,8 @@ class ValidationRuleMapper
 
     /**
      * Map object schema to validation rules
+     *
+     * @return array<string, string>
      */
     public function mapObjectSchema(SchemaObject $schema, string $fieldPrefix = ''): array
     {
@@ -45,15 +49,17 @@ class ValidationRuleMapper
             $fieldPath = $fieldPrefix ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
             $isRequired = $schema->isPropertyRequired($propertyName);
 
-            $rules = array_merge($rules, $this->mapSchema($propertySchema, $fieldPath));
+            $nestedRules = $this->mapSchema($propertySchema, $fieldPath);
+            $rules = array_merge($rules, $nestedRules);
 
             // Update the rule to include required/nullable
             if (isset($rules[$fieldPath])) {
-                $existingRules = explode('|', $rules[$fieldPath]);
+                $ruleString = $rules[$fieldPath];
+                $existingRules = explode('|', $ruleString);
                 $prefix = $isRequired ? 'required' : 'nullable';
 
                 // Remove existing required/nullable rules
-                $existingRules = array_filter($existingRules, fn ($rule) => ! in_array($rule, ['required', 'nullable']));
+                $existingRules = array_values(array_filter($existingRules, fn (string $rule): bool => ! in_array($rule, ['required', 'nullable'], true)));
 
                 // Add required/nullable at the beginning
                 array_unshift($existingRules, $prefix);
@@ -72,6 +78,8 @@ class ValidationRuleMapper
 
     /**
      * Map array schema to validation rules
+     *
+     * @return array<string, string>
      */
     public function mapArraySchema(SchemaObject $schema, string $fieldPrefix = ''): array
     {
@@ -92,6 +100,8 @@ class ValidationRuleMapper
 
     /**
      * Map scalar schema to validation rules
+     *
+     * @return array<string, string>
      */
     public function mapScalarSchema(SchemaObject $schema, string $fieldPrefix = ''): array
     {
@@ -121,7 +131,7 @@ class ValidationRuleMapper
         }
 
         // Validation constraints
-        if ($schema->hasValidation()) {
+        if ($schema->validation !== null) {
             $constraintRules = $schema->validation->getValidationRules($schema->type);
             $ruleParts = array_merge($ruleParts, $constraintRules);
         }
@@ -134,6 +144,8 @@ class ValidationRuleMapper
 
     /**
      * Map validation rules with proper field requirements
+     *
+     * @return array<string, string>
      */
     public function mapValidationRules(SchemaObject $schema, string $fieldPrefix = ''): array
     {
@@ -159,14 +171,14 @@ class ValidationRuleMapper
                     $ruleParts[] = $fieldRule;
                 }
 
-                $validationRules[$fieldPath] = implode('|', array_filter($ruleParts));
+                $validationRules[$fieldPath] = implode('|', $ruleParts);
             }
         } elseif ($schema->isArray()) {
             if ($fieldPrefix) {
                 // Array validation
                 $ruleParts = ['array'];
 
-                if ($schema->hasValidation()) {
+                if ($schema->validation !== null) {
                     $arrayRules = $schema->validation->getArrayValidationRules();
                     $ruleParts = array_merge($ruleParts, $arrayRules);
                 }
@@ -198,7 +210,7 @@ class ValidationRuleMapper
                                 $ruleParts[] = $fieldRule;
                             }
 
-                            $validationRules[$propertyFieldPath] = implode('|', array_filter($ruleParts));
+                            $validationRules[$propertyFieldPath] = implode('|', $ruleParts);
                         }
                     } else {
                         // For scalar items
@@ -219,6 +231,8 @@ class ValidationRuleMapper
 
     /**
      * Create ValidationRule objects from schema
+     *
+     * @return array<ValidationRule>
      */
     public function createValidationRules(SchemaObject $schema, string $fieldPrefix = ''): array
     {
@@ -252,7 +266,7 @@ class ValidationRuleMapper
                 }
 
                 // Add constraint rules
-                if ($propertySchema->hasValidation()) {
+                if ($propertySchema->validation !== null) {
                     $constraintRules = $propertySchema->validation->getValidationRules($propertySchema->type);
                     $allRules = array_merge($allRules, $constraintRules);
                 }
@@ -281,7 +295,7 @@ class ValidationRuleMapper
             if ($fieldPrefix) {
                 // Create rule for the array itself
                 $arrayRules = ['array'];
-                if ($schema->hasValidation()) {
+                if ($schema->validation !== null) {
                     $arrayConstraints = $schema->validation->getArrayValidationRules();
                     $arrayRules = array_merge($arrayRules, $arrayConstraints);
                 }
@@ -313,7 +327,7 @@ class ValidationRuleMapper
             }
 
             // Add constraint rules
-            if ($schema->hasValidation()) {
+            if ($schema->validation !== null) {
                 $constraintRules = $schema->validation->getValidationRules($schema->type);
                 $scalarRules = array_merge($scalarRules, $constraintRules);
             }
@@ -335,73 +349,10 @@ class ValidationRuleMapper
     }
 
     /**
-     * Create constraint-specific validation rules
-     */
-    private function createConstraintRules(string $fieldPath, SchemaObject $schema): array
-    {
-        $rules = [];
-
-        if (! $schema->hasValidation()) {
-            return $rules;
-        }
-
-        $constraints = $schema->validation;
-
-        // String constraints
-        if ($constraints->minLength !== null) {
-            $rules[] = ValidationRule::min($fieldPath, $constraints->minLength, 'minLength');
-        }
-
-        if ($constraints->maxLength !== null) {
-            $rules[] = ValidationRule::max($fieldPath, $constraints->maxLength, 'maxLength');
-        }
-
-        if ($constraints->pattern !== null) {
-            $rules[] = ValidationRule::regex($fieldPath, $constraints->pattern);
-        }
-
-        // Numeric constraints
-        if ($constraints->minimum !== null) {
-            $rules[] = ValidationRule::min($fieldPath, $constraints->minimum, 'minimum');
-        }
-
-        if ($constraints->maximum !== null) {
-            $rules[] = ValidationRule::max($fieldPath, $constraints->maximum, 'maximum');
-        }
-
-        // Array constraints
-        if ($constraints->minItems !== null) {
-            $rules[] = ValidationRule::min($fieldPath, $constraints->minItems, 'minItems');
-        }
-
-        if ($constraints->maxItems !== null) {
-            $rules[] = ValidationRule::max($fieldPath, $constraints->maxItems, 'maxItems');
-        }
-
-        if ($constraints->uniqueItems === true) {
-            $rules[] = ValidationRule::distinct($fieldPath);
-        }
-
-        // Enum constraint
-        if (! empty($constraints->enum)) {
-            $rules[] = ValidationRule::in($fieldPath, $constraints->enum);
-        }
-
-        // Custom constraints that need special handling
-        if ($constraints->multipleOf !== null) {
-            $rules[] = ValidationRule::custom(
-                $fieldPath,
-                'numeric', // Will need custom rule implementation
-                [],
-                "multipleOf: {$constraints->multipleOf}"
-            );
-        }
-
-        return $rules;
-    }
-
-    /**
      * Sort validation rules by priority
+     *
+     * @param  array<string, string>  $rules
+     * @return array<string, string>
      */
     public function sortValidationRules(array $rules): array
     {
@@ -409,14 +360,7 @@ class ValidationRuleMapper
             return $rules;
         }
 
-        // If rules are ValidationRule objects
-        if (reset($rules) instanceof ValidationRule) {
-            usort($rules, fn (ValidationRule $a, ValidationRule $b) => $a->compareTo($b));
-
-            return $rules;
-        }
-
-        // If rules are field => rule string pairs
+        // Sort by keys (field names) for consistent ordering
         ksort($rules);
 
         return $rules;
@@ -424,6 +368,9 @@ class ValidationRuleMapper
 
     /**
      * Combine multiple validation rules for the same field
+     *
+     * @param  array<string, string>  $rules
+     * @return array<string, string>
      */
     public function combineRules(array $rules): array
     {
@@ -449,6 +396,9 @@ class ValidationRuleMapper
 
     /**
      * Validate that generated rules are valid Laravel validation syntax
+     *
+     * @param  array<string, mixed>  $rules
+     * @return array<string>
      */
     public function validateLaravelRules(array $rules): array
     {

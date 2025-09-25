@@ -10,6 +10,7 @@ use Maan511\OpenapiToLaravel\Models\FormRequestClass;
  */
 class TemplateEngine
 {
+    /** @var array<string, string> */
     private array $templates = [];
 
     public function __construct()
@@ -26,7 +27,7 @@ class TemplateEngine
             'namespace' => $formRequest->namespace,
             'className' => $formRequest->className,
             'sourceEndpoint' => $formRequest->getSourceEndpoint(),
-            'description' => $formRequest->sourceSchema?->description ?? '',
+            'description' => $formRequest->sourceSchema->description ?? '',
             'generatedAt' => $formRequest->generatedAt?->format('Y-m-d H:i:s') ?? date('Y-m-d H:i:s'),
             'authorize' => $formRequest->authorizationMethod,
             'rules' => $this->formatArray($formRequest->validationRules),
@@ -41,6 +42,8 @@ class TemplateEngine
 
     /**
      * Render template with variables
+     *
+     * @param  array<string, mixed>  $variables
      */
     public function render(string $templateName, array $variables = []): string
     {
@@ -53,7 +56,8 @@ class TemplateEngine
         // Replace variables in template
         foreach ($variables as $key => $value) {
             $placeholder = '{{' . $key . '}}';
-            $template = str_replace($placeholder, (string) $value, $template);
+            $stringValue = $this->convertToString($value);
+            $template = str_replace($placeholder, $stringValue, $template);
         }
 
         // Handle conditional blocks
@@ -62,7 +66,7 @@ class TemplateEngine
         // Clean up any remaining placeholders
         $template = preg_replace('/\{\{[^}]+\}\}/', '', $template);
 
-        return $template;
+        return $template ?? '';
     }
 
     /**
@@ -82,11 +86,17 @@ class TemplateEngine
             throw new InvalidArgumentException("Template file not found: {$filePath}");
         }
 
-        $this->templates[$name] = file_get_contents($filePath);
+        $content = file_get_contents($filePath);
+        if ($content === false) {
+            throw new InvalidArgumentException("Failed to read template file: {$filePath}");
+        }
+        $this->templates[$name] = $content;
     }
 
     /**
      * Get available template names
+     *
+     * @return array<string>
      */
     public function getTemplateNames(): array
     {
@@ -103,13 +113,15 @@ class TemplateEngine
 
     /**
      * Process conditional blocks in template
+     *
+     * @param  array<string, mixed>  $variables
      */
     private function processConditionals(string $template, array $variables): string
     {
         // Process {{#if variable}} ... {{/if}} blocks
         $pattern = '/\{\{#if\s+(\w+)\}\}(.*?)\{\{\/if\}\}/s';
 
-        return preg_replace_callback($pattern, function ($matches) use ($variables) {
+        $result = preg_replace_callback($pattern, function ($matches) use ($variables) {
             $variableName = $matches[1];
             $content = $matches[2];
 
@@ -120,6 +132,8 @@ class TemplateEngine
 
             return '';
         }, $template);
+
+        return $result ?? $template;
     }
 
     /**
@@ -222,6 +236,8 @@ PHP;
 
     /**
      * Generate proper PHP array representation
+     *
+     * @param  array<mixed, mixed>  $data
      */
     public function formatPhpArray(array $data, int $indentLevel = 2): string
     {
@@ -263,7 +279,7 @@ PHP;
     public function formatClassName(string $name): string
     {
         // Remove non-alphanumeric characters and convert to PascalCase
-        $name = preg_replace('/[^a-zA-Z0-9]/', ' ', $name);
+        $name = preg_replace('/[^a-zA-Z0-9]/', ' ', $name) ?? $name;
         $name = ucwords($name);
         $name = str_replace(' ', '', $name);
 
@@ -292,6 +308,8 @@ PHP;
 
     /**
      * Generate file header comment
+     *
+     * @param  array<string, mixed>  $options
      */
     public function generateFileHeader(array $options = []): string
     {
@@ -303,10 +321,12 @@ PHP;
 
         if (isset($options['comment'])) {
             $header .= "/**\n";
-            $header .= " * {$options['comment']}\n";
+            $comment = $this->convertToString($options['comment']);
+            $header .= " * {$comment}\n";
             if (isset($options['generated_at'])) {
                 $header .= " * \n";
-                $header .= " * Generated at: {$options['generated_at']}\n";
+                $generatedAt = $this->convertToString($options['generated_at']);
+                $header .= " * Generated at: {$generatedAt}\n";
             }
             $header .= " */\n\n";
         }
@@ -316,6 +336,8 @@ PHP;
 
     /**
      * Enhanced template validation with warnings
+     *
+     * @return array{valid: bool, errors: array<string>, warnings: array<string>}
      */
     public function validateTemplate(string $template): array
     {
@@ -341,7 +363,7 @@ PHP;
 
         // Simple PHP syntax check by looking for obvious errors
         // Since php_check_syntax is deprecated/removed, we'll do basic checks
-        $testTemplate = preg_replace('/\{\{[^}]+\}\}/', '"test"', $template);
+        $testTemplate = preg_replace('/\{\{[^}]+\}\}/', '"test"', $template) ?? $template;
 
         // Check for unmatched braces
         $openBraces = substr_count($testTemplate, '{');
@@ -361,6 +383,8 @@ PHP;
 
     /**
      * Get template preview with sample data
+     *
+     * @param  array<string, mixed>  $sampleData
      */
     public function previewTemplate(string $templateName, array $sampleData = []): string
     {
@@ -405,13 +429,16 @@ PHP;
 
     /**
      * Render template with variables (public version for testing)
+     *
+     * @param  array<string, mixed>  $variables
      */
     public function renderTemplate(string $template, array $variables): string
     {
         // Replace variables in template
         foreach ($variables as $key => $value) {
             $placeholder = '{{' . $key . '}}';
-            $template = str_replace($placeholder, (string) $value, $template);
+            $stringValue = $this->convertToString($value);
+            $template = str_replace($placeholder, $stringValue, $template);
         }
 
         return $template;
@@ -419,6 +446,8 @@ PHP;
 
     /**
      * Format validation rules array as PHP code
+     *
+     * @param  array<string, mixed>  $rules
      */
     public function formatValidationRules(array $rules): string
     {
@@ -427,6 +456,8 @@ PHP;
 
     /**
      * Format array as PHP code with proper indentation
+     *
+     * @param  array<mixed, mixed>  $array
      */
     public function formatArray(array $array, int $indentLevel = 2): string
     {
@@ -444,7 +475,8 @@ PHP;
                 $items[] = "{$itemIndent}'{$key}' => {$formattedValue},";
             } else {
                 // Properly escape single quotes in validation rules
-                $escapedValue = str_replace("'", "\\'", (string) $value);
+                $stringValue = $this->convertToString($value);
+                $escapedValue = str_replace("'", "\\'", $stringValue);
                 $items[] = "{$itemIndent}'{$key}' => '{$escapedValue}',";
             }
         }
@@ -454,6 +486,8 @@ PHP;
 
     /**
      * Get available variables for a specific template type
+     *
+     * @return array<string>
      */
     public function getAvailableVariables(string $templateType): array
     {
@@ -474,5 +508,38 @@ PHP;
         }
 
         return $variables[$templateType];
+    }
+
+    /**
+     * Convert mixed value to string safely
+     */
+    private function convertToString(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if (is_numeric($value)) {
+            return (string) $value;
+        }
+
+        if (is_array($value)) {
+            return json_encode($value) ?: '';
+        }
+
+        // Fallback for complex types
+        if (is_object($value) && method_exists($value, '__toString')) {
+            return (string) $value;
+        }
+
+        return var_export($value, true);
     }
 }
