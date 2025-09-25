@@ -1,5 +1,14 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
+use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
+use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
+use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
+use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
+
 describe('Large OpenAPI Specification Performance', function () {
     it('should generate FormRequests for 100 endpoints in less than 5 seconds', function () {
         $startTime = microtime(true);
@@ -101,15 +110,15 @@ describe('Large OpenAPI Specification Performance', function () {
         ];
 
         // Initialize services
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-        $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
-        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
+        $referenceResolver = new ReferenceResolver;
+        $schemaExtractor = new SchemaExtractor($referenceResolver);
+        $parser = new OpenApiParser($schemaExtractor);
+        $ruleMapper = new ValidationRuleMapper;
+        $templateEngine = new TemplateEngine;
+        $generator = new FormRequestGenerator($ruleMapper);
 
         // Parse specification
-        $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
+        $specification = OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
 
         // Extract endpoints with request bodies
         $endpoints = $parser->getEndpointsWithRequestBodies($specification);
@@ -139,7 +148,7 @@ describe('Large OpenAPI Specification Performance', function () {
 
         // Validate a sample of generated FormRequest classes
         $sampleFormRequest = $formRequests[0];
-        expect($sampleFormRequest)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class);
+        expect($sampleFormRequest)->toBeInstanceOf(FormRequestClass::class);
         expect($sampleFormRequest->className)->toMatch('/^Create\w+Request$/');
         expect($sampleFormRequest->validationRules)->toHaveKey('name');
         expect($sampleFormRequest->validationRules)->toHaveKey('status');
@@ -212,15 +221,15 @@ describe('Large OpenAPI Specification Performance', function () {
         ];
 
         // Initialize services
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-        $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
-        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
+        $referenceResolver = new ReferenceResolver;
+        $schemaExtractor = new SchemaExtractor($referenceResolver);
+        $parser = new OpenApiParser($schemaExtractor);
+        $ruleMapper = new ValidationRuleMapper;
+        $templateEngine = new TemplateEngine;
+        $generator = new FormRequestGenerator($ruleMapper);
 
         // Parse and generate
-        $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
+        $specification = OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
         $endpoints = $parser->getEndpointsWithRequestBodies($specification);
         $formRequests = $generator->generateFromEndpoints(
             $endpoints,
@@ -340,15 +349,15 @@ describe('Large OpenAPI Specification Performance', function () {
         ];
 
         // Initialize services
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-        $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
-        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
+        $referenceResolver = new ReferenceResolver;
+        $schemaExtractor = new SchemaExtractor($referenceResolver);
+        $parser = new OpenApiParser($schemaExtractor);
+        $ruleMapper = new ValidationRuleMapper;
+        $templateEngine = new TemplateEngine;
+        $generator = new FormRequestGenerator($ruleMapper);
 
         // Parse and generate
-        $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
+        $specification = OpenApiSpecification::fromArray($specData, 'large-test-spec.json');
         $endpoints = $parser->getEndpointsWithRequestBodies($specification);
         $formRequests = $generator->generateFromEndpoints(
             $endpoints,

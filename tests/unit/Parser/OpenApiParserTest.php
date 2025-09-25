@@ -1,9 +1,14 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
+use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
+use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
+use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
+
 beforeEach(function () {
-    $this->referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-    $this->schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($this->referenceResolver);
-    $this->parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($this->schemaExtractor);
+    $this->referenceResolver = new ReferenceResolver;
+    $this->schemaExtractor = new SchemaExtractor($this->referenceResolver);
+    $this->parser = new OpenApiParser($this->schemaExtractor);
 });
 
 describe('OpenApiParser', function () {
@@ -30,7 +35,7 @@ describe('OpenApiParser', function () {
 
             $specification = $this->parser->parseFromString($json, 'json');
 
-            expect($specification)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\OpenApiSpecification::class);
+            expect($specification)->toBeInstanceOf(OpenApiSpecification::class);
             expect($specification->version)->toBe('3.0.0');
             expect($specification->info['title'])->toBe('Test API');
         });
@@ -40,26 +45,26 @@ describe('OpenApiParser', function () {
 
             $specification = $this->parser->parseFromString($yaml, 'yaml');
 
-            expect($specification)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\OpenApiSpecification::class);
+            expect($specification)->toBeInstanceOf(OpenApiSpecification::class);
             expect($specification->version)->toBe('3.0.0');
             expect($specification->info['title'])->toBe('Test API');
         });
 
         it('should throw exception for invalid JSON', function () {
             expect(fn () => $this->parser->parseFromString('invalid json', 'json'))
-                ->toThrow(\InvalidArgumentException::class);
+                ->toThrow(InvalidArgumentException::class);
         });
 
         it('should throw exception for invalid YAML', function () {
             expect(fn () => $this->parser->parseFromString('invalid: yaml: content: [', 'yaml'))
-                ->toThrow(\InvalidArgumentException::class);
+                ->toThrow(InvalidArgumentException::class);
         });
     });
 
     describe('parseFromFile', function () {
         it('should throw exception for non-existent file', function () {
             expect(fn () => $this->parser->parseFromFile('/non/existent/file.json'))
-                ->toThrow(\InvalidArgumentException::class, 'OpenAPI specification file not found');
+                ->toThrow(InvalidArgumentException::class, 'OpenAPI specification file not found');
         });
 
         it('should detect JSON format from extension', function () {
@@ -142,7 +147,7 @@ describe('OpenApiParser', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $endpoints = $this->parser->extractEndpoints($specification);
 
             expect($endpoints)->toHaveCount(4);
@@ -164,7 +169,7 @@ describe('OpenApiParser', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $endpoints = $this->parser->extractEndpoints($specification);
 
             expect($endpoints)->toHaveCount(1);
@@ -194,7 +199,7 @@ describe('OpenApiParser', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $endpoints = $this->parser->getEndpointsWithRequestBodies($specification);
 
             expect($endpoints)->toHaveCount(1);
@@ -213,7 +218,7 @@ describe('OpenApiParser', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $endpoints = $this->parser->getEndpointsWithRequestBodies($specification);
 
             expect($endpoints)->toHaveCount(0);
@@ -241,7 +246,7 @@ describe('OpenApiParser', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $validation = $this->parser->validateSpecification($specification);
 
             expect($validation['valid'])->toBeTrue();
@@ -254,7 +259,7 @@ describe('OpenApiParser', function () {
                 'paths' => [],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $validation = $this->parser->validateSpecification($specification);
 
             expect($validation['valid'])->toBeFalse();
@@ -267,7 +272,7 @@ describe('OpenApiParser', function () {
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $validation = $this->parser->validateSpecification($specification);
 
             expect($validation['valid'])->toBeFalse();
@@ -281,7 +286,7 @@ describe('OpenApiParser', function () {
                 'paths' => [],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $validation = $this->parser->validateSpecification($specification);
 
             expect($validation['warnings'])->toContain('OpenAPI version 2.0.0 may not be fully supported');
@@ -298,7 +303,7 @@ describe('OpenApiParser', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $validation = $this->parser->validateSpecification($specification);
 
             expect($validation['warnings'])->toContain('No endpoints with request bodies found - no FormRequests will be generated');
@@ -337,7 +342,7 @@ describe('OpenApiParser', function () {
                 ],
             ];
 
-            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($specData, 'test-spec.json');
+            $specification = OpenApiSpecification::fromArray($specData, 'test-spec.json');
             $stats = $this->parser->getSpecificationStats($specification);
 
             expect($stats['totalEndpoints'])->toBe(3);

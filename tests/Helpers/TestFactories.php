@@ -1,18 +1,24 @@
 <?php
 
-function createTestParser(): \Maan511\OpenapiToLaravel\Parser\OpenApiParser
-{
-    $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-    $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
+use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
+use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
+use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 
-    return new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
+function createTestParser(): OpenApiParser
+{
+    $referenceResolver = new ReferenceResolver;
+    $schemaExtractor = new SchemaExtractor($referenceResolver);
+
+    return new OpenApiParser($schemaExtractor);
 }
 
-function createTestGenerator(): \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator
+function createTestGenerator(): FormRequestGenerator
 {
-    $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+    $ruleMapper = new ValidationRuleMapper;
 
-    return new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
+    return new FormRequestGenerator($ruleMapper);
 }
 
 function createTempOpenApiSpec(): string

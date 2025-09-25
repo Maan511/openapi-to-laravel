@@ -1,18 +1,22 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use Maan511\OpenapiToLaravel\Models\ValidationConstraints;
+
 beforeEach(function () {
-    $this->mapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+    $this->mapper = new ValidationRuleMapper;
 });
 
 describe('ValidationRuleMapper', function () {
     describe('mapValidationRules', function () {
         it('should map object schema with required properties', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'email' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string', format: 'email'),
-                    'age' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer'),
+                    'name' => new SchemaObject(type: 'string'),
+                    'email' => new SchemaObject(type: 'string', format: 'email'),
+                    'age' => new SchemaObject(type: 'integer'),
                 ],
                 required: ['name', 'email']
             );
@@ -29,9 +33,9 @@ describe('ValidationRuleMapper', function () {
         });
 
         it('should map array schema with items', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'array',
-                items: new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')
+                items: new SchemaObject(type: 'string')
             );
 
             $rules = $this->mapper->mapValidationRules($schema, 'tags');
@@ -43,17 +47,17 @@ describe('ValidationRuleMapper', function () {
         });
 
         it('should handle nested object properties', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'user' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+                    'user' => new SchemaObject(
                         type: 'object',
                         properties: [
-                            'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                            'profile' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+                            'name' => new SchemaObject(type: 'string'),
+                            'profile' => new SchemaObject(
                                 type: 'object',
                                 properties: [
-                                    'bio' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
+                                    'bio' => new SchemaObject(type: 'string'),
                                 ]
                             ),
                         ],
@@ -76,13 +80,13 @@ describe('ValidationRuleMapper', function () {
         });
 
         it('should handle array of objects', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'array',
-                items: new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+                items: new SchemaObject(
                     type: 'object',
                     properties: [
-                        'id' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer'),
-                        'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
+                        'id' => new SchemaObject(type: 'integer'),
+                        'name' => new SchemaObject(type: 'string'),
                     ],
                     required: ['id']
                 )
@@ -102,7 +106,7 @@ describe('ValidationRuleMapper', function () {
 
     describe('mapSchema', function () {
         it('should map simple string schema', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string');
+            $schema = new SchemaObject(type: 'string');
 
             $rules = $this->mapper->mapSchema($schema, 'name');
 
@@ -111,7 +115,7 @@ describe('ValidationRuleMapper', function () {
         });
 
         it('should map integer schema', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer');
+            $schema = new SchemaObject(type: 'integer');
 
             $rules = $this->mapper->mapSchema($schema, 'count');
 
@@ -120,7 +124,7 @@ describe('ValidationRuleMapper', function () {
         });
 
         it('should map number schema', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'number');
+            $schema = new SchemaObject(type: 'number');
 
             $rules = $this->mapper->mapSchema($schema, 'price');
 
@@ -129,7 +133,7 @@ describe('ValidationRuleMapper', function () {
         });
 
         it('should map boolean schema', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'boolean');
+            $schema = new SchemaObject(type: 'boolean');
 
             $rules = $this->mapper->mapSchema($schema, 'active');
 
@@ -140,12 +144,12 @@ describe('ValidationRuleMapper', function () {
 
     describe('buildRule', function () {
         it('should build rule with constraints for integration testing', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+            $constraints = new ValidationConstraints(
                 minLength: 3,
                 maxLength: 50,
                 pattern: '^[A-Z][a-z]+$'
             );
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'string',
                 validation: $constraints
             );
@@ -161,11 +165,11 @@ describe('ValidationRuleMapper', function () {
 
     describe('createValidationRules', function () {
         it('should create ValidationRule objects', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+            $schema = new SchemaObject(
                 type: 'object',
                 properties: [
-                    'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string'),
-                    'age' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'integer'),
+                    'name' => new SchemaObject(type: 'string'),
+                    'age' => new SchemaObject(type: 'integer'),
                 ],
                 required: ['name']
             );
@@ -225,4 +229,261 @@ describe('ValidationRuleMapper', function () {
         });
     });
 
+    describe('edge cases and error handling', function () {
+        it('should handle schema with all constraint types', function () {
+            $constraints = new ValidationConstraints(
+                minLength: 3,
+                maxLength: 50,
+                minimum: 1,
+                maximum: 100,
+                minItems: 1,
+                maxItems: 10,
+                pattern: '^[a-zA-Z]+$',
+                enum: ['active', 'inactive'],
+                multipleOf: 5,
+                uniqueItems: true
+            );
+
+            $schema = new SchemaObject(
+                type: 'string',
+                validation: $constraints
+            );
+
+            $rule = $this->mapper->buildRule($schema, 'complex_field');
+
+            expect($rule)->toContain('string');
+            expect($rule)->toContain('min:3');
+            expect($rule)->toContain('max:50');
+            expect($rule)->toContain('regex:/^[a-zA-Z]+$/');
+            expect($rule)->toContain('in:active,inactive');
+            expect($rule)->toContain('in:active,inactive');
+        });
+
+        it('should handle empty schema gracefully', function () {
+            $schema = new SchemaObject(type: 'string');
+
+            $rules = $this->mapper->mapSchema($schema, 'empty_field');
+
+            expect($rules)->toHaveKey('empty_field');
+            expect($rules['empty_field'])->toContain('string');
+        });
+
+        it('should handle schema without specific constraints', function () {
+            $schema = new SchemaObject(type: 'string');
+
+            $rules = $this->mapper->mapSchema($schema, 'unknown_field');
+
+            expect($rules)->toHaveKey('unknown_field');
+            expect($rules['unknown_field'])->toContain('string');
+        });
+
+        it('should handle circular nested objects safely', function () {
+            $deepSchema = new SchemaObject(
+                type: 'object',
+                properties: [
+                    'level1' => new SchemaObject(
+                        type: 'object',
+                        properties: [
+                            'level2' => new SchemaObject(
+                                type: 'object',
+                                properties: [
+                                    'level3' => new SchemaObject(type: 'string'),
+                                ],
+                                required: ['level3']
+                            ),
+                        ],
+                        required: ['level2']
+                    ),
+                ],
+                required: ['level1']
+            );
+
+            $rules = $this->mapper->mapValidationRules($deepSchema);
+
+            expect($rules)->toHaveKey('level1');
+            expect($rules)->toHaveKey('level1.level2');
+            expect($rules)->toHaveKey('level1.level2.level3');
+            expect($rules['level1'])->toContain('required');
+            expect($rules['level1.level2'])->toContain('required');
+            expect($rules['level1.level2.level3'])->toContain('required');
+        });
+
+        it('should handle arrays with complex constraints', function () {
+            $constraints = new ValidationConstraints(
+                minItems: 2,
+                maxItems: 5,
+                uniqueItems: true
+            );
+
+            $schema = new SchemaObject(
+                type: 'array',
+                items: new SchemaObject(
+                    type: 'string',
+                    validation: new ValidationConstraints(
+                        minLength: 3,
+                        maxLength: 20
+                    )
+                ),
+                validation: $constraints
+            );
+
+            $rules = $this->mapper->mapValidationRules($schema, 'tags');
+
+            expect($rules['tags'])->toContain('array');
+            expect($rules['tags'])->toContain('min:2');
+            expect($rules['tags'])->toContain('max:5');
+            expect($rules['tags.*'])->toContain('string');
+            expect($rules['tags.*'])->toContain('min:3');
+            expect($rules['tags.*'])->toContain('max:20');
+            expect($rules['tags'])->toContain('distinct');
+        });
+
+        it('should handle numeric constraints correctly', function () {
+            $constraints = new ValidationConstraints(
+                minimum: 0,
+                maximum: 1000,
+                multipleOf: 10
+            );
+
+            $schema = new SchemaObject(
+                type: 'number',
+                validation: $constraints
+            );
+
+            $rule = $this->mapper->buildRule($schema, 'price');
+
+            expect($rule)->toContain('numeric');
+            expect($rule)->toContain('min:0');
+            expect($rule)->toContain('max:1000');
+        });
+
+        it('should handle enum with special characters', function () {
+            $constraints = new ValidationConstraints(
+                enum: ['value,with,commas', 'value|with|pipes', 'normal_value']
+            );
+
+            $schema = new SchemaObject(
+                type: 'string',
+                validation: $constraints
+            );
+
+            $rule = $this->mapper->buildRule($schema, 'special_enum');
+
+            expect($rule)->toContain('in:value,with,commas,value|with|pipes,normal_value');
+        });
+    });
+
+    describe('complex mapping scenarios', function () {
+        it('should handle mixed array types', function () {
+            $schema = new SchemaObject(
+                type: 'object',
+                properties: [
+                    'strings' => new SchemaObject(
+                        type: 'array',
+                        items: new SchemaObject(type: 'string')
+                    ),
+                    'numbers' => new SchemaObject(
+                        type: 'array',
+                        items: new SchemaObject(type: 'integer')
+                    ),
+                    'objects' => new SchemaObject(
+                        type: 'array',
+                        items: new SchemaObject(
+                            type: 'object',
+                            properties: [
+                                'id' => new SchemaObject(type: 'integer'),
+                            ]
+                        )
+                    ),
+                ]
+            );
+
+            $rules = $this->mapper->mapValidationRules($schema);
+
+            expect($rules)->toHaveKey('strings');
+            expect($rules)->toHaveKey('strings.*');
+            expect($rules)->toHaveKey('numbers');
+            expect($rules)->toHaveKey('numbers.*');
+            expect($rules)->toHaveKey('objects');
+            expect($rules)->toHaveKey('objects.*');
+            expect($rules)->toHaveKey('objects.*.id');
+
+            expect($rules['strings.*'])->toContain('string');
+            expect($rules['numbers.*'])->toContain('integer');
+            expect($rules['objects.*.id'])->toContain('nullable');
+        });
+
+        it('should handle schemas with format-specific rules', function () {
+            $schema = new SchemaObject(
+                type: 'object',
+                properties: [
+                    'email' => new SchemaObject(type: 'string', format: 'email'),
+                    'date' => new SchemaObject(type: 'string', format: 'date'),
+                    'datetime' => new SchemaObject(type: 'string', format: 'date-time'),
+                    'uuid' => new SchemaObject(type: 'string', format: 'uuid'),
+                    'uri' => new SchemaObject(type: 'string', format: 'uri'),
+                ]
+            );
+
+            $rules = $this->mapper->mapValidationRules($schema);
+
+            expect($rules['email'])->toContain('email');
+            expect($rules['date'])->toContain('date');
+            expect($rules['datetime'])->toContain('date');
+            expect($rules['uuid'])->toContain('uuid');
+            expect($rules['uri'])->toContain('url');
+        });
+
+        it('should handle optional and required field combinations', function () {
+            $schema = new SchemaObject(
+                type: 'object',
+                properties: [
+                    'required_string' => new SchemaObject(type: 'string'),
+                    'optional_string' => new SchemaObject(type: 'string'),
+                    'required_integer' => new SchemaObject(type: 'integer'),
+                    'optional_integer' => new SchemaObject(type: 'integer'),
+                ],
+                required: ['required_string', 'required_integer']
+            );
+
+            $rules = $this->mapper->mapValidationRules($schema);
+
+            expect($rules['required_string'])->toContain('required');
+            expect($rules['required_string'])->not->toContain('nullable');
+            expect($rules['optional_string'])->toContain('nullable');
+            expect($rules['optional_string'])->not->toContain('required');
+            expect($rules['required_integer'])->toContain('required');
+            expect($rules['optional_integer'])->toContain('nullable');
+        });
+    });
+
+    describe('validation rule generation edge cases', function () {
+        it('should handle rules for different field paths', function () {
+            $schema = new SchemaObject(type: 'string');
+
+            $rules1 = $this->mapper->mapSchema($schema, 'simple_field');
+            $rules2 = $this->mapper->mapSchema($schema, 'nested.field');
+            $rules3 = $this->mapper->mapSchema($schema, 'array.*.field');
+
+            expect($rules1)->toHaveKey('simple_field');
+            expect($rules2)->toHaveKey('nested.field');
+            expect($rules3)->toHaveKey('array.*.field');
+        });
+
+        it('should properly escape regex patterns', function () {
+            $constraints = new ValidationConstraints(
+                pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            );
+
+            $schema = new SchemaObject(
+                type: 'string',
+                validation: $constraints
+            );
+
+            $rule = $this->mapper->buildRule($schema, 'email_pattern');
+
+            expect($rule)->toContain('string');
+            expect($rule)->toContain('regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/');
+        });
+    });
 });

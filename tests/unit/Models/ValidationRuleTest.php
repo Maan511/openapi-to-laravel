@@ -1,14 +1,17 @@
 <?php
 
+use Maan511\OpenapiToLaravel\Models\ValidationConstraints;
+use Maan511\OpenapiToLaravel\Models\ValidationRule;
+
 describe('ValidationRule', function () {
     describe('construction', function () {
         it('should create validation rule with all features', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+            $constraints = new ValidationConstraints(
                 minLength: 3,
                 maxLength: 50
             );
 
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'user.profile.email',
                 type: 'string',
                 rules: ['required', 'email'],
@@ -29,7 +32,7 @@ describe('ValidationRule', function () {
 
     describe('isNested', function () {
         it('should return true for nested property paths', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'user.profile.name',
                 type: 'string',
                 rules: []
@@ -39,7 +42,7 @@ describe('ValidationRule', function () {
         });
 
         it('should return false for simple property names', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: []
@@ -49,7 +52,7 @@ describe('ValidationRule', function () {
         });
 
         it('should return false for array notation', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'tags.*',
                 type: 'string',
                 rules: []
@@ -61,11 +64,11 @@ describe('ValidationRule', function () {
 
     describe('hasConstraints', function () {
         it('should return true when constraints exist', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+            $constraints = new ValidationConstraints(
                 minLength: 5
             );
 
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'name',
                 type: 'string',
                 rules: [],
@@ -76,7 +79,7 @@ describe('ValidationRule', function () {
         });
 
         it('should return false when constraints are null', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'name',
                 type: 'string',
                 rules: []
@@ -86,9 +89,9 @@ describe('ValidationRule', function () {
         });
 
         it('should return false when constraints are empty', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
+            $constraints = new ValidationConstraints;
 
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'name',
                 type: 'string',
                 rules: [],
@@ -101,7 +104,7 @@ describe('ValidationRule', function () {
 
     describe('addRule', function () {
         it('should add new rule to existing rules array', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'age',
                 type: 'integer',
                 rules: ['integer']
@@ -114,7 +117,7 @@ describe('ValidationRule', function () {
         });
 
         it('should not add duplicate rules', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: ['required', 'email']
@@ -127,7 +130,7 @@ describe('ValidationRule', function () {
         });
 
         it('should handle rule with parameters', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'password',
                 type: 'string',
                 rules: []
@@ -143,7 +146,7 @@ describe('ValidationRule', function () {
 
     describe('removeRule', function () {
         it('should remove existing rule from rules array', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: ['required', 'email', 'max:255']
@@ -156,7 +159,7 @@ describe('ValidationRule', function () {
         });
 
         it('should handle removing non-existent rule gracefully', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: ['required', 'email']
@@ -170,7 +173,7 @@ describe('ValidationRule', function () {
 
     describe('hasRule', function () {
         it('should return true for existing rule', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: ['required', 'email']
@@ -181,7 +184,7 @@ describe('ValidationRule', function () {
         });
 
         it('should return false for non-existing rule', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: ['required', 'email']
@@ -191,7 +194,7 @@ describe('ValidationRule', function () {
         });
 
         it('should handle rule with parameters correctly', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'age',
                 type: 'integer',
                 rules: ['integer', 'min:18', 'max:100']
@@ -204,7 +207,7 @@ describe('ValidationRule', function () {
 
     describe('toValidationArray', function () {
         it('should convert to Laravel validation array format', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: ['required', 'email', 'max:255']
@@ -217,7 +220,7 @@ describe('ValidationRule', function () {
         });
 
         it('should handle nested properties correctly', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'user.profile.name',
                 type: 'string',
                 rules: ['required', 'string']
@@ -229,7 +232,7 @@ describe('ValidationRule', function () {
         });
 
         it('should handle array properties correctly', function () {
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'tags.*',
                 type: 'string',
                 rules: ['string', 'max:50']
@@ -250,7 +253,7 @@ describe('ValidationRule', function () {
             ];
 
             foreach ($testCases as $case) {
-                $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+                $rule = new ValidationRule(
                     property: $case['property'],
                     type: 'string',
                     rules: []
@@ -274,7 +277,7 @@ describe('ValidationRule', function () {
             ];
 
             foreach ($testCases as $case) {
-                $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+                $rule = new ValidationRule(
                     property: $case['property'],
                     type: $case['type'],
                     rules: []
@@ -288,11 +291,11 @@ describe('ValidationRule', function () {
 
     describe('clone', function () {
         it('should create deep copy of validation rule', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+            $constraints = new ValidationConstraints(
                 minLength: 5
             );
 
-            $original = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $original = new ValidationRule(
                 property: 'email',
                 type: 'string',
                 rules: ['required', 'email'],
@@ -309,7 +312,7 @@ describe('ValidationRule', function () {
         });
 
         it('should modify clone without affecting original', function () {
-            $original = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $original = new ValidationRule(
                 property: 'name',
                 type: 'string',
                 rules: ['required']
@@ -325,12 +328,12 @@ describe('ValidationRule', function () {
 
     describe('toArray', function () {
         it('should convert rule to array format', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+            $constraints = new ValidationConstraints(
                 minLength: 5,
                 maxLength: 100
             );
 
-            $rule = new \Maan511\OpenapiToLaravel\Models\ValidationRule(
+            $rule = new ValidationRule(
                 property: 'username',
                 type: 'string',
                 rules: ['required', 'string'],
@@ -368,8 +371,8 @@ describe('ValidationRule', function () {
 
             foreach ($testCases as $case) {
                 $rule = $case['type']
-                    ? \Maan511\OpenapiToLaravel\Models\ValidationRule::{$case['method']}($case['property'], $case['type'])
-                    : \Maan511\OpenapiToLaravel\Models\ValidationRule::{$case['method']}($case['property']);
+                    ? ValidationRule::{$case['method']}($case['property'], $case['type'])
+                    : ValidationRule::{$case['method']}($case['property']);
 
                 expect($rule->property)->toBe($case['property']);
                 expect($rule->type)->toBe($case['expectedType']);

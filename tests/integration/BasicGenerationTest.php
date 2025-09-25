@@ -1,6 +1,8 @@
 <?php
 
 use Exception;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
 
 beforeEach(function () {
     $this->parser = createTestParser();
@@ -15,7 +17,7 @@ describe('Basic Generation Workflow', function () {
         try {
             // Parse specification
             $specification = $this->parser->parseFromFile($tempSpecFile);
-            expect($specification)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\OpenApiSpecification::class);
+            expect($specification)->toBeInstanceOf(OpenApiSpecification::class);
 
             // Extract endpoints with request bodies
             $endpoints = $this->parser->getEndpointsWithRequestBodies($specification);
@@ -27,7 +29,7 @@ describe('Basic Generation Workflow', function () {
 
             // Verify FormRequest structure
             $formRequest = $formRequests[0];
-            expect($formRequest)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class);
+            expect($formRequest)->toBeInstanceOf(FormRequestClass::class);
             expect($formRequest->className)->toBe('CreateUserRequest');
             expect($formRequest->namespace)->toBe('App\\Http\\Requests');
             expect($formRequest->filePath)->toEndWith('/CreateUserRequest.php');

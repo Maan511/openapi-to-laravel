@@ -11,7 +11,9 @@
 |
 */
 
-uses(\Maan511\OpenapiToLaravel\Tests\TestCase::class)->in('contract', 'integration', 'unit');
+use Maan511\OpenapiToLaravel\Tests\TestCase;
+
+uses(TestCase::class)->in('contract', 'integration', 'unit');
 
 // Include shared test helpers
 require_once __DIR__ . '/Helpers/TestFactories.php';

@@ -5,6 +5,9 @@ namespace Maan511\OpenapiToLaravel\Tests\Contract;
 use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
 use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Models\FormRequestClass;
+use Maan511\OpenapiToLaravel\Models\SchemaObject;
+use Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 use Maan511\OpenapiToLaravel\Tests\TestCase;
 use ReflectionClass;
 
@@ -48,7 +51,7 @@ class GeneratorInterfaceTest extends TestCase
             '/tmp'
         );
 
-        $this->assertInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class, $result);
+        $this->assertInstanceOf(FormRequestClass::class, $result);
         $this->assertEquals('CreateUserRequest', $result->className);
         $this->assertEquals('App\\Http\\Requests', $result->namespace);
         $this->assertArrayHasKey('name', $result->validationRules);
@@ -64,7 +67,7 @@ class GeneratorInterfaceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid class name');
 
-        \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+        FormRequestClass::create(
             className: 'invalid-class-name',
             namespace: 'App\\Http\\Requests',
             filePath: '/tmp/invalid-class-name.php',
@@ -81,7 +84,7 @@ class GeneratorInterfaceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid namespace');
 
-        \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
+        FormRequestClass::create(
             className: 'TestRequest',
             namespace: 'invalid-namespace',
             filePath: '/tmp/TestRequest.php',
@@ -155,25 +158,25 @@ class GeneratorInterfaceTest extends TestCase
     /**
      * Helper method to get a sample request schema for testing
      */
-    private function getSampleRequestSchema(): \Maan511\OpenapiToLaravel\Models\SchemaObject
+    private function getSampleRequestSchema(): SchemaObject
     {
-        return new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+        return new SchemaObject(
             type: 'object',
             properties: [
-                'name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+                'name' => new SchemaObject(
                     type: 'string',
-                    validation: new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+                    validation: new ValidationConstraints(
                         minLength: 2,
                         maxLength: 100
                     )
                 ),
-                'email' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+                'email' => new SchemaObject(
                     type: 'string',
                     format: 'email'
                 ),
-                'age' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(
+                'age' => new SchemaObject(
                     type: 'integer',
-                    validation: new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
+                    validation: new ValidationConstraints(
                         minimum: 0,
                         maximum: 120
                     )

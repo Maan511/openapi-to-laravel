@@ -2,35 +2,43 @@
 
 namespace Maan511\OpenapiToLaravel\Tests;
 
+use Illuminate\Console\Application;
+use Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand;
+use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
+use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
+use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
+use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
+use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
+use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 
 /**
  * Base test case with shared testing utilities.
  *
- * @property \Maan511\OpenapiToLaravel\Parser\OpenApiParser $parser Parser instance for integration tests
- * @property \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator $generator Generator instance for integration tests
+ * @property OpenApiParser $parser Parser instance for integration tests
+ * @property FormRequestGenerator $generator Generator instance for integration tests
  */
 abstract class TestCase extends BaseTestCase
 {
     // Properties for dependency injection in tests (initialized in setUp or test methods)
-    protected ?\Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper $ruleMapper = null;
+    protected ?ValidationRuleMapper $ruleMapper = null;
 
-    protected ?\Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper $mapper = null;
+    protected ?ValidationRuleMapper $mapper = null;
 
-    protected ?\Maan511\OpenapiToLaravel\Generator\TemplateEngine $templateEngine = null;
+    protected ?TemplateEngine $templateEngine = null;
 
-    protected ?\Maan511\OpenapiToLaravel\Generator\FormRequestGenerator $generator = null;
+    protected ?FormRequestGenerator $generator = null;
 
-    protected ?\Maan511\OpenapiToLaravel\Parser\ReferenceResolver $referenceResolver = null;
+    protected ?ReferenceResolver $referenceResolver = null;
 
-    protected ?\Maan511\OpenapiToLaravel\Parser\SchemaExtractor $schemaExtractor = null;
+    protected ?SchemaExtractor $schemaExtractor = null;
 
-    protected ?\Maan511\OpenapiToLaravel\Parser\OpenApiParser $parser = null;
+    protected ?OpenApiParser $parser = null;
 
     // Console command testing properties
-    protected ?\Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand $command = null;
+    protected ?GenerateFormRequestsCommand $command = null;
 
-    protected ?\Illuminate\Console\Application $application = null;
+    protected ?Application $application = null;
 
     /**
      * Setup the test environment.
