@@ -72,13 +72,8 @@ jobs:
     - name: Check code formatting (Pint)
       run: vendor/bin/pint --test
 
-    - name: Run static analysis (if PHPStan is available)
-      run: |
-        if [ -f "vendor/bin/phpstan" ]; then
-          vendor/bin/phpstan analyse --memory-limit=2G
-        else
-          echo "PHPStan not found, skipping static analysis"
-        fi
+    - name: Run static analysis (PHPStan)
+      run: vendor/bin/phpstan analyse --memory-limit=2G
 
   security:
     runs-on: ubuntu-latest
