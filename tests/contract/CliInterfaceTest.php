@@ -137,6 +137,9 @@ class CliInterfaceTest extends TestCase
     {
         // Create a temporary invalid OpenAPI spec file
         $tempSpec = tempnam(sys_get_temp_dir(), 'invalid_spec');
+        if ($tempSpec === false) {
+            $this->fail('tempnam() failed to create a temporary file');
+        }
         unlink($tempSpec); // Remove the empty temp file created by tempnam()
         $tempSpec .= '.json'; // Add .json extension
         file_put_contents($tempSpec, '{"invalid": "spec"}');
@@ -220,6 +223,9 @@ class CliInterfaceTest extends TestCase
     private function createTempSpecFile(): string
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'openapi_spec');
+        if ($tempFile === false) {
+            $this->fail('tempnam() failed to create a temporary file');
+        }
         unlink($tempFile); // Remove the empty temp file created by tempnam()
         $tempFile .= '.json'; // Add .json extension
         $spec = [
