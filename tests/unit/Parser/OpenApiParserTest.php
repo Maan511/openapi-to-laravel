@@ -63,7 +63,9 @@ describe('OpenApiParser', function () {
         });
 
         it('should detect JSON format from extension', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, json_encode([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -349,7 +351,9 @@ describe('OpenApiParser', function () {
 
     describe('isValidOpenApiFile', function () {
         it('should return true for valid OpenAPI file', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, json_encode([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -362,7 +366,9 @@ describe('OpenApiParser', function () {
         });
 
         it('should return false for invalid OpenAPI file', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, 'invalid json content');
 
             expect($this->parser->isValidOpenApiFile($tempFile))->toBeFalse();

@@ -132,7 +132,9 @@ describe('Basic Generation Workflow', function () {
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'openapi_multi_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'openapi_multi_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parsedSpec = $this->parser->parseFromFile($tempFile);
@@ -150,7 +152,9 @@ describe('Basic Generation Workflow', function () {
 
     describe('error handling', function () {
         it('should handle invalid spec files', function () {
-            $invalidSpecFile = tempnam(sys_get_temp_dir(), 'invalid_spec_') . '.json';
+            $invalidSpecFile = tempnam(sys_get_temp_dir(), 'invalid_spec_');
+            unlink($invalidSpecFile); // Remove the empty temp file created by tempnam()
+            $invalidSpecFile .= '.json'; // Add .json extension
             file_put_contents($invalidSpecFile, '{invalid json');
 
             expect(fn () => $this->parser->parseFromFile($invalidSpecFile))
@@ -191,7 +195,9 @@ describe('Basic Generation Workflow', function () {
                 ],
             ];
 
-            $tempFile = tempnam(sys_get_temp_dir(), 'naming_test_') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'naming_test_');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, json_encode($spec));
 
             $parsedSpec = $this->parser->parseFromFile($tempFile);

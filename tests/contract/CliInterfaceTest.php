@@ -136,7 +136,9 @@ class CliInterfaceTest extends TestCase
     public function test_command_returns_error_response_for_invalid_spec(): void
     {
         // Create a temporary invalid OpenAPI spec file
-        $tempSpec = tempnam(sys_get_temp_dir(), 'invalid_spec') . '.json';
+        $tempSpec = tempnam(sys_get_temp_dir(), 'invalid_spec');
+        unlink($tempSpec); // Remove the empty temp file created by tempnam()
+        $tempSpec .= '.json'; // Add .json extension
         file_put_contents($tempSpec, '{"invalid": "spec"}');
 
         try {
@@ -217,7 +219,9 @@ class CliInterfaceTest extends TestCase
 
     private function createTempSpecFile(): string
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'openapi_spec') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'openapi_spec');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         $spec = [
             'openapi' => '3.0.0',
             'info' => ['title' => 'Test API', 'version' => '1.0.0'],

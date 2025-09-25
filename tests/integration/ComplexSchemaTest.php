@@ -89,7 +89,9 @@ describe('Complex Schema Integration', function () {
                     ],
                 ];
 
-                $tempFile = tempnam(sys_get_temp_dir(), $case['name'] . '_test_') . '.json';
+                $tempFile = tempnam(sys_get_temp_dir(), $case['name'] . '_test_');
+                unlink($tempFile); // Remove the empty temp file created by tempnam()
+                $tempFile .= '.json'; // Add .json extension
                 file_put_contents($tempFile, json_encode($spec));
 
                 try {
@@ -140,7 +142,9 @@ describe('Complex Schema Integration', function () {
                 ],
             ];
 
-            $tempFile = tempnam(sys_get_temp_dir(), 'array_test_') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'array_test_');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, json_encode($spec));
 
             $parsedSpec = $this->parser->parseFromFile($tempFile);
@@ -195,7 +199,9 @@ describe('Complex Schema Integration', function () {
                 ],
             ];
 
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test_ref_') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test_ref_');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, json_encode($spec));
 
             try {

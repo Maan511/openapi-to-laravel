@@ -46,7 +46,9 @@ function createTempOpenApiSpec(): string
         ],
     ];
 
-    $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test_') . '.json';
+    $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test_');
+    unlink($tempFile); // Remove the empty temp file created by tempnam()
+    $tempFile .= '.json'; // Add .json extension
     file_put_contents($tempFile, json_encode($spec));
 
     return $tempFile;

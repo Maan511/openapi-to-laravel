@@ -30,7 +30,9 @@ describe('GenerateFormRequestsCommand', function () {
 
     describe('validateInputs', function () {
         it('should validate existing readable spec file', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, json_encode([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -70,7 +72,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should reject invalid namespace format', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             $reflection = new ReflectionClass($this->command);
@@ -91,7 +95,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should create output directory if it does not exist', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             $tempDir = sys_get_temp_dir() . '/test_output_' . uniqid();
@@ -116,7 +122,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should reject non-writable output directory', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             // Create a directory with no write permissions
@@ -144,7 +152,9 @@ describe('GenerateFormRequestsCommand', function () {
         });
 
         it('should not create output directory in dry-run mode', function () {
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, '{}');
 
             $tempDir = sys_get_temp_dir() . '/dry_run_test_' . uniqid();
@@ -300,7 +310,9 @@ describe('GenerateFormRequestsCommand', function () {
     describe('handle method flow', function () {
         it('should handle valid OpenAPI specification file', function () {
             // Create a valid OpenAPI spec file
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             $validSpec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -357,7 +369,9 @@ describe('GenerateFormRequestsCommand', function () {
 
         it('should return error code for invalid specification', function () {
             // Create an invalid spec file
-            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.json';
+            $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
+            unlink($tempFile); // Remove the empty temp file created by tempnam()
+            $tempFile .= '.json'; // Add .json extension
             file_put_contents($tempFile, 'invalid json');
 
             // Mock console input/output

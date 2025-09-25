@@ -46,7 +46,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -99,7 +101,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_rules_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_rules_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -152,7 +156,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_auth_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_auth_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -201,7 +207,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'controller_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'controller_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -265,7 +273,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'validation_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'validation_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -354,7 +364,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'messages_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'messages_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -443,7 +455,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'attributes_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'attributes_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -525,7 +539,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'naming_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'naming_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -601,7 +617,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'file_upload_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'file_upload_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -709,7 +727,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'nested_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'nested_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -798,7 +818,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_validation_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'laravel_validation_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -891,7 +913,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'conditional_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'conditional_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -969,7 +993,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'performance_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'performance_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $startTime = microtime(true);
@@ -1051,7 +1077,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'error_handling_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'error_handling_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -1137,7 +1165,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'middleware_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'middleware_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -1233,7 +1263,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'api_resource_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'api_resource_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
@@ -1321,7 +1353,9 @@ class LaravelIntegrationTest extends TestCase
             ],
         ];
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'testing_support_test_') . '.json';
+        $tempFile = tempnam(sys_get_temp_dir(), 'testing_support_test_');
+        unlink($tempFile); // Remove the empty temp file created by tempnam()
+        $tempFile .= '.json'; // Add .json extension
         file_put_contents($tempFile, json_encode($spec));
 
         $parser = $this->createParser();
