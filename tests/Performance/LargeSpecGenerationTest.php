@@ -21,12 +21,12 @@ describe('Large OpenAPI Specification Performance', function () {
                                     'properties' => [
                                         'name' => [
                                             'type' => 'string',
-                                            'minLength' => 1,
-                                            'maxLength' => 255,
+                                            'minLength' => TestConstants::DEFAULT_MIN_STRING_LENGTH,
+                                            'maxLength' => TestConstants::DEFAULT_MAX_STRING_LENGTH,
                                         ],
                                         'description' => [
                                             'type' => 'string',
-                                            'maxLength' => 1000,
+                                            'maxLength' => TestConstants::TEST_MAX_DESCRIPTION_LENGTH,
                                         ],
                                         'status' => [
                                             'type' => 'string',
@@ -70,12 +70,12 @@ describe('Large OpenAPI Specification Performance', function () {
                                     'properties' => [
                                         'name' => [
                                             'type' => 'string',
-                                            'minLength' => 1,
-                                            'maxLength' => 255,
+                                            'minLength' => TestConstants::DEFAULT_MIN_STRING_LENGTH,
+                                            'maxLength' => TestConstants::DEFAULT_MAX_STRING_LENGTH,
                                         ],
                                         'description' => [
                                             'type' => 'string',
-                                            'maxLength' => 1000,
+                                            'maxLength' => TestConstants::TEST_MAX_DESCRIPTION_LENGTH,
                                         ],
                                         'status' => [
                                             'type' => 'string',
@@ -127,7 +127,8 @@ describe('Large OpenAPI Specification Performance', function () {
         // Assertions
         expect(count($endpoints))->toBe(200); // 100 resources × 2 methods each
         expect(count($formRequests))->toBe(200);
-        expect($executionTime)->toBeLessThan(5.0); // Should complete in under 5 seconds
+        $timeLimit = $_ENV['PERFORMANCE_TIME_LIMIT'] ?? TestConstants::PERFORMANCE_TIME_LIMIT_SECONDS * 2; // More generous for large specs
+        expect($executionTime)->toBeLessThan($timeLimit);
 
         // Log performance metrics for debugging
         echo "\nPerformance Metrics:\n";
@@ -231,7 +232,8 @@ describe('Large OpenAPI Specification Performance', function () {
         $executionTime = $endTime - $startTime;
 
         // Should handle deep nesting without performance issues
-        expect($executionTime)->toBeLessThan(1.0);
+        $deepNestingLimit = $_ENV['DEEP_NESTING_TIME_LIMIT'] ?? TestConstants::PERFORMANCE_TIME_LIMIT_SECONDS / 5; // Faster for single endpoint
+        expect($executionTime)->toBeLessThan($deepNestingLimit);
         expect(count($formRequests))->toBe(1);
 
         // Validate nested field validation rules were generated
@@ -358,7 +360,8 @@ describe('Large OpenAPI Specification Performance', function () {
         $executionTime = $endTime - $startTime;
 
         // Should handle complex validation constraints efficiently
-        expect($executionTime)->toBeLessThan(2.0);
+        $complexValidationLimit = $_ENV['COMPLEX_VALIDATION_TIME_LIMIT'] ?? TestConstants::PERFORMANCE_TIME_LIMIT_SECONDS / 2.5; // Medium complexity
+        expect($executionTime)->toBeLessThan($complexValidationLimit);
         expect(count($formRequests))->toBe(50);
 
         // Validate complex validation rules were generated correctly

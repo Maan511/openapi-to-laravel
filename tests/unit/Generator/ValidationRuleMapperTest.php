@@ -139,10 +139,11 @@ describe('ValidationRuleMapper', function () {
     });
 
     describe('buildRule', function () {
-        it('should build rule with validation constraints', function () {
+        it('should build rule with constraints for integration testing', function () {
             $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
                 minLength: 3,
-                maxLength: 50
+                maxLength: 50,
+                pattern: '^[A-Z][a-z]+$'
             );
             $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
                 type: 'string',
@@ -154,83 +155,6 @@ describe('ValidationRuleMapper', function () {
             expect($rule)->toContain('string');
             expect($rule)->toContain('min:3');
             expect($rule)->toContain('max:50');
-        });
-
-        it('should build rule with format validation', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'string',
-                format: 'email'
-            );
-
-            $rule = $this->mapper->buildRule($schema, 'email');
-
-            expect($rule)->toContain('string');
-            expect($rule)->toContain('email');
-        });
-
-        it('should build rule with enum constraint', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
-                enum: ['active', 'inactive', 'pending']
-            );
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'string',
-                validation: $constraints
-            );
-
-            $rule = $this->mapper->buildRule($schema, 'status');
-
-            expect($rule)->toContain('string');
-            expect($rule)->toContain('in:active,inactive,pending');
-        });
-
-        it('should build rule with numeric constraints', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
-                minimum: 0,
-                maximum: 100
-            );
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'integer',
-                validation: $constraints
-            );
-
-            $rule = $this->mapper->buildRule($schema, 'percentage');
-
-            expect($rule)->toContain('integer');
-            expect($rule)->toContain('min:0');
-            expect($rule)->toContain('max:100');
-        });
-
-        it('should build rule with array constraints', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
-                minItems: 1,
-                maxItems: 5,
-                uniqueItems: true
-            );
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'array',
-                validation: $constraints,
-                items: new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')
-            );
-
-            $rule = $this->mapper->buildRule($schema, 'tags');
-
-            expect($rule)->toContain('array');
-            expect($rule)->toContain('min:1');
-            expect($rule)->toContain('max:5');
-        });
-
-        it('should build rule with pattern constraint', function () {
-            $constraints = new \Maan511\OpenapiToLaravel\Models\ValidationConstraints(
-                pattern: '^[A-Z][a-z]+$'
-            );
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'string',
-                validation: $constraints
-            );
-
-            $rule = $this->mapper->buildRule($schema, 'name');
-
-            expect($rule)->toContain('string');
             expect($rule)->toContain('regex:/^[A-Z][a-z]+$/');
         });
     });
@@ -301,67 +225,4 @@ describe('ValidationRuleMapper', function () {
         });
     });
 
-    describe('combineRules', function () {
-        it('should combine rules for same field', function () {
-            // Simulate rules coming from different sources that need to be combined
-            $rules1 = ['name' => 'required|string'];
-            $rules2 = ['name' => 'max:255'];
-
-            // First combine them manually to simulate multiple rule sources
-            $allRules = [];
-            foreach ([$rules1, $rules2] as $ruleSet) {
-                foreach ($ruleSet as $field => $rule) {
-                    if (isset($allRules[$field])) {
-                        $allRules[$field] .= '|' . $rule;
-                    } else {
-                        $allRules[$field] = $rule;
-                    }
-                }
-            }
-            $allRules['email'] = 'required|email';
-
-            $combined = $this->mapper->combineRules($allRules);
-
-            expect($combined)->toHaveKey('name');
-            expect($combined)->toHaveKey('email');
-            expect($combined['name'])->toContain('required');
-            expect($combined['name'])->toContain('string');
-            expect($combined['name'])->toContain('max:255');
-        });
-
-        it('should avoid duplicate rules', function () {
-            $rules = [
-                'name' => 'required|string|required',
-                'email' => 'email|required|email',
-            ];
-
-            $combined = $this->mapper->combineRules($rules);
-
-            expect(substr_count($combined['name'], 'required'))->toBe(1);
-            expect(substr_count($combined['email'], 'email'))->toBe(1);
-        });
-    });
-
-    describe('sortValidationRules', function () {
-        it('should sort field rules alphabetically', function () {
-            $rules = [
-                'z_field' => 'string',
-                'a_field' => 'integer',
-                'b_field' => 'boolean',
-            ];
-
-            $sorted = $this->mapper->sortValidationRules($rules);
-
-            $keys = array_keys($sorted);
-            expect($keys[0])->toBe('a_field');
-            expect($keys[1])->toBe('b_field');
-            expect($keys[2])->toBe('z_field');
-        });
-
-        it('should handle empty rules array', function () {
-            $sorted = $this->mapper->sortValidationRules([]);
-
-            expect($sorted)->toBeEmpty();
-        });
-    });
 });

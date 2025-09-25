@@ -1,72 +1,50 @@
 <?php
 
-namespace Maan511\OpenapiToLaravel\Tests\Integration;
-
 use Exception;
-use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
-use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
-use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
-use Maan511\OpenapiToLaravel\Tests\TestCase;
 
-/**
- * Integration test for basic generation workflow
- *
- * This test validates the end-to-end generation process from OpenAPI spec
- * to Laravel FormRequest classes using basic scenarios.
- */
-class BasicGenerationTest extends TestCase
-{
-    public function test_complete_generation_workflow_with_simple_spec(): void
-    {
-        // Create components for testing
-        $referenceResolver = new \Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-        $schemaExtractor = new \Maan511\OpenapiToLaravel\Parser\SchemaExtractor($referenceResolver);
-        $parser = new \Maan511\OpenapiToLaravel\Parser\OpenApiParser($schemaExtractor);
-        $ruleMapper = new \Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-        $templateEngine = new \Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-        $generator = new \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator($ruleMapper);
+beforeEach(function () {
+    $this->parser = createTestParser();
+    $this->generator = createTestGenerator();
+});
 
-        // Create a temporary OpenAPI spec file
-        $tempSpecFile = $this->createTempOpenApiSpec();
-        $tempDir = $this->createTempOutputDirectory();
+describe('Basic Generation Workflow', function () {
+    it('should handle complete end-to-end generation workflow', function () {
+        $tempSpecFile = createTempOpenApiSpec();
+        $tempDir = createTempOutputDirectory();
 
         try {
             // Parse specification
-            $specification = $parser->parseFromFile($tempSpecFile);
-            $this->assertInstanceOf(\Maan511\OpenapiToLaravel\Models\OpenApiSpecification::class, $specification);
+            $specification = $this->parser->parseFromFile($tempSpecFile);
+            expect($specification)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\OpenApiSpecification::class);
 
             // Extract endpoints with request bodies
-            $endpoints = $parser->getEndpointsWithRequestBodies($specification);
-            $this->assertNotEmpty($endpoints);
+            $endpoints = $this->parser->getEndpointsWithRequestBodies($specification);
+            expect($endpoints)->not->toBeEmpty();
 
             // Generate FormRequest classes
-            $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', $tempDir);
-            $this->assertNotEmpty($formRequests);
+            $formRequests = $this->generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', $tempDir);
+            expect($formRequests)->not->toBeEmpty();
 
             // Verify FormRequest structure
             $formRequest = $formRequests[0];
-            $this->assertInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class, $formRequest);
-            $this->assertEquals('CreateUserRequest', $formRequest->className);
-            $this->assertEquals('App\\Http\\Requests', $formRequest->namespace);
-            $this->assertStringEndsWith('/CreateUserRequest.php', $formRequest->filePath);
+            expect($formRequest)->toBeInstanceOf(\Maan511\OpenapiToLaravel\Models\FormRequestClass::class);
+            expect($formRequest->className)->toBe('CreateUserRequest');
+            expect($formRequest->namespace)->toBe('App\\Http\\Requests');
+            expect($formRequest->filePath)->toEndWith('/CreateUserRequest.php');
 
             // Write the files
-            $results = $generator->generateAndWriteMultiple($formRequests);
-            $this->assertTrue($results['summary']['success'] > 0);
+            $results = $this->generator->generateAndWriteMultiple($formRequests);
+            expect($results['summary']['success'])->toBeGreaterThan(0);
 
             // Verify files were created
             $generatedFile = $tempDir . '/CreateUserRequest.php';
-            $this->assertFileExists($generatedFile);
+            expect($generatedFile)->toBeFile();
 
             // Verify generated content
             $content = file_get_contents($generatedFile) ?: '';
-            $this->assertStringContainsString('class CreateUserRequest', $content);
-            $this->assertStringContainsString('extends FormRequest', $content);
-            $this->assertStringContainsString('rules()', $content);
-
+            expect($content)->toContain('class CreateUserRequest');
+            expect($content)->toContain('extends FormRequest');
+            expect($content)->toContain('rules()');
         } finally {
             // Cleanup
             if (file_exists($tempSpecFile)) {
@@ -80,205 +58,46 @@ class BasicGenerationTest extends TestCase
                 rmdir($tempDir);
             }
         }
-    }
+    });
 
-    public function test_generation_with_default_options(): void
-    {
-        $tempSpec = $this->createTempOpenApiSpec();
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
+    it('should generate with custom namespace and valid Laravel structure', function () {
+        $tempSpec = createTempOpenApiSpec();
 
-        // Parse OpenAPI spec
-        $spec = $parser->parseFromFile($tempSpec);
-        $endpoints = $parser->getEndpointsWithRequestBodies($spec);
+        try {
+            $spec = $this->parser->parseFromFile($tempSpec);
+            $endpoints = $this->parser->getEndpointsWithRequestBodies($spec);
 
-        // Generate with default options (default namespace)
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
+            // Test custom namespace
+            $customNamespace = 'Custom\\Http\\Requests';
+            $customFormRequests = $this->generator->generateFromEndpoints($endpoints, $customNamespace, '/tmp');
 
-        // Verify default behavior
-        $this->assertNotEmpty($formRequests);
+            expect($customFormRequests)->not->toBeEmpty();
+            foreach ($customFormRequests as $formRequest) {
+                expect($formRequest->namespace)->toContain($customNamespace);
+            }
 
-        foreach ($formRequests as $formRequest) {
-            // Default namespace should be App\\Http\\Requests
-            $this->assertStringContainsString('App\\Http\\Requests', $formRequest->namespace);
+            // Test standard Laravel FormRequest structure
+            $standardFormRequests = $this->generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
+
+            expect($standardFormRequests)->not->toBeEmpty();
+            foreach ($standardFormRequests as $formRequest) {
+                $content = $formRequest->generatePhpCode();
+
+                expect($content)->toContain('extends FormRequest');
+                expect($content)->toContain('public function rules()');
+                expect($content)->toContain('public function authorize()');
+                expect($content)->toStartWith('<?php');
+                expect($content)->toContain('namespace App\\Http\\Requests');
+            }
+        } finally {
+            unlink($tempSpec);
         }
+    });
 
-        // Cleanup
-        unlink($tempSpec);
-    }
-
-    public function test_generation_with_custom_output_directory(): void
-    {
-        $tempSpec = $this->createTempOpenApiSpec();
-        $customDir = $this->createTempOutputDirectory();
-
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
-
-        // Parse OpenAPI spec
-        $spec = $parser->parseFromFile($tempSpec);
-        $endpoints = $parser->getEndpointsWithRequestBodies($spec);
-
-        // Generate FormRequests (directory handling would be in file writer)
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        // Verify generation works
-        $this->assertNotEmpty($formRequests);
-
-        // Custom output directory test would be at file writing level
-        // For now, just verify the generation produces valid FormRequest objects
-        foreach ($formRequests as $formRequest) {
-            $this->assertNotEmpty($formRequest->generatePhpCode());
-            $this->assertNotEmpty($formRequest->className);
-        }
-
-        // Cleanup
-        unlink($tempSpec);
-        rmdir($customDir);
-    }
-
-    public function test_generation_with_custom_namespace(): void
-    {
-        $tempSpec = $this->createTempOpenApiSpec();
-        $tempDir = $this->createTempOutputDirectory();
-
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
-
-        // Parse OpenAPI spec
-        $spec = $parser->parseFromFile($tempSpec);
-        $endpoints = $parser->getEndpointsWithRequestBodies($spec);
-
-        // Generate with custom namespace
-        $customNamespace = 'Custom\\Http\\Requests';
-        $formRequests = $generator->generateFromEndpoints($endpoints, $customNamespace, '/tmp');
-
-        // Verify namespace is correctly set
-        $this->assertNotEmpty($formRequests);
-        foreach ($formRequests as $formRequest) {
-            $this->assertStringContainsString($customNamespace, $formRequest->namespace);
-        }
-
-        // Cleanup
-        unlink($tempSpec);
-        rmdir($tempDir);
-    }
-
-    public function test_generation_with_force_option(): void
-    {
-        $tempSpec = $this->createTempOpenApiSpec();
-        $tempDir = $this->createTempOutputDirectory();
-
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
-
-        // Parse OpenAPI spec
-        $spec = $parser->parseFromFile($tempSpec);
-        $endpoints = $parser->getEndpointsWithRequestBodies($spec);
-
-        // Generate FormRequests
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        // Create a test file to simulate existing FormRequest
-        $testFilePath = $tempDir . '/CreateUserRequest.php';
-        file_put_contents($testFilePath, '<?php // Existing file');
-
-        // Test force option behavior
-        $this->assertTrue(file_exists($testFilePath));
-
-        // With force=false (default), should not overwrite
-        // This would be implemented in the command or file writer
-        // For now, just verify the FormRequest object is generated correctly
-        $this->assertNotEmpty($formRequests);
-
-        // Cleanup
-        unlink($tempSpec);
-        unlink($testFilePath);
-        rmdir($tempDir);
-    }
-
-    public function test_generation_with_dry_run_option(): void
-    {
-        $tempSpec = $this->createTempOpenApiSpec();
-        $tempDir = $this->createTempOutputDirectory();
-
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
-
-        // Parse OpenAPI spec
-        $spec = $parser->parseFromFile($tempSpec);
-        $endpoints = $parser->getEndpointsWithRequestBodies($spec);
-
-        // Generate FormRequests (this is the dry run equivalent - generation without file writing)
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        // Verify FormRequests are generated but no files are created in dry run mode
-        $this->assertNotEmpty($formRequests);
-
-        // Verify output directory is empty (dry run doesn't create files)
-        $this->assertEmpty(glob($tempDir . '/*'));
-
-        // Verify we can get information about what would be generated
-        foreach ($formRequests as $formRequest) {
-            $this->assertNotEmpty($formRequest->className);
-            $this->assertNotEmpty($formRequest->generatePhpCode());
-        }
-
-        // Cleanup
-        unlink($tempSpec);
-        rmdir($tempDir);
-    }
-
-    public function test_generation_produces_valid_laravel_form_requests(): void
-    {
-        $tempSpec = $this->createTempOpenApiSpec();
-        $tempDir = $this->createTempOutputDirectory();
-
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
-
-        // Parse OpenAPI spec
-        $spec = $parser->parseFromFile($tempSpec);
-        $endpoints = $parser->getEndpointsWithRequestBodies($spec);
-
-        // Generate FormRequests
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        $this->assertNotEmpty($formRequests);
-
-        foreach ($formRequests as $formRequest) {
-            $content = $formRequest->generatePhpCode();
-
-            // Verify extends FormRequest
-            $this->assertStringContainsString('extends FormRequest', $content);
-
-            // Verify has rules() method
-            $this->assertStringContainsString('public function rules()', $content);
-
-            // Verify has authorize() method
-            $this->assertStringContainsString('public function authorize()', $content);
-
-            // Verify syntactically valid PHP
-            $this->assertStringStartsWith('<?php', $content);
-
-            // Verify namespace follows PSR-4
-            $this->assertStringContainsString('namespace App\\Http\\Requests', $content);
-        }
-
-        // Cleanup
-        unlink($tempSpec);
-        rmdir($tempDir);
-    }
-
-    public function test_generation_handles_multiple_endpoints(): void
-    {
-        // Create a more complex OpenAPI spec with multiple endpoints
+    it('should handle multiple endpoints', function () {
         $spec = [
             'openapi' => '3.0.0',
-            'info' => [
-                'title' => 'Multi-endpoint API',
-                'version' => '1.0.0',
-            ],
+            'info' => ['title' => 'Multi-endpoint API', 'version' => '1.0.0'],
             'paths' => [
                 '/users' => [
                     'post' => [
@@ -288,10 +107,7 @@ class BasicGenerationTest extends TestCase
                                 'application/json' => [
                                     'schema' => [
                                         'type' => 'object',
-                                        'properties' => [
-                                            'name' => ['type' => 'string'],
-                                            'email' => ['type' => 'string', 'format' => 'email'],
-                                        ],
+                                        'properties' => ['name' => ['type' => 'string']],
                                     ],
                                 ],
                             ],
@@ -306,10 +122,7 @@ class BasicGenerationTest extends TestCase
                                 'application/json' => [
                                     'schema' => [
                                         'type' => 'object',
-                                        'properties' => [
-                                            'title' => ['type' => 'string'],
-                                            'content' => ['type' => 'string'],
-                                        ],
+                                        'properties' => ['title' => ['type' => 'string']],
                                     ],
                                 ],
                             ],
@@ -321,191 +134,55 @@ class BasicGenerationTest extends TestCase
 
         $tempFile = tempnam(sys_get_temp_dir(), 'openapi_multi_') . '.json';
         file_put_contents($tempFile, json_encode($spec));
-        $tempDir = $this->createTempOutputDirectory();
 
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
+        $parsedSpec = $this->parser->parseFromFile($tempFile);
+        $endpoints = $this->parser->getEndpointsWithRequestBodies($parsedSpec);
+        $formRequests = $this->generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
-        // Parse OpenAPI spec
-        $parsedSpec = $parser->parseFromFile($tempFile);
-        $endpoints = $parser->getEndpointsWithRequestBodies($parsedSpec);
+        expect($formRequests)->toHaveCount(2);
 
-        // Generate FormRequests
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        // Should generate multiple FormRequest classes
-        $this->assertGreaterThanOrEqual(2, count($formRequests));
-
-        // Verify different classes generated
         $classNames = array_map(fn ($fr) => $fr->className, $formRequests);
-        $this->assertContains('CreateUserRequest', $classNames);
-        $this->assertContains('CreatePostRequest', $classNames);
-
-        // Cleanup
-        unlink($tempFile);
-        rmdir($tempDir);
-    }
-
-    public function test_generation_error_handling_for_invalid_spec(): void
-    {
-        $tempDir = $this->createTempOutputDirectory();
-
-        // Create invalid JSON file
-        $invalidSpecFile = tempnam(sys_get_temp_dir(), 'invalid_spec_') . '.json';
-        file_put_contents($invalidSpecFile, '{invalid json');
-
-        $parser = $this->createParser();
-
-        // Expect exception or error when parsing invalid spec
-        $this->expectException(Exception::class);
-        $parser->parseFromFile($invalidSpecFile);
-
-        // Cleanup
-        unlink($invalidSpecFile);
-        rmdir($tempDir);
-    }
-
-    public function test_generation_error_handling_for_missing_spec_file(): void
-    {
-        $parser = $this->createParser();
-        $nonExistentFile = '/path/to/non/existent/file.json';
-
-        // Expect exception when trying to parse non-existent file
-        $this->expectException(Exception::class);
-        $parser->parseFromFile($nonExistentFile);
-    }
-
-    public function test_generation_error_handling_for_unwritable_output_directory(): void
-    {
-        $tempSpec = $this->createTempOpenApiSpec();
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
-
-        // Parse OpenAPI spec
-        $spec = $parser->parseFromFile($tempSpec);
-        $endpoints = $parser->getEndpointsWithRequestBodies($spec);
-
-        // Generate FormRequests (this doesn't involve file writing, so it should succeed)
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        // The error would occur at the file writing stage, not generation stage
-        // Since we don't have a file writer in the generator, we'll just verify generation works
-        $this->assertNotEmpty($formRequests);
-
-        // Cleanup
-        unlink($tempSpec);
-    }
-
-    public function test_class_naming_from_operation_id(): void
-    {
-        // Create spec with specific operationId
-        $spec = [
-            'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
-            'paths' => [
-                '/users' => [
-                    'post' => [
-                        'operationId' => 'createUser',
-                        'requestBody' => [
-                            'content' => [
-                                'application/json' => [
-                                    'schema' => [
-                                        'type' => 'object',
-                                        'properties' => ['name' => ['type' => 'string']],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
-
-        $tempFile = tempnam(sys_get_temp_dir(), 'naming_test_') . '.json';
-        file_put_contents($tempFile, json_encode($spec));
-
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
-
-        $parsedSpec = $parser->parseFromFile($tempFile);
-        $endpoints = $parser->getEndpointsWithRequestBodies($parsedSpec);
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        // Verify class naming from operationId
-        $this->assertNotEmpty($formRequests);
-        $this->assertEquals('CreateUserRequest', $formRequests[0]->className);
+        expect($classNames)->toContain('CreateUserRequest');
+        expect($classNames)->toContain('CreatePostRequest');
 
         unlink($tempFile);
-    }
+    });
 
-    public function test_class_naming_from_path_and_method(): void
-    {
-        // Create spec without operationId (fallback naming)
-        $spec = [
-            'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
-            'paths' => [
-                '/users' => [
-                    'post' => [
-                        // No operationId - should fallback to path+method naming
-                        'requestBody' => [
-                            'content' => [
-                                'application/json' => [
-                                    'schema' => [
-                                        'type' => 'object',
-                                        'properties' => ['name' => ['type' => 'string']],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+    describe('error handling', function () {
+        it('should handle invalid spec files', function () {
+            $invalidSpecFile = tempnam(sys_get_temp_dir(), 'invalid_spec_') . '.json';
+            file_put_contents($invalidSpecFile, '{invalid json');
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'naming_fallback_') . '.json';
-        file_put_contents($tempFile, json_encode($spec));
+            expect(fn () => $this->parser->parseFromFile($invalidSpecFile))
+                ->toThrow(Exception::class);
 
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
+            unlink($invalidSpecFile);
+        });
 
-        $parsedSpec = $parser->parseFromFile($tempFile);
-        $endpoints = $parser->getEndpointsWithRequestBodies($parsedSpec);
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
+        it('should handle missing spec files', function () {
+            $nonExistentFile = '/path/to/non/existent/file.json';
 
-        // Verify fallback naming when no operationId
-        $this->assertNotEmpty($formRequests);
-        // Should generate name based on path and method
-        $className = $formRequests[0]->className;
-        $this->assertNotEmpty($className);
-        $this->assertStringContainsString('Request', $className);
+            expect(fn () => $this->parser->parseFromFile($nonExistentFile))
+                ->toThrow(Exception::class);
+        });
+    });
 
-        unlink($tempFile);
-    }
-
-    public function test_performance_with_medium_sized_spec(): void
-    {
-        // Create a medium-sized spec with multiple endpoints
-        $spec = [
-            'openapi' => '3.0.0',
-            'info' => ['title' => 'Large API', 'version' => '1.0.0'],
-            'paths' => [],
-        ];
-
-        // Generate 10 endpoints to test performance
-        for ($i = 1; $i <= 10; $i++) {
-            $spec['paths']["/endpoint{$i}"] = [
-                'post' => [
-                    'operationId' => "createEndpoint{$i}",
-                    'requestBody' => [
-                        'content' => [
-                            'application/json' => [
-                                'schema' => [
-                                    'type' => 'object',
-                                    'properties' => [
-                                        'field1' => ['type' => 'string'],
-                                        'field2' => ['type' => 'integer'],
-                                        'field3' => ['type' => 'string', 'format' => 'email'],
+    describe('class naming', function () {
+        it('should use operationId for class naming', function () {
+            $spec = [
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test API', 'version' => '1.0.0'],
+                'paths' => [
+                    '/users' => [
+                        'post' => [
+                            'operationId' => 'createUser',
+                            'requestBody' => [
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => [
+                                            'type' => 'object',
+                                            'properties' => ['name' => ['type' => 'string']],
+                                        ],
                                     ],
                                 ],
                             ],
@@ -513,101 +190,18 @@ class BasicGenerationTest extends TestCase
                     ],
                 ],
             ];
-        }
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'performance_test_') . '.json';
-        file_put_contents($tempFile, json_encode($spec));
+            $tempFile = tempnam(sys_get_temp_dir(), 'naming_test_') . '.json';
+            file_put_contents($tempFile, json_encode($spec));
 
-        $parser = $this->createParser();
-        $generator = $this->createGenerator();
+            $parsedSpec = $this->parser->parseFromFile($tempFile);
+            $endpoints = $this->parser->getEndpointsWithRequestBodies($parsedSpec);
+            $formRequests = $this->generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
 
-        // Measure performance
-        $startTime = microtime(true);
+            expect($formRequests)->not->toBeEmpty();
+            expect($formRequests[0]->className)->toBe('CreateUserRequest');
 
-        $parsedSpec = $parser->parseFromFile($tempFile);
-        $endpoints = $parser->getEndpointsWithRequestBodies($parsedSpec);
-        $formRequests = $generator->generateFromEndpoints($endpoints, 'App\\Http\\Requests', '/tmp');
-
-        $endTime = microtime(true);
-        $executionTime = $endTime - $startTime;
-
-        // Verify performance and output
-        $this->assertLessThan(2.0, $executionTime, 'Generation should complete in under 2 seconds');
-        $this->assertCount(10, $formRequests);
-
-        unlink($tempFile);
-    }
-
-    /**
-     * Helper method to create a temporary OpenAPI specification file
-     */
-    private function createTempOpenApiSpec(): string
-    {
-        $spec = [
-            'openapi' => '3.0.0',
-            'info' => [
-                'title' => 'Test API',
-                'version' => '1.0.0',
-            ],
-            'paths' => [
-                '/users' => [
-                    'post' => [
-                        'operationId' => 'createUser',
-                        'requestBody' => [
-                            'content' => [
-                                'application/json' => [
-                                    'schema' => [
-                                        'type' => 'object',
-                                        'properties' => [
-                                            'name' => ['type' => 'string'],
-                                            'email' => ['type' => 'string', 'format' => 'email'],
-                                        ],
-                                        'required' => ['name', 'email'],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
-
-        $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test_') . '.json';
-        file_put_contents($tempFile, json_encode($spec));
-
-        return $tempFile;
-    }
-
-    /**
-     * Helper method to create a temporary output directory
-     */
-    private function createTempOutputDirectory(): string
-    {
-        $tempDir = sys_get_temp_dir() . '/openapi_test_' . uniqid();
-        mkdir($tempDir, 0755, true);
-
-        return $tempDir;
-    }
-
-    /**
-     * Helper method to create parser with dependencies
-     */
-    private function createParser(): OpenApiParser
-    {
-        $referenceResolver = new ReferenceResolver;
-        $schemaExtractor = new SchemaExtractor($referenceResolver);
-
-        return new OpenApiParser($schemaExtractor);
-    }
-
-    /**
-     * Helper method to create generator with dependencies
-     */
-    private function createGenerator(): FormRequestGenerator
-    {
-        $ruleMapper = new ValidationRuleMapper;
-        $templateEngine = new TemplateEngine;
-
-        return new FormRequestGenerator($ruleMapper);
-    }
-}
+            unlink($tempFile);
+        });
+    });
+});

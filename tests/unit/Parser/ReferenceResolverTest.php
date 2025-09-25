@@ -353,18 +353,21 @@ describe('ReferenceResolver', function () {
 
             $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
 
-            // First resolution
-            $start = microtime(true);
+            // Multiple resolutions should return identical objects (verifying cache works)
             $resolved1 = $this->referenceResolver->resolve('#/components/schemas/User', $specification);
-            $firstTime = microtime(true) - $start;
-
-            // Second resolution (should be faster due to caching)
-            $start = microtime(true);
             $resolved2 = $this->referenceResolver->resolve('#/components/schemas/User', $specification);
-            $secondTime = microtime(true) - $start;
+            $resolved3 = $this->referenceResolver->resolve('#/components/schemas/User', $specification);
 
+            // All resolutions should return the same result
             expect($resolved1)->toBe($resolved2);
-            expect($secondTime)->toBeLessThan($firstTime * 2); // Allow some margin for variability
+            expect($resolved2)->toBe($resolved3);
+
+            // Verify the resolved content is correct
+            expect($resolved1)->toBeArray();
+            expect($resolved1)->toHaveKey('type');
+            expect($resolved1['type'])->toBe('object');
+            expect($resolved1)->toHaveKey('properties');
+            expect($resolved1['properties'])->toHaveKey('name');
         });
 
         it('should clear cache when requested', function () {
@@ -392,6 +395,137 @@ describe('ReferenceResolver', function () {
             // Verify cache is cleared by resolving again (should not throw if cache is properly cleared)
             $resolved = $this->referenceResolver->resolve('#/components/schemas/User', $specification);
             expect($resolved)->toBeArray();
+        });
+    });
+
+    describe('advanced edge cases', function () {
+        it('should detect complex circular references across multiple schemas', function () {
+            $spec = [
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+                'components' => [
+                    'schemas' => [
+                        'Company' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'name' => ['type' => 'string'],
+                                'employees' => [
+                                    'type' => 'array',
+                                    'items' => ['$ref' => '#/components/schemas/Employee'],
+                                ],
+                            ],
+                        ],
+                        'Employee' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'name' => ['type' => 'string'],
+                                'company' => ['$ref' => '#/components/schemas/Company'],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+
+            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
+            $companySchema = $spec['components']['schemas']['Company'];
+
+            expect(fn () => $this->referenceResolver->resolveAllReferences($companySchema, $specification))
+                ->toThrow(\InvalidArgumentException::class, 'Circular reference detected');
+        });
+
+        it('should handle deep nested reference chains', function () {
+            $spec = [
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+                'components' => [
+                    'schemas' => [
+                        'Level1' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => ['type' => 'string'],
+                                'level2' => ['$ref' => '#/components/schemas/Level2'],
+                            ],
+                        ],
+                        'Level2' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => ['type' => 'string'],
+                                'level3' => ['$ref' => '#/components/schemas/Level3'],
+                            ],
+                        ],
+                        'Level3' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => ['type' => 'string'],
+                                'level4' => ['$ref' => '#/components/schemas/Level4'],
+                            ],
+                        ],
+                        'Level4' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => ['type' => 'string'],
+                                'level5' => ['$ref' => '#/components/schemas/Level5'],
+                            ],
+                        ],
+                        'Level5' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'finalData' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+
+            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
+            $level1Schema = $spec['components']['schemas']['Level1'];
+
+            $resolved = $this->referenceResolver->resolveAllReferences($level1Schema, $specification);
+
+            expect($resolved['properties']['level2']['properties']['level3']['properties']['level4']['properties']['level5']['properties']['finalData']['type'])
+                ->toBe('string');
+        });
+
+        it('should handle deeply nested missing references', function () {
+            $spec = [
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+                'components' => [
+                    'schemas' => [
+                        'ValidSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'nested' => ['$ref' => '#/components/schemas/NonExistentSchema'],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+
+            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
+            $validSchema = $spec['components']['schemas']['ValidSchema'];
+
+            expect(fn () => $this->referenceResolver->resolveAllReferences($validSchema, $specification))
+                ->toThrow(\InvalidArgumentException::class, 'Reference not found');
+        });
+
+        it('should handle references to empty schemas', function () {
+            $spec = [
+                'openapi' => '3.0.0',
+                'info' => ['title' => 'Test', 'version' => '1.0.0'],
+                'components' => [
+                    'schemas' => [
+                        'EmptySchema' => [],
+                    ],
+                ],
+            ];
+
+            $specification = \Maan511\OpenapiToLaravel\Models\OpenApiSpecification::fromArray($spec, 'test.json');
+
+            $resolved = $this->referenceResolver->resolve('#/components/schemas/EmptySchema', $specification);
+
+            expect($resolved)->toBeArray();
+            expect($resolved)->toBeEmpty();
         });
     });
 });

@@ -12,7 +12,7 @@ parameters:
         # Pest framework dynamic property assignment in beforeEach() - PHPStan can't understand this pattern
         - 
             message: '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$\w+\.#'
-            path: tests/unit/*
+            path: tests/*
         # Mockery expectation chaining issues with union types
         - 
             message: '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::(andReturn|with|once|times|never)\(\)\.#'

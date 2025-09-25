@@ -4,6 +4,12 @@ namespace Maan511\OpenapiToLaravel\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 
+/**
+ * Base test case with shared testing utilities.
+ *
+ * @property \Maan511\OpenapiToLaravel\Parser\OpenApiParser $parser Parser instance for integration tests
+ * @property \Maan511\OpenapiToLaravel\Generator\FormRequestGenerator $generator Generator instance for integration tests
+ */
 abstract class TestCase extends BaseTestCase
 {
     // Properties for dependency injection in tests (initialized in setUp or test methods)

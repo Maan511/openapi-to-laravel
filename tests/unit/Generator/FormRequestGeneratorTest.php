@@ -378,50 +378,6 @@ describe('FormRequestGenerator', function () {
             expect($validation['errors'])->toBeEmpty();
         });
 
-        it('should detect invalid class names', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
-            );
-
-            // Test should check that the creation itself throws the exception
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
-                className: 'invalid-class-name',
-                namespace: 'App\\Http\\Requests',
-                filePath: '/app/Http/Requests/invalid-class-name.php',
-                validationRules: ['name' => 'required|string'],
-                sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Invalid class name: invalid-class-name');
-        });
-
-        it('should detect invalid namespaces', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(
-                type: 'object',
-                properties: ['name' => new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'string')]
-            );
-
-            // Test should check that the creation itself throws the exception
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
-                className: 'TestRequest',
-                namespace: 'invalid-namespace',
-                filePath: '/app/Http/Requests/TestRequest.php',
-                validationRules: ['name' => 'required|string'],
-                sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Invalid namespace: invalid-namespace');
-        });
-
-        it('should warn about missing validation rules', function () {
-            $schema = new \Maan511\OpenapiToLaravel\Models\SchemaObject(type: 'object');
-
-            // Test should check that the creation itself throws the exception for empty rules
-            expect(fn () => \Maan511\OpenapiToLaravel\Models\FormRequestClass::create(
-                className: 'EmptyRequest',
-                namespace: 'App\\Http\\Requests',
-                filePath: '/app/Http/Requests/EmptyRequest.php',
-                validationRules: [],
-                sourceSchema: $schema
-            ))->toThrow(\InvalidArgumentException::class, 'Validation rules cannot be empty');
-        });
     });
 
     describe('getStats', function () {

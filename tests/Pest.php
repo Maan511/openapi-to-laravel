@@ -13,6 +13,10 @@
 
 uses(\Maan511\OpenapiToLaravel\Tests\TestCase::class)->in('contract', 'integration', 'unit');
 
+// Include shared test helpers
+require_once __DIR__ . '/Helpers/TestFactories.php';
+require_once __DIR__ . '/TestConstants.php';
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
