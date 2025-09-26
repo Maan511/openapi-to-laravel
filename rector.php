@@ -9,6 +9,8 @@ use Rector\Config\RectorConfig;
  *
  * This configuration enables modern PHP patterns and removes deprecated code.
  * It's configured to work with PHP 8.3+ and follows Laravel conventions.
+ *
+ * Note: Minimal configuration to avoid dependency conflicts
  */
 return RectorConfig::configure()
     ->withPaths([
@@ -16,11 +18,11 @@ return RectorConfig::configure()
         __DIR__ . '/tests',
     ])
     ->withPreparedSets(
-        deadCode: true,
-        codeQuality: true,
-        typeDeclarations: true,
-        privatization: true,
-        earlyReturn: true,
+        deadCode: false,  // Temporarily disabled due to PHPStan compatibility
+        codeQuality: false,  // Temporarily disabled due to PHPStan compatibility
+        typeDeclarations: false,  // Temporarily disabled due to PHPStan compatibility
+        privatization: false,  // Temporarily disabled due to PHPStan compatibility
+        earlyReturn: false,  // Temporarily disabled due to PHPStan compatibility
     )
     ->withPhpSets()
     ->withSkip([
