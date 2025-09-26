@@ -294,6 +294,45 @@ composer test
 
 # Run code formatting
 ./vendor/bin/pint
+
+# Run automated refactoring (dry-run)
+composer refactor
+# or
+./vendor/bin/rector process --dry-run
+
+# Apply automated refactoring changes
+composer refactor-fix
+# or
+./vendor/bin/rector process src
+```
+
+### Code Refactoring with Rector
+
+This project uses [Rector](https://getrector.com/) for automated PHP refactoring and code modernization. Rector helps maintain code quality by automatically applying modern PHP patterns and removing deprecated code.
+
+```bash
+# Preview refactoring changes (recommended first)
+composer refactor
+./vendor/bin/rector process --dry-run
+
+# Apply refactoring changes to source code
+composer refactor-fix
+./vendor/bin/rector process src
+
+# Process specific directories
+./vendor/bin/rector process src/Generator
+./vendor/bin/rector process tests/unit
+
+# Process specific files
+./vendor/bin/rector process src/Models/FormRequestClass.php
+```
+
+The Rector configuration in `rector.php` includes rules for:
+- **Modern PHP 8.3 features**: Override attributes, readonly properties
+- **Type declarations**: Void return types, typed properties from constructors  
+- **Code quality**: Inline constructor defaults, explicit bool comparisons
+- **Documentation cleanup**: Remove redundant PHPDoc tags
+
 ```
 
 ## Security
