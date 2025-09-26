@@ -12,3 +12,6 @@ coverage/
 .coverage/
 .specify/
 .claude/
+/tmp/
+rector.log
+.rector/
