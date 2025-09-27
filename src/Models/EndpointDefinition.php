@@ -220,7 +220,7 @@ class EndpointDefinition
             throw new InvalidArgumentException('Operation ID cannot be empty');
         }
 
-        if (! preg_match('/^[a-zA-Z]w*$/', $this->operationId)) {
+        if (! preg_match('/^[a-zA-Z]\w*$/', $this->operationId)) {
             throw new InvalidArgumentException(
                 "Invalid operation ID: {$this->operationId}. Must start with letter and contain only letters, numbers, and underscores."
             );
