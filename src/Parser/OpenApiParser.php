@@ -52,10 +52,7 @@ class OpenApiParser
 
             return $this->parseOpenApiSpec($spec, $absolutePath);
         } catch (Throwable $e) {
-            throw new InvalidArgumentException(
-                "Failed to parse OpenAPI specification from {$filePath}: " . $e->getMessage(),
-                previous: $e
-            );
+            throw new InvalidArgumentException("Failed to parse OpenAPI specification from {$filePath}: " . $e->getMessage(), $e->getCode(), previous: $e);
         }
     }
 
@@ -65,18 +62,11 @@ class OpenApiParser
     public function parseFromString(string $content, string $format = 'json', string $sourcePath = ''): OpenApiSpecification
     {
         try {
-            if ($format === 'yaml') {
-                $spec = Reader::readFromYaml($content);
-            } else {
-                $spec = Reader::readFromJson($content);
-            }
+            $spec = $format === 'yaml' ? Reader::readFromYaml($content) : Reader::readFromJson($content);
 
             return $this->parseOpenApiSpec($spec, $sourcePath ?: 'string');
         } catch (Throwable $e) {
-            throw new InvalidArgumentException(
-                'Failed to parse OpenAPI specification from string: ' . $e->getMessage(),
-                previous: $e
-            );
+            throw new InvalidArgumentException('Failed to parse OpenAPI specification from string: ' . $e->getMessage(), $e->getCode(), previous: $e);
         }
     }
 
@@ -89,7 +79,7 @@ class OpenApiParser
     {
         $endpoints = [];
 
-        foreach ($specification->paths as $path => $pathItem) {
+        foreach (array_keys($specification->paths) as $path) {
             $operations = $specification->getOperationsForPath($path);
 
             foreach ($operations as $method => $operation) {
@@ -119,7 +109,7 @@ class OpenApiParser
     {
         $allEndpoints = $this->extractEndpoints($specification);
 
-        return array_values(array_filter($allEndpoints, fn (EndpointDefinition $endpoint) => $endpoint->hasRequestBody()));
+        return array_values(array_filter($allEndpoints, fn (EndpointDefinition $endpoint): bool => $endpoint->hasRequestBody()));
     }
 
     /**
@@ -149,11 +139,11 @@ class OpenApiParser
         $warnings = [];
 
         // Check for required sections
-        if (empty($specification->info)) {
+        if ($specification->info === []) {
             $errors[] = 'Missing required info section';
         }
 
-        if (empty($specification->paths)) {
+        if ($specification->paths === []) {
             $errors[] = 'Missing required paths section';
         }
 
@@ -164,12 +154,12 @@ class OpenApiParser
 
         // Check for endpoints with request bodies
         $endpointsWithBodies = $this->getEndpointsWithRequestBodies($specification);
-        if (empty($endpointsWithBodies)) {
+        if ($endpointsWithBodies === []) {
             $warnings[] = 'No endpoints with request bodies found - no FormRequests will be generated';
         }
 
         return [
-            'valid' => empty($errors),
+            'valid' => $errors === [],
             'errors' => $errors,
             'warnings' => $warnings,
         ];
@@ -183,7 +173,7 @@ class OpenApiParser
     public function getSpecificationStats(OpenApiSpecification $specification): array
     {
         $endpoints = $this->extractEndpoints($specification);
-        $endpointsWithBodies = array_filter($endpoints, fn ($e) => $e->hasRequestBody());
+        $endpointsWithBodies = array_filter($endpoints, fn (\Maan511\OpenapiToLaravel\Models\EndpointDefinition $e): bool => $e->hasRequestBody());
 
         $methods = [];
         $tags = [];

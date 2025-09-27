@@ -9,33 +9,16 @@ use InvalidArgumentException;
  */
 class ValidationRule
 {
-    public readonly string $property;
-
-    public readonly string $type;
-
-    /** @var array<string> */
-    public array $rules;
-
-    public readonly bool $isRequired;
-
-    public readonly ?ValidationConstraints $constraints;
-
     /**
      * @param  array<string>  $rules
      */
     public function __construct(
-        string $property,
-        string $type,
-        array $rules = [],
-        bool $isRequired = false,
-        ?ValidationConstraints $constraints = null
+        public readonly string $property,
+        public readonly string $type,
+        public array $rules = [],
+        public readonly bool $isRequired = false,
+        public readonly ?ValidationConstraints $constraints = null
     ) {
-        $this->property = $property;
-        $this->type = $type;
-        $this->rules = $rules;
-        $this->isRequired = $isRequired; // Only use explicit parameter, not derived from rules
-        $this->constraints = $constraints;
-
         $this->validateProperty();
         $this->validateType();
     }
@@ -51,7 +34,7 @@ class ValidationRule
 
         if ($name === 'rule') {
             // Return the first rule since each ValidationRule now represents a single rule
-            return ! empty($this->rules) ? $this->rules[0] : null;
+            return $this->rules === [] ? null : $this->rules[0];
         }
 
         throw new InvalidArgumentException("Property '{$name}' does not exist on ValidationRule");
@@ -164,7 +147,7 @@ class ValidationRule
      */
     public function hasConstraints(): bool
     {
-        return $this->constraints !== null && ! $this->constraints->isEmpty();
+        return $this->constraints instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints && ! $this->constraints->isEmpty();
     }
 
     /**
@@ -182,7 +165,7 @@ class ValidationRule
      */
     public function removeRule(string $ruleToRemove): void
     {
-        $this->rules = array_values(array_filter($this->rules, fn ($rule) => $rule !== $ruleToRemove));
+        $this->rules = array_values(array_filter($this->rules, fn (string $rule): bool => $rule !== $ruleToRemove));
     }
 
     /**
@@ -256,7 +239,7 @@ class ValidationRule
             type: $this->type,
             rules: [...$this->rules], // Copy the array
             isRequired: $this->isRequired,
-            constraints: $this->constraints ? clone $this->constraints : null
+            constraints: $this->constraints instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints ? clone $this->constraints : null
         );
     }
 
@@ -284,7 +267,7 @@ class ValidationRule
      */
     private function validateProperty(): void
     {
-        if (empty($this->property)) {
+        if ($this->property === '' || $this->property === '0') {
             throw new InvalidArgumentException('Property cannot be empty');
         }
 
@@ -300,7 +283,7 @@ class ValidationRule
      */
     private function validateType(): void
     {
-        if (empty($this->type)) {
+        if ($this->type === '' || $this->type === '0') {
             throw new InvalidArgumentException('Type cannot be empty');
         }
 
@@ -389,7 +372,7 @@ class ValidationRule
      */
     public static function custom(string $property, string $rule, array $parameters = []): self
     {
-        $ruleString = empty($parameters) ? $rule : $rule . ':' . implode(',', $parameters);
+        $ruleString = $parameters === [] ? $rule : $rule . ':' . implode(',', $parameters);
 
         return new self(
             property: $property,

@@ -18,11 +18,11 @@ return RectorConfig::configure()
         __DIR__ . '/tests',
     ])
     ->withPreparedSets(
-        deadCode: false,  // Temporarily disabled due to PHPStan compatibility
-        codeQuality: false,  // Temporarily disabled due to PHPStan compatibility
-        typeDeclarations: false,  // Temporarily disabled due to PHPStan compatibility
-        privatization: false,  // Temporarily disabled due to PHPStan compatibility
-        earlyReturn: false,  // Temporarily disabled due to PHPStan compatibility
+        deadCode: true,
+        codeQuality: true,
+        typeDeclarations: true,
+        privatization: true,
+        earlyReturn: true,
     )
     ->withPhpSets()
     ->withSkip([

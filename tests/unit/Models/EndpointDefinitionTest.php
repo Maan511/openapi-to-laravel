@@ -3,9 +3,9 @@
 use Maan511\OpenapiToLaravel\Models\EndpointDefinition;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
 
-describe('EndpointDefinition', function () {
-    describe('construction', function () {
-        it('should create endpoint with required properties', function () {
+describe('EndpointDefinition', function (): void {
+    describe('construction', function (): void {
+        it('should create endpoint with required properties', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -22,7 +22,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->parameters)->toBe([]);
         });
 
-        it('should create endpoint with all properties', function () {
+        it('should create endpoint with all properties', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $endpoint = new EndpointDefinition(
@@ -49,40 +49,40 @@ describe('EndpointDefinition', function () {
             expect($endpoint->parameters)->toHaveCount(2);
         });
 
-        it('should throw exception for empty path', function () {
-            expect(fn () => new EndpointDefinition(
+        it('should throw exception for empty path', function (): void {
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\EndpointDefinition => new EndpointDefinition(
                 path: '',
                 method: 'GET',
                 operationId: 'test'
             ))->toThrow(InvalidArgumentException::class, 'Path cannot be empty');
         });
 
-        it('should throw exception for path not starting with slash', function () {
-            expect(fn () => new EndpointDefinition(
+        it('should throw exception for path not starting with slash', function (): void {
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\EndpointDefinition => new EndpointDefinition(
                 path: 'users',
                 method: 'GET',
                 operationId: 'test'
             ))->toThrow(InvalidArgumentException::class, 'Path must start with /');
         });
 
-        it('should throw exception for invalid HTTP method', function () {
-            expect(fn () => new EndpointDefinition(
+        it('should throw exception for invalid HTTP method', function (): void {
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\EndpointDefinition => new EndpointDefinition(
                 path: '/users',
                 method: 'INVALID',
                 operationId: 'test'
             ))->toThrow(InvalidArgumentException::class);
         });
 
-        it('should throw exception for empty operation ID', function () {
-            expect(fn () => new EndpointDefinition(
+        it('should throw exception for empty operation ID', function (): void {
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\EndpointDefinition => new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
                 operationId: ''
             ))->toThrow(InvalidArgumentException::class, 'Operation ID cannot be empty');
         });
 
-        it('should throw exception for invalid operation ID format', function () {
-            expect(fn () => new EndpointDefinition(
+        it('should throw exception for invalid operation ID format', function (): void {
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\EndpointDefinition => new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
                 operationId: '123invalid'
@@ -90,8 +90,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('fromOperation', function () {
-        it('should create endpoint from operation array', function () {
+    describe('fromOperation', function (): void {
+        it('should create endpoint from operation array', function (): void {
             $schema = new SchemaObject(type: 'object');
             $operation = [
                 'operationId' => 'createUser',
@@ -118,7 +118,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->parameters)->toHaveCount(1);
         });
 
-        it('should generate operation ID when missing', function () {
+        it('should generate operation ID when missing', function (): void {
             $operation = [];
 
             $endpoint = EndpointDefinition::fromOperation(
@@ -130,7 +130,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->operationId)->toBe('getUsersId');
         });
 
-        it('should handle malformed operation data gracefully', function () {
+        it('should handle malformed operation data gracefully', function (): void {
             $operation = [
                 'summary' => 123, // Invalid type
                 'tags' => 'invalid', // Should be array
@@ -149,8 +149,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('getId', function () {
-        it('should return unique endpoint identifier', function () {
+    describe('getId', function (): void {
+        it('should return unique endpoint identifier', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users/{id}',
                 method: 'PUT',
@@ -161,8 +161,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('getDisplayName', function () {
-        it('should return display name', function () {
+    describe('getDisplayName', function (): void {
+        it('should return display name', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -173,8 +173,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('hasRequestBody', function () {
-        it('should return true when request schema exists', function () {
+    describe('hasRequestBody', function (): void {
+        it('should return true when request schema exists', function (): void {
             $schema = new SchemaObject(type: 'object');
             $endpoint = new EndpointDefinition(
                 path: '/users',
@@ -186,7 +186,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->hasRequestBody())->toBe(true);
         });
 
-        it('should return false when no request schema', function () {
+        it('should return false when no request schema', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -197,8 +197,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('hasParameters', function () {
-        it('should return true when parameters exist', function () {
+    describe('hasParameters', function (): void {
+        it('should return true when parameters exist', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -209,7 +209,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->hasParameters())->toBe(true);
         });
 
-        it('should return false when no parameters', function () {
+        it('should return false when no parameters', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -220,8 +220,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('getParameterNames', function () {
-        it('should return parameter names', function () {
+    describe('getParameterNames', function (): void {
+        it('should return parameter names', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -235,7 +235,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->getParameterNames())->toBe(['page', 'limit']);
         });
 
-        it('should return empty array when no parameters', function () {
+        it('should return empty array when no parameters', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -246,8 +246,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('getRequiredParameterNames', function () {
-        it('should return only required parameter names', function () {
+    describe('getRequiredParameterNames', function (): void {
+        it('should return only required parameter names', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -262,7 +262,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->getRequiredParameterNames())->toBe(['api_key', 'filter']);
         });
 
-        it('should return empty array when no required parameters', function () {
+        it('should return empty array when no required parameters', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -276,8 +276,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('isReadOperation', function () {
-        it('should return true for read operations', function () {
+    describe('isReadOperation', function (): void {
+        it('should return true for read operations', function (): void {
             $methods = ['GET', 'HEAD', 'OPTIONS'];
 
             foreach ($methods as $method) {
@@ -291,7 +291,7 @@ describe('EndpointDefinition', function () {
             }
         });
 
-        it('should return false for write operations', function () {
+        it('should return false for write operations', function (): void {
             $methods = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
             foreach ($methods as $method) {
@@ -306,8 +306,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('isWriteOperation', function () {
-        it('should return true for write operations', function () {
+    describe('isWriteOperation', function (): void {
+        it('should return true for write operations', function (): void {
             $methods = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
             foreach ($methods as $method) {
@@ -321,7 +321,7 @@ describe('EndpointDefinition', function () {
             }
         });
 
-        it('should return false for read operations', function () {
+        it('should return false for read operations', function (): void {
             $methods = ['GET', 'HEAD', 'OPTIONS'];
 
             foreach ($methods as $method) {
@@ -336,8 +336,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('generateFormRequestClassName', function () {
-        it('should generate class name from operation ID', function () {
+    describe('generateFormRequestClassName', function (): void {
+        it('should generate class name from operation ID', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -347,7 +347,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->generateFormRequestClassName())->toBe('CreateUserRequest');
         });
 
-        it('should append Request suffix when missing', function () {
+        it('should append Request suffix when missing', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -357,7 +357,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->generateFormRequestClassName())->toBe('CreateUserRequest');
         });
 
-        it('should convert snake_case to PascalCase', function () {
+        it('should convert snake_case to PascalCase', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -367,7 +367,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->generateFormRequestClassName())->toBe('CreateUserProfileRequest');
         });
 
-        it('should handle camelCase operation IDs', function () {
+        it('should handle camelCase operation IDs', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -377,7 +377,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->generateFormRequestClassName())->toBe('CreateUserProfileRequest');
         });
 
-        it('should generate from path when operation ID is empty', function () {
+        it('should generate from path when operation ID is empty', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users/profiles',
                 method: 'POST',
@@ -388,8 +388,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('getPathParameters', function () {
-        it('should extract path parameters', function () {
+    describe('getPathParameters', function (): void {
+        it('should extract path parameters', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users/{id}/posts/{postId}',
                 method: 'GET',
@@ -399,7 +399,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->getPathParameters())->toBe(['id', 'postId']);
         });
 
-        it('should return empty array when no path parameters', function () {
+        it('should return empty array when no path parameters', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -410,8 +410,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('hasPathParameters', function () {
-        it('should return true when path has parameters', function () {
+    describe('hasPathParameters', function (): void {
+        it('should return true when path has parameters', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users/{id}',
                 method: 'GET',
@@ -421,7 +421,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->hasPathParameters())->toBe(true);
         });
 
-        it('should return false when path has no parameters', function () {
+        it('should return false when path has no parameters', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -432,8 +432,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('getTagsString', function () {
-        it('should return comma-separated tags', function () {
+    describe('getTagsString', function (): void {
+        it('should return comma-separated tags', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -444,7 +444,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->getTagsString())->toBe('users, management, api');
         });
 
-        it('should return empty string when no tags', function () {
+        it('should return empty string when no tags', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -455,8 +455,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('hasTag', function () {
-        it('should return true when tag exists', function () {
+    describe('hasTag', function (): void {
+        it('should return true when tag exists', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -468,7 +468,7 @@ describe('EndpointDefinition', function () {
             expect($endpoint->hasTag('management'))->toBe(true);
         });
 
-        it('should return false when tag does not exist', function () {
+        it('should return false when tag does not exist', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'POST',
@@ -480,8 +480,8 @@ describe('EndpointDefinition', function () {
         });
     });
 
-    describe('toArray', function () {
-        it('should convert endpoint to array', function () {
+    describe('toArray', function (): void {
+        it('should convert endpoint to array', function (): void {
             $schema = new SchemaObject(type: 'object');
             $endpoint = new EndpointDefinition(
                 path: '/users',

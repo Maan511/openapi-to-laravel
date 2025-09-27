@@ -27,7 +27,7 @@ class FormRequestGenerator
         string $outputDir,
         array $options = []
     ): FormRequestClass {
-        if (! $endpoint->hasRequestBody() || $endpoint->requestSchema === null) {
+        if (! $endpoint->hasRequestBody() || ! $endpoint->requestSchema instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             throw new InvalidArgumentException("Endpoint {$endpoint->getDisplayName()} has no request body");
         }
 
@@ -38,10 +38,7 @@ class FormRequestGenerator
         $validationRulesArray = $this->ruleMapper->mapValidationRules($endpoint->requestSchema);
 
         // Get validation rules as ValidationRule objects for the model
-        $validationRuleObjects = $this->ruleMapper->createValidationRules($endpoint->requestSchema);
-
-        // Create extended options for internal use without modifying the original
-        $extendedOptions = array_merge($options, ['validationRuleObjects' => $validationRuleObjects]);
+        $this->ruleMapper->createValidationRules($endpoint->requestSchema);
 
         return FormRequestClass::create(
             className: $className,
@@ -156,12 +153,10 @@ class FormRequestGenerator
 
         // Ensure output directory exists
         $outputDir = dirname($formRequest->filePath);
-        if (! is_dir($outputDir)) {
-            if (! mkdir($outputDir, 0755, true)) {
-                $result['message'] = "Failed to create output directory: {$outputDir}";
+        if (! is_dir($outputDir) && ! mkdir($outputDir, 0755, true)) {
+            $result['message'] = "Failed to create output directory: {$outputDir}";
 
-                return $result;
-            }
+            return $result;
         }
 
         // Generate PHP code
@@ -268,7 +263,7 @@ class FormRequestGenerator
             }
 
             // Validate validation rules
-            if (empty($formRequest->validationRules)) {
+            if ($formRequest->validationRules === []) {
                 $warnings[] = "No validation rules for {$formRequest->className}";
             }
 
@@ -290,7 +285,7 @@ class FormRequestGenerator
         }
 
         return [
-            'valid' => empty($errors),
+            'valid' => $errors === [],
             'errors' => $errors,
             'warnings' => $warnings,
         ];
@@ -336,7 +331,7 @@ class FormRequestGenerator
             }
         }
 
-        if (! empty($complexities)) {
+        if ($complexities !== []) {
             $stats['averageComplexity'] = array_sum($complexities) / count($complexities);
         }
 

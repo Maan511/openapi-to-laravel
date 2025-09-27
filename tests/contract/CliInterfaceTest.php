@@ -42,7 +42,6 @@ class CliInterfaceTest extends TestCase
         // Get the signature and check if it contains the spec argument
         $reflection = new ReflectionClass($command);
         $signatureProperty = $reflection->getProperty('signature');
-        $signatureProperty->setAccessible(true);
         $signature = $signatureProperty->getValue($command);
 
         $this->assertStringContainsString('{spec', $signature);
@@ -56,7 +55,6 @@ class CliInterfaceTest extends TestCase
         // Get the signature and check if it contains the output option
         $reflection = new ReflectionClass($command);
         $signatureProperty = $reflection->getProperty('signature');
-        $signatureProperty->setAccessible(true);
         $signature = $signatureProperty->getValue($command);
 
         $this->assertStringContainsString('--output', $signature);
@@ -70,7 +68,6 @@ class CliInterfaceTest extends TestCase
         // Get the signature and check if it contains the namespace option
         $reflection = new ReflectionClass($command);
         $signatureProperty = $reflection->getProperty('signature');
-        $signatureProperty->setAccessible(true);
         $signature = $signatureProperty->getValue($command);
 
         $this->assertStringContainsString('--namespace', $signature);
@@ -84,7 +81,6 @@ class CliInterfaceTest extends TestCase
         // Get the signature and check if it contains the force option
         $reflection = new ReflectionClass($command);
         $signatureProperty = $reflection->getProperty('signature');
-        $signatureProperty->setAccessible(true);
         $signature = $signatureProperty->getValue($command);
 
         $this->assertStringContainsString('--force', $signature);
@@ -98,7 +94,6 @@ class CliInterfaceTest extends TestCase
         // Get the signature and check if it contains the dry-run option
         $reflection = new ReflectionClass($command);
         $signatureProperty = $reflection->getProperty('signature');
-        $signatureProperty->setAccessible(true);
         $signature = $signatureProperty->getValue($command);
 
         $this->assertStringContainsString('--dry-run', $signature);
@@ -111,7 +106,7 @@ class CliInterfaceTest extends TestCase
 
         // Test that the command can handle Symfony's built-in verbose option
         // Symfony Console automatically provides -v, -vv, -vvv options
-        $definition = $command->getDefinition();
+        $command->getDefinition();
 
         // Verify the command extends Laravel's Command class which supports verbose
         $this->assertInstanceOf(Command::class, $command);

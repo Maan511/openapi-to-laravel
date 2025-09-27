@@ -2,9 +2,9 @@
 
 use Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
-describe('ValidationConstraints', function () {
-    describe('construction', function () {
-        it('should create constraints with string validation', function () {
+describe('ValidationConstraints', function (): void {
+    describe('construction', function (): void {
+        it('should create constraints with string validation', function (): void {
             $constraints = new ValidationConstraints(
                 minLength: 5,
                 maxLength: 100,
@@ -18,7 +18,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->enum)->toBe(['option1', 'option2']);
         });
 
-        it('should create constraints with numeric validation', function () {
+        it('should create constraints with numeric validation', function (): void {
             $constraints = new ValidationConstraints(
                 minimum: 0,
                 maximum: 1000,
@@ -30,7 +30,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->multipleOf)->toBe(5);
         });
 
-        it('should create constraints with array validation', function () {
+        it('should create constraints with array validation', function (): void {
             $constraints = new ValidationConstraints(
                 minItems: 1,
                 maxItems: 10,
@@ -42,7 +42,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->uniqueItems)->toBeTrue();
         });
 
-        it('should create empty constraints by default', function () {
+        it('should create empty constraints by default', function (): void {
             $constraints = new ValidationConstraints;
 
             expect($constraints->minLength)->toBeNull();
@@ -58,8 +58,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('hasStringConstraints', function () {
-        it('should return true when string constraints exist', function () {
+    describe('hasStringConstraints', function (): void {
+        it('should return true when string constraints exist', function (): void {
             $constraints = new ValidationConstraints(
                 minLength: 5
             );
@@ -67,7 +67,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasStringConstraints())->toBeTrue();
         });
 
-        it('should return true when pattern constraint exists', function () {
+        it('should return true when pattern constraint exists', function (): void {
             $constraints = new ValidationConstraints(
                 pattern: '^[a-z]+$'
             );
@@ -75,7 +75,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasStringConstraints())->toBeTrue();
         });
 
-        it('should return false when no string constraints exist', function () {
+        it('should return false when no string constraints exist', function (): void {
             $constraints = new ValidationConstraints(
                 minimum: 0,
                 maximum: 100
@@ -85,8 +85,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('hasNumericConstraints', function () {
-        it('should return true when numeric constraints exist', function () {
+    describe('hasNumericConstraints', function (): void {
+        it('should return true when numeric constraints exist', function (): void {
             $constraints = new ValidationConstraints(
                 minimum: 0
             );
@@ -94,7 +94,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasNumericConstraints())->toBeTrue();
         });
 
-        it('should return true when multipleOf constraint exists', function () {
+        it('should return true when multipleOf constraint exists', function (): void {
             $constraints = new ValidationConstraints(
                 multipleOf: 5
             );
@@ -102,7 +102,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasNumericConstraints())->toBeTrue();
         });
 
-        it('should return false when no numeric constraints exist', function () {
+        it('should return false when no numeric constraints exist', function (): void {
             $constraints = new ValidationConstraints(
                 minLength: 5,
                 maxLength: 100
@@ -112,8 +112,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('hasArrayConstraints', function () {
-        it('should return true when array constraints exist', function () {
+    describe('hasArrayConstraints', function (): void {
+        it('should return true when array constraints exist', function (): void {
             $constraints = new ValidationConstraints(
                 minItems: 1
             );
@@ -121,7 +121,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasArrayConstraints())->toBeTrue();
         });
 
-        it('should return true when uniqueItems constraint exists', function () {
+        it('should return true when uniqueItems constraint exists', function (): void {
             $constraints = new ValidationConstraints(
                 uniqueItems: true
             );
@@ -129,7 +129,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasArrayConstraints())->toBeTrue();
         });
 
-        it('should return false when no array constraints exist', function () {
+        it('should return false when no array constraints exist', function (): void {
             $constraints = new ValidationConstraints(
                 minimum: 0,
                 pattern: '^[a-z]+$'
@@ -139,8 +139,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('hasEnumConstraint', function () {
-        it('should return true when enum constraint exists', function () {
+    describe('hasEnumConstraint', function (): void {
+        it('should return true when enum constraint exists', function (): void {
             $constraints = new ValidationConstraints(
                 enum: ['option1', 'option2']
             );
@@ -148,13 +148,13 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasEnumConstraint())->toBeTrue();
         });
 
-        it('should return false when enum constraint is null', function () {
+        it('should return false when enum constraint is null', function (): void {
             $constraints = new ValidationConstraints;
 
             expect($constraints->hasEnumConstraint())->toBeFalse();
         });
 
-        it('should return false when enum constraint is empty array', function () {
+        it('should return false when enum constraint is empty array', function (): void {
             $constraints = new ValidationConstraints(
                 enum: []
             );
@@ -163,8 +163,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('hasPatternConstraint', function () {
-        it('should return true when pattern constraint exists', function () {
+    describe('hasPatternConstraint', function (): void {
+        it('should return true when pattern constraint exists', function (): void {
             $constraints = new ValidationConstraints(
                 pattern: '^[a-zA-Z]+$'
             );
@@ -172,13 +172,13 @@ describe('ValidationConstraints', function () {
             expect($constraints->hasPatternConstraint())->toBeTrue();
         });
 
-        it('should return false when pattern constraint is null', function () {
+        it('should return false when pattern constraint is null', function (): void {
             $constraints = new ValidationConstraints;
 
             expect($constraints->hasPatternConstraint())->toBeFalse();
         });
 
-        it('should return false when pattern constraint is empty string', function () {
+        it('should return false when pattern constraint is empty string', function (): void {
             $constraints = new ValidationConstraints(
                 pattern: ''
             );
@@ -187,14 +187,14 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('isEmpty', function () {
-        it('should return true for empty constraints', function () {
+    describe('isEmpty', function (): void {
+        it('should return true for empty constraints', function (): void {
             $constraints = new ValidationConstraints;
 
             expect($constraints->isEmpty())->toBeTrue();
         });
 
-        it('should return false when any constraint exists', function () {
+        it('should return false when any constraint exists', function (): void {
             $constraints = new ValidationConstraints(
                 minLength: 5
             );
@@ -203,8 +203,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('merge', function () {
-        it('should merge two constraint objects', function () {
+    describe('merge', function (): void {
+        it('should merge two constraint objects', function (): void {
             $constraints1 = new ValidationConstraints(
                 minLength: 5,
                 minimum: 0
@@ -223,7 +223,7 @@ describe('ValidationConstraints', function () {
             expect($merged->maximum)->toBe(1000);
         });
 
-        it('should prioritize second constraint when conflicts exist', function () {
+        it('should prioritize second constraint when conflicts exist', function (): void {
             $constraints1 = new ValidationConstraints(
                 minLength: 5,
                 maxLength: 50
@@ -240,8 +240,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('toArray', function () {
-        it('should convert constraints to array format', function () {
+    describe('toArray', function (): void {
+        it('should convert constraints to array format', function (): void {
             $constraints = new ValidationConstraints(
                 minLength: 5,
                 maxLength: 100,
@@ -261,7 +261,7 @@ describe('ValidationConstraints', function () {
             expect($array['enum'])->toBe(['option1', 'option2']);
         });
 
-        it('should exclude null values from array', function () {
+        it('should exclude null values from array', function (): void {
             $constraints = new ValidationConstraints(
                 minLength: 5
             );
@@ -274,8 +274,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('fromArray', function () {
-        it('should create constraints from array data', function () {
+    describe('fromArray', function (): void {
+        it('should create constraints from array data', function (): void {
             $data = [
                 'minLength' => 5,
                 'maxLength' => 100,
@@ -303,7 +303,7 @@ describe('ValidationConstraints', function () {
             expect($constraints->uniqueItems)->toBeTrue();
         });
 
-        it('should handle partial array data', function () {
+        it('should handle partial array data', function (): void {
             $data = [
                 'minLength' => 5,
                 'maximum' => 100,
@@ -317,15 +317,15 @@ describe('ValidationConstraints', function () {
             expect($constraints->minimum)->toBeNull();
         });
 
-        it('should handle empty array data', function () {
+        it('should handle empty array data', function (): void {
             $constraints = ValidationConstraints::fromArray([]);
 
             expect($constraints->isEmpty())->toBeTrue();
         });
     });
 
-    describe('validatePattern', function () {
-        it('should validate correct regex patterns', function () {
+    describe('validatePattern', function (): void {
+        it('should validate correct regex patterns', function (): void {
             $constraints = new ValidationConstraints(
                 pattern: '^[a-zA-Z]+$'
             );
@@ -336,7 +336,7 @@ describe('ValidationConstraints', function () {
             expect($result['errors'])->toBeEmpty();
         });
 
-        it('should detect invalid regex patterns', function () {
+        it('should detect invalid regex patterns', function (): void {
             $constraints = new ValidationConstraints(
                 pattern: '[invalid pattern'
             );
@@ -347,7 +347,7 @@ describe('ValidationConstraints', function () {
             expect($result['errors'])->not->toBeEmpty();
         });
 
-        it('should return valid for empty pattern', function () {
+        it('should return valid for empty pattern', function (): void {
             $constraints = new ValidationConstraints;
 
             $result = $constraints->validatePattern();
@@ -356,8 +356,8 @@ describe('ValidationConstraints', function () {
         });
     });
 
-    describe('getComplexityScore', function () {
-        it('should return higher score for more complex constraints', function () {
+    describe('getComplexityScore', function (): void {
+        it('should return higher score for more complex constraints', function (): void {
             $simpleConstraints = new ValidationConstraints(
                 minLength: 5
             );
@@ -372,7 +372,7 @@ describe('ValidationConstraints', function () {
             expect($complexConstraints->getComplexityScore())->toBeGreaterThan($simpleConstraints->getComplexityScore());
         });
 
-        it('should return 0 for empty constraints', function () {
+        it('should return 0 for empty constraints', function (): void {
             $constraints = new ValidationConstraints;
 
             expect($constraints->getComplexityScore())->toBe(0);

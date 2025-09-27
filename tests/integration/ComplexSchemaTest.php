@@ -2,14 +2,14 @@
 
 use Exception;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->parser = createTestParser();
     $this->generator = createTestGenerator();
 });
 
-describe('Complex Schema Integration', function () {
-    describe('Nested Object Generation', function () {
-        it('should generate FormRequest for nested objects of varying complexity', function () {
+describe('Complex Schema Integration', function (): void {
+    describe('Nested Object Generation', function (): void {
+        it('should generate FormRequest for nested objects of varying complexity', function (): void {
             $testCases = [
                 [
                     'name' => 'simple nested',
@@ -108,8 +108,8 @@ describe('Complex Schema Integration', function () {
         });
     });
 
-    describe('Array Generation', function () {
-        it('should generate FormRequest for array fields', function () {
+    describe('Array Generation', function (): void {
+        it('should generate FormRequest for array fields', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -158,8 +158,8 @@ describe('Complex Schema Integration', function () {
         });
     });
 
-    describe('Reference Resolution', function () {
-        it('should handle schema references', function () {
+    describe('Reference Resolution', function (): void {
+        it('should handle schema references', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],

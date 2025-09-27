@@ -70,14 +70,13 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Check code formatting (Pint)
-      run: vendor/bin/pint --test
+      run: composer test:format
 
     - name: Run static analysis (PHPStan)
-      run: vendor/bin/phpstan analyse --memory-limit=2G
+      run: composer analyse
 
-    # TODO: Re-enable Rector once PHPStan compatibility issue is resolved
-    # - name: Check refactoring (Rector)
-    #   run: vendor/bin/rector process --dry-run
+    - name: Check refactoring (Rector)
+      run: composer test:refactor
 
   security:
     runs-on: ubuntu-latest

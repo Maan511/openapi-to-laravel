@@ -136,7 +136,7 @@ class OpenApiSpecification
      */
     public function hasComponents(): bool
     {
-        return ! empty($this->components);
+        return $this->components !== [];
     }
 
     /**
@@ -154,7 +154,7 @@ class OpenApiSpecification
             }
         }
 
-        return array_unique(array_map(fn ($method): string => strtoupper((string) $method), $methods));
+        return array_unique(array_map(fn (int|string $method): string => strtoupper((string) $method), $methods));
     }
 
     /**

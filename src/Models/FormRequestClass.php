@@ -43,7 +43,6 @@ class FormRequestClass
     {
         // Check if ValidationRule objects were passed in options
         if (isset($this->options['validationRuleObjects']) && is_array($this->options['validationRuleObjects'])) {
-            /** @var array<ValidationRule> */
             return $this->options['validationRuleObjects'];
         }
 
@@ -160,7 +159,7 @@ class FormRequestClass
      */
     public function hasCustomMessages(): bool
     {
-        return ! empty($this->customMessages);
+        return $this->customMessages !== [];
     }
 
     /**
@@ -168,7 +167,7 @@ class FormRequestClass
      */
     public function hasCustomAttributes(): bool
     {
-        return ! empty($this->customAttributes);
+        return $this->customAttributes !== [];
     }
 
     /**
@@ -184,7 +183,7 @@ class FormRequestClass
      */
     public function getValidationRulesArray(): string
     {
-        if (empty($this->validationRules)) {
+        if ($this->validationRules === []) {
             return '[]';
         }
 
@@ -201,7 +200,7 @@ class FormRequestClass
      */
     public function getCustomMessagesArray(): string
     {
-        if (empty($this->customMessages)) {
+        if ($this->customMessages === []) {
             return '[]';
         }
 
@@ -219,7 +218,7 @@ class FormRequestClass
      */
     public function getCustomAttributesArray(): string
     {
-        if (empty($this->customAttributes)) {
+        if ($this->customAttributes === []) {
             return '[]';
         }
 
@@ -246,7 +245,7 @@ class FormRequestClass
             $code .= " * \n";
             $code .= " * {$this->sourceSchema->description}\n";
         }
-        if ($this->generatedAt) {
+        if ($this->generatedAt instanceof DateTimeInterface) {
             $code .= " * \n";
             $code .= " * Generated at: {$this->generatedAt->format('Y-m-d H:i:s')}\n";
         }
@@ -296,9 +295,7 @@ class FormRequestClass
             $code .= "    }\n";
         }
 
-        $code .= "}\n";
-
-        return $code;
+        return $code . "}\n";
     }
 
     /**
@@ -401,12 +398,12 @@ class FormRequestClass
         }
 
         // Warning for empty validation rules
-        if (empty($this->validationRules)) {
+        if ($this->validationRules === []) {
             $warnings[] = 'No validation rules defined';
         }
 
         return [
-            'valid' => empty($errors),
+            'valid' => $errors === [],
             'errors' => $errors,
             'warnings' => $warnings,
         ];
@@ -417,7 +414,7 @@ class FormRequestClass
      */
     private function validateClassName(): void
     {
-        if (empty($this->className)) {
+        if ($this->className === '' || $this->className === '0') {
             throw new InvalidArgumentException('Class name cannot be empty');
         }
 
@@ -433,7 +430,7 @@ class FormRequestClass
      */
     private function validateNamespace(): void
     {
-        if (empty($this->namespace)) {
+        if ($this->namespace === '' || $this->namespace === '0') {
             throw new InvalidArgumentException('Namespace cannot be empty');
         }
 
@@ -449,7 +446,7 @@ class FormRequestClass
      */
     private function validateFilePath(): void
     {
-        if (empty($this->filePath)) {
+        if ($this->filePath === '' || $this->filePath === '0') {
             throw new InvalidArgumentException('File path cannot be empty');
         }
 
@@ -465,11 +462,11 @@ class FormRequestClass
      */
     private function validateValidationRules(): void
     {
-        if (empty($this->validationRules)) {
+        if ($this->validationRules === []) {
             throw new InvalidArgumentException('Validation rules cannot be empty');
         }
 
-        foreach ($this->validationRules as $field => $rules) {
+        foreach (array_keys($this->validationRules) as $field) {
             if (empty($field)) {
                 throw new InvalidArgumentException('Field names cannot be empty');
             }

@@ -10,6 +10,7 @@ use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 use Maan511\OpenapiToLaravel\Tests\TestCase;
+use Override;
 use ReflectionClass;
 
 /**
@@ -50,7 +51,7 @@ class ParserInterfaceTest extends TestCase
             new SchemaExtractor(new ReferenceResolver)
         );
 
-        $specArray = $this->getSampleOpenApiSpec();
+        $this->getSampleOpenApiSpec();
         // Use simple YAML string instead of yaml_emit which might not be available
         $spec = "openapi: '3.0.0'\ninfo:\n  title: 'Test API'\n  version: '1.0.0'\n  description: 'A test API specification'\npaths:\n  /users:\n    post:\n      operationId: createUser\n      summary: 'Create a new user'\n      tags: [users]\n      requestBody:\n        content:\n          application/json:\n            schema:\n              type: object\n              properties:\n                name:\n                  type: string\n                email:\n                  type: string\n                  format: email\n              required: [name, email]\ncomponents:\n  schemas:\n    User:\n      type: object\n      properties:\n        id:\n          type: integer\n        name:\n          type: string\n        email:\n          type: string\n          format: email";
         $result = $parser->parseFromString($spec, 'yaml');
@@ -212,6 +213,7 @@ class ParserInterfaceTest extends TestCase
     /**
      * Helper method to get sample OpenAPI specification for tests
      */
+    #[Override]
     protected function getSampleOpenApiSpec(): array
     {
         return [

@@ -200,16 +200,18 @@ class ReferenceResolver
         // Check references in paths
         foreach ($specification->paths as $path => $pathItem) {
             foreach ($pathItem as $method => $operation) {
-                if (! is_array($operation) || ! isset($operation['requestBody'])) {
+                if (! is_array($operation)) {
                     continue;
                 }
-
+                if (! isset($operation['requestBody'])) {
+                    continue;
+                }
                 $this->validateRequestBodyReferences($operation['requestBody'], $specification, $path, $method, $errors);
             }
         }
 
         return [
-            'valid' => empty($errors),
+            'valid' => $errors === [],
             'errors' => $errors,
             'warnings' => $warnings,
         ];
@@ -282,13 +284,7 @@ class ReferenceResolver
         }
 
         // Check items
-        if (isset($schema['items'])) {
-            if ($this->hasCircularReferences($schema['items'], $specification, $visited)) {
-                return true;
-            }
-        }
-
-        return false;
+        return isset($schema['items']) && $this->hasCircularReferences($schema['items'], $specification, $visited);
     }
 
     /**
@@ -368,9 +364,7 @@ class ReferenceResolver
         $parts = explode('/', $path);
 
         // Decode JSON pointer escapes
-        return array_map(function ($part) {
-            return str_replace(['~1', '~0'], ['/', '~'], $part);
-        }, $parts);
+        return array_map(fn ($part): string => str_replace(['~1', '~0'], ['/', '~'], $part), $parts);
     }
 
     /**
@@ -383,7 +377,7 @@ class ReferenceResolver
         $errors = [];
 
         // Check if empty
-        if (empty($ref)) {
+        if ($ref === '' || $ref === '0') {
             $errors[] = 'Reference cannot be empty';
 
             return ['valid' => false, 'errors' => $errors];
@@ -411,7 +405,7 @@ class ReferenceResolver
         }
 
         return [
-            'valid' => empty($errors),
+            'valid' => $errors === [],
             'errors' => $errors,
         ];
     }
@@ -424,7 +418,7 @@ class ReferenceResolver
     private function resolveReference(string $ref, OpenApiSpecification $specification): ?array
     {
         // Check if it's a completely invalid reference format (no # at all)
-        if (strpos($ref, '#') === false) {
+        if (! str_contains($ref, '#')) {
             throw new InvalidArgumentException("Invalid reference format: {$ref}");
         }
 
