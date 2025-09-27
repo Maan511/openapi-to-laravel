@@ -14,6 +14,8 @@ class ValidationConstraints
         public readonly ?int $maxLength = null,
         public readonly int|float|null $minimum = null,
         public readonly int|float|null $maximum = null,
+        public readonly int|float|null $exclusiveMinimum = null,
+        public readonly int|float|null $exclusiveMaximum = null,
         public readonly ?string $pattern = null,
         /** @var array<mixed>|null */
         public readonly ?array $enum = null,
@@ -32,11 +34,17 @@ class ValidationConstraints
      */
     public static function fromSchema(array $schema): self
     {
+        // Parse exclusiveMinimum/exclusiveMaximum with backward compatibility
+        $exclusiveMinimum = self::parseExclusiveNumeric($schema, 'exclusiveMinimum', 'minimum');
+        $exclusiveMaximum = self::parseExclusiveNumeric($schema, 'exclusiveMaximum', 'maximum');
+
         return new self(
             minLength: self::validateInt($schema['minLength'] ?? null),
             maxLength: self::validateInt($schema['maxLength'] ?? null),
             minimum: self::validateNumeric($schema['minimum'] ?? null),
             maximum: self::validateNumeric($schema['maximum'] ?? null),
+            exclusiveMinimum: $exclusiveMinimum,
+            exclusiveMaximum: $exclusiveMaximum,
             pattern: self::validateString($schema['pattern'] ?? null),
             enum: isset($schema['enum']) && is_array($schema['enum']) ? $schema['enum'] : null,
             multipleOf: self::validateNumeric($schema['multipleOf'] ?? null),
@@ -55,6 +63,8 @@ class ValidationConstraints
             || $this->maxLength !== null
             || $this->minimum !== null
             || $this->maximum !== null
+            || $this->exclusiveMinimum !== null
+            || $this->exclusiveMaximum !== null
             || $this->pattern !== null
             || ($this->enum !== null && $this->enum !== [])
             || $this->multipleOf !== null
@@ -101,11 +111,16 @@ class ValidationConstraints
     {
         $rules = [];
 
-        if ($this->minimum !== null) {
+        // Handle exclusive bounds (take precedence over inclusive bounds)
+        if ($this->exclusiveMinimum !== null) {
+            $rules[] = "gt:{$this->exclusiveMinimum}";
+        } elseif ($this->minimum !== null) {
             $rules[] = "min:{$this->minimum}";
         }
 
-        if ($this->maximum !== null) {
+        if ($this->exclusiveMaximum !== null) {
+            $rules[] = "lt:{$this->exclusiveMaximum}";
+        } elseif ($this->maximum !== null) {
             $rules[] = "max:{$this->maximum}";
         }
 
@@ -180,6 +195,8 @@ class ValidationConstraints
     {
         return $this->minimum !== null
             || $this->maximum !== null
+            || $this->exclusiveMinimum !== null
+            || $this->exclusiveMaximum !== null
             || $this->multipleOf !== null
             || ($this->enum !== null && $this->enum !== []);
     }
@@ -307,6 +324,12 @@ class ValidationConstraints
         if ($this->maximum !== null) {
             $summary[] = "maximum: {$this->maximum}";
         }
+        if ($this->exclusiveMinimum !== null) {
+            $summary[] = "exclusiveMinimum: {$this->exclusiveMinimum}";
+        }
+        if ($this->exclusiveMaximum !== null) {
+            $summary[] = "exclusiveMaximum: {$this->exclusiveMaximum}";
+        }
         if ($this->pattern !== null) {
             $summary[] = "pattern: {$this->pattern}";
         }
@@ -353,6 +376,18 @@ class ValidationConstraints
             throw new InvalidArgumentException('minimum cannot be greater than maximum');
         }
 
+        if ($this->exclusiveMinimum !== null && $this->exclusiveMaximum !== null && $this->exclusiveMinimum >= $this->exclusiveMaximum) {
+            throw new InvalidArgumentException('exclusiveMinimum must be less than exclusiveMaximum');
+        }
+
+        if ($this->minimum !== null && $this->exclusiveMaximum !== null && $this->minimum >= $this->exclusiveMaximum) {
+            throw new InvalidArgumentException('minimum must be less than exclusiveMaximum');
+        }
+
+        if ($this->exclusiveMinimum !== null && $this->maximum !== null && $this->exclusiveMinimum >= $this->maximum) {
+            throw new InvalidArgumentException('exclusiveMinimum must be less than maximum');
+        }
+
         if ($this->multipleOf !== null && $this->multipleOf <= 0) {
             throw new InvalidArgumentException('multipleOf must be > 0');
         }
@@ -394,6 +429,12 @@ class ValidationConstraints
         }
         if ($this->maximum !== null) {
             $array['maximum'] = $this->maximum;
+        }
+        if ($this->exclusiveMinimum !== null) {
+            $array['exclusiveMinimum'] = $this->exclusiveMinimum;
+        }
+        if ($this->exclusiveMaximum !== null) {
+            $array['exclusiveMaximum'] = $this->exclusiveMaximum;
         }
         if ($this->pattern !== null) {
             $array['pattern'] = $this->pattern;
@@ -437,6 +478,8 @@ class ValidationConstraints
             maxLength: self::validateInt($data['maxLength'] ?? null),
             minimum: self::validateNumeric($data['minimum'] ?? null),
             maximum: self::validateNumeric($data['maximum'] ?? null),
+            exclusiveMinimum: self::validateNumeric($data['exclusiveMinimum'] ?? null),
+            exclusiveMaximum: self::validateNumeric($data['exclusiveMaximum'] ?? null),
             pattern: self::validateString($data['pattern'] ?? null),
             enum: isset($data['enum']) && is_array($data['enum']) ? $data['enum'] : null,
             multipleOf: self::validateNumeric($data['multipleOf'] ?? null),
@@ -480,6 +523,8 @@ class ValidationConstraints
             maxLength: $other->maxLength ?? $this->maxLength,
             minimum: $other->minimum ?? $this->minimum,
             maximum: $other->maximum ?? $this->maximum,
+            exclusiveMinimum: $other->exclusiveMinimum ?? $this->exclusiveMinimum,
+            exclusiveMaximum: $other->exclusiveMaximum ?? $this->exclusiveMaximum,
             pattern: $other->pattern ?? $this->pattern,
             enum: ($other->enum !== null && $other->enum !== []) ? $other->enum : $this->enum,
             multipleOf: $other->multipleOf ?? $this->multipleOf,
@@ -506,6 +551,12 @@ class ValidationConstraints
             $score++;
         }
         if ($this->maximum !== null) {
+            $score++;
+        }
+        if ($this->exclusiveMinimum !== null) {
+            $score++;
+        }
+        if ($this->exclusiveMaximum !== null) {
             $score++;
         }
         if ($this->pattern !== null) {
@@ -600,6 +651,30 @@ class ValidationConstraints
 
         if (is_bool($value)) {
             return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Parse exclusive numeric bounds with backward compatibility for OpenAPI 3.0
+     *
+     * @param  array<string, mixed>  $schema
+     */
+    private static function parseExclusiveNumeric(array $schema, string $exclusiveKey, string $inclusiveKey): int|float|null
+    {
+        // OpenAPI 3.1: exclusiveMinimum/exclusiveMaximum as numeric values
+        if (isset($schema[$exclusiveKey])) {
+            $value = $schema[$exclusiveKey];
+            if (is_numeric($value)) {
+                return self::validateNumeric($value);
+            }
+
+            // OpenAPI 3.0: exclusiveMinimum/exclusiveMaximum as boolean values
+            if (is_bool($value) && $value === true) {
+                // Use the corresponding inclusive bound value
+                return self::validateNumeric($schema[$inclusiveKey] ?? null);
+            }
         }
 
         return null;
