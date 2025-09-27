@@ -56,7 +56,9 @@ class ValidationRuleMapper
             if (isset($rules[$fieldPath])) {
                 $ruleString = $rules[$fieldPath];
                 $existingRules = explode('|', $ruleString);
-                $prefix = $isRequired ? 'required' : 'nullable';
+
+                // Determine prefix based on required status and schema nullable property
+                $prefix = $this->determineNullabilityPrefix($propertySchema, $isRequired);
 
                 // Remove existing required/nullable rules
                 $existingRules = array_values(array_filter($existingRules, fn (string $rule): bool => ! in_array($rule, ['required', 'nullable'], true)));
@@ -68,7 +70,7 @@ class ValidationRuleMapper
             } else {
                 // Create a basic rule if none exists
                 $typeRule = $propertySchema->getTypeValidationRule();
-                $prefix = $isRequired ? 'required' : 'nullable';
+                $prefix = $this->determineNullabilityPrefix($propertySchema, $isRequired);
                 $rules[$fieldPath] = "{$prefix}|{$typeRule}";
             }
         }
@@ -163,7 +165,7 @@ class ValidationRuleMapper
                 $ruleParts = [];
 
                 // Required/nullable prefix
-                $ruleParts[] = $isRequired ? 'required' : 'nullable';
+                $ruleParts[] = $this->determineNullabilityPrefix($propertySchema, $isRequired);
 
                 // Type and constraint rules
                 $fieldRule = $this->buildRule($propertySchema, $fieldPath, false);
@@ -176,7 +178,12 @@ class ValidationRuleMapper
         } elseif ($schema->isArray()) {
             if ($fieldPrefix !== '') {
                 // Array validation
-                $ruleParts = ['array'];
+                $ruleParts = [];
+
+                // Add nullable/required prefix for arrays
+                $prefix = $this->determineNullabilityPrefix($schema, false); // Arrays are not required by default
+                $ruleParts[] = $prefix;
+                $ruleParts[] = 'array';
 
                 if ($schema->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
                     $arrayRules = $schema->validation->getArrayValidationRules();
@@ -203,7 +210,7 @@ class ValidationRuleMapper
 
                             // Build the main rule for this property
                             $ruleParts = [];
-                            $ruleParts[] = $isRequired ? 'required' : 'nullable';
+                            $ruleParts[] = $this->determineNullabilityPrefix($propertySchema, $isRequired);
 
                             $fieldRule = $this->buildRule($propertySchema, $propertyFieldPath, false);
                             if ($fieldRule !== '') {
@@ -221,7 +228,9 @@ class ValidationRuleMapper
             }
         } elseif ($fieldPrefix !== '') {
             // Scalar field
-            $validationRules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
+            $baseRule = $this->buildRule($schema, $fieldPrefix, false);
+            $prefix = $this->determineNullabilityPrefix($schema, false); // Scalar fields are not required by default
+            $validationRules[$fieldPrefix] = "{$prefix}|{$baseRule}";
         }
 
         return $validationRules;
@@ -245,7 +254,7 @@ class ValidationRuleMapper
                 $allRules = [];
 
                 // Add required or nullable
-                $allRules[] = $isRequired ? 'required' : 'nullable';
+                $allRules[] = $this->determineNullabilityPrefix($propertySchema, $isRequired);
 
                 // Add type rule
                 $typeRule = $propertySchema->getTypeValidationRule();
@@ -424,5 +433,25 @@ class ValidationRuleMapper
         }
 
         return $errors;
+    }
+
+    /**
+     * Determine nullability prefix based on required status and schema nullable property
+     */
+    private function determineNullabilityPrefix(SchemaObject $schema, bool $isRequired): string
+    {
+        // If field is explicitly nullable (OpenAPI 3.0 nullable: true or 3.1 union with null),
+        // it should be nullable regardless of required status unless it's explicitly required
+        if ($schema->isNullable() && ! $isRequired) {
+            return 'nullable';
+        }
+
+        // If field is required, it's required even if schema is nullable
+        if ($isRequired) {
+            return 'required';
+        }
+
+        // Default for optional fields
+        return 'nullable';
     }
 }

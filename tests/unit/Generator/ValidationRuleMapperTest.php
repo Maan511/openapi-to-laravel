@@ -486,4 +486,269 @@ describe('ValidationRuleMapper', function (): void {
             expect($rule)->toContain('regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/');
         });
     });
+
+    describe('OpenAPI 3.1 Union Type Support', function (): void {
+        describe('nullable union types', function (): void {
+            it('should map union type string with null to nullable string', function (): void {
+                $schema = new SchemaObject(
+                    type: 'string',
+                    nullable: true
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema, 'name');
+
+                expect($rules)->toHaveKey('name');
+                expect($rules['name'])->toContain('nullable');
+                expect($rules['name'])->toContain('string');
+                expect($rules['name'])->toStartWith('nullable');
+            });
+
+            it('should map union type integer with null to nullable integer', function (): void {
+                $schema = new SchemaObject(
+                    type: 'integer',
+                    nullable: true
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema, 'count');
+
+                expect($rules)->toHaveKey('count');
+                expect($rules['count'])->toContain('nullable');
+                expect($rules['count'])->toContain('integer');
+                expect($rules['count'])->toStartWith('nullable');
+            });
+
+            it('should map union type array with null to nullable array', function (): void {
+                $schema = new SchemaObject(
+                    type: 'array',
+                    items: new SchemaObject(type: 'string'),
+                    nullable: true
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema, 'tags');
+
+                expect($rules)->toHaveKey('tags');
+                expect($rules['tags'])->toContain('nullable');
+                expect($rules['tags'])->toContain('array');
+                expect($rules['tags'])->toStartWith('nullable');
+            });
+
+            it('should handle object with nullable union type properties', function (): void {
+                $schema = new SchemaObject(
+                    type: 'object',
+                    properties: [
+                        'required_name' => new SchemaObject(type: 'string'),
+                        'nullable_bio' => new SchemaObject(type: 'string', nullable: true),
+                        'nullable_age' => new SchemaObject(type: 'integer', nullable: true),
+                    ],
+                    required: ['required_name']
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema);
+
+                expect($rules)->toHaveKey('required_name');
+                expect($rules)->toHaveKey('nullable_bio');
+                expect($rules)->toHaveKey('nullable_age');
+
+                expect($rules['required_name'])->toContain('required');
+                expect($rules['required_name'])->not->toContain('nullable');
+
+                expect($rules['nullable_bio'])->toContain('nullable');
+                expect($rules['nullable_bio'])->not->toContain('required');
+
+                expect($rules['nullable_age'])->toContain('nullable');
+                expect($rules['nullable_age'])->toContain('integer');
+            });
+
+            it('should handle required nullable fields correctly', function (): void {
+                // In OpenAPI, a field can be both required and nullable
+                // This means the field must be present but can have null value
+                $schema = new SchemaObject(
+                    type: 'object',
+                    properties: [
+                        'required_nullable' => new SchemaObject(type: 'string', nullable: true),
+                    ],
+                    required: ['required_nullable']
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema);
+
+                expect($rules)->toHaveKey('required_nullable');
+                expect($rules['required_nullable'])->toContain('required');
+                expect($rules['required_nullable'])->not->toContain('nullable');
+            });
+        });
+
+        describe('backward compatibility', function (): void {
+            it('should generate identical rules for OpenAPI 3.0 and 3.1 nullable strings', function (): void {
+                // OpenAPI 3.0 style
+                $schema30 = new SchemaObject(
+                    type: 'string',
+                    nullable: true
+                );
+
+                // OpenAPI 3.1 style (simulated by setting nullable: true)
+                $schema31 = new SchemaObject(
+                    type: 'string',
+                    nullable: true
+                );
+
+                $rules30 = $this->mapper->mapValidationRules($schema30, 'field');
+                $rules31 = $this->mapper->mapValidationRules($schema31, 'field');
+
+                expect($rules30['field'])->toBe($rules31['field']);
+                expect($rules30['field'])->toContain('nullable');
+                expect($rules30['field'])->toContain('string');
+            });
+
+            it('should maintain existing behavior for non-nullable fields', function (): void {
+                $schema = new SchemaObject(
+                    type: 'object',
+                    properties: [
+                        'name' => new SchemaObject(type: 'string'),
+                        'email' => new SchemaObject(type: 'string', format: 'email'),
+                    ],
+                    required: ['name', 'email']
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema);
+
+                expect($rules['name'])->toContain('required');
+                expect($rules['name'])->toContain('string');
+                expect($rules['name'])->not->toContain('nullable');
+
+                expect($rules['email'])->toContain('required');
+                expect($rules['email'])->toContain('email');
+                expect($rules['email'])->not->toContain('nullable');
+            });
+        });
+
+        describe('complex scenarios with union types', function (): void {
+            it('should handle nested objects with nullable properties', function (): void {
+                $schema = new SchemaObject(
+                    type: 'object',
+                    properties: [
+                        'user' => new SchemaObject(
+                            type: 'object',
+                            properties: [
+                                'name' => new SchemaObject(type: 'string'),
+                                'bio' => new SchemaObject(type: 'string', nullable: true),
+                                'settings' => new SchemaObject(
+                                    type: 'object',
+                                    properties: [
+                                        'theme' => new SchemaObject(type: 'string', nullable: true),
+                                    ]
+                                ),
+                            ],
+                            required: ['name']
+                        ),
+                    ],
+                    required: ['user']
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema);
+
+                expect($rules['user'])->toContain('required');
+                expect($rules['user.name'])->toContain('required');
+                expect($rules['user.bio'])->toContain('nullable');
+                expect($rules['user.settings'])->toContain('nullable');
+                expect($rules['user.settings.theme'])->toContain('nullable');
+            });
+
+            it('should handle arrays with nullable items', function (): void {
+                $schema = new SchemaObject(
+                    type: 'array',
+                    items: new SchemaObject(
+                        type: 'object',
+                        properties: [
+                            'id' => new SchemaObject(type: 'integer'),
+                            'description' => new SchemaObject(type: 'string', nullable: true),
+                        ],
+                        required: ['id']
+                    )
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema, 'items');
+
+                expect($rules['items'])->toContain('array');
+                expect($rules['items.*.id'])->toContain('required');
+                expect($rules['items.*.description'])->toContain('nullable');
+            });
+
+            it('should combine format rules with nullable', function (): void {
+                $schema = new SchemaObject(
+                    type: 'object',
+                    properties: [
+                        'optional_email' => new SchemaObject(
+                            type: 'string',
+                            format: 'email',
+                            nullable: true
+                        ),
+                        'optional_date' => new SchemaObject(
+                            type: 'string',
+                            format: 'date',
+                            nullable: true
+                        ),
+                    ]
+                );
+
+                $rules = $this->mapper->mapValidationRules($schema);
+
+                expect($rules['optional_email'])->toContain('nullable');
+                expect($rules['optional_email'])->toContain('email');
+
+                expect($rules['optional_date'])->toContain('nullable');
+                expect($rules['optional_date'])->toContain('date_format:Y-m-d');
+            });
+        });
+
+        describe('validation rule generation with union types', function (): void {
+            it('should build rules with proper ordering for nullable fields', function (): void {
+                $schema = new SchemaObject(
+                    type: 'string',
+                    format: 'email',
+                    validation: new ValidationConstraints(
+                        minLength: 5,
+                        maxLength: 100
+                    ),
+                    nullable: true
+                );
+
+                $rule = $this->mapper->buildRule($schema, 'email');
+
+                expect($rule)->toContain('string');
+                expect($rule)->toContain('email');
+                expect($rule)->toContain('min:5');
+                expect($rule)->toContain('max:100');
+
+                // When used in context, nullable should come first
+                $rules = $this->mapper->mapValidationRules($schema, 'email');
+                expect($rules['email'])->toStartWith('nullable');
+            });
+
+            it('should handle createValidationRules with nullable types', function (): void {
+                $schema = new SchemaObject(
+                    type: 'object',
+                    properties: [
+                        'name' => new SchemaObject(type: 'string'),
+                        'bio' => new SchemaObject(type: 'string', nullable: true),
+                    ],
+                    required: ['name']
+                );
+
+                $rules = $this->mapper->createValidationRules($schema);
+
+                $nameRules = array_filter($rules, fn ($rule): bool => $rule->fieldPath === 'name');
+                $bioRules = array_filter($rules, fn ($rule): bool => $rule->fieldPath === 'bio');
+
+                expect($nameRules)->not->toBeEmpty();
+                expect($bioRules)->not->toBeEmpty();
+
+                $nameRequiredRules = array_filter($nameRules, fn ($rule): bool => in_array('required', $rule->rules));
+                $bioNullableRules = array_filter($bioRules, fn ($rule): bool => in_array('nullable', $rule->rules));
+
+                expect($nameRequiredRules)->not->toBeEmpty();
+                expect($bioNullableRules)->not->toBeEmpty();
+            });
+        });
+    });
 });

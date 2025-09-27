@@ -21,7 +21,8 @@ class SchemaObject
         public readonly ?ValidationConstraints $validation = null,
         public readonly ?string $ref = null,
         public readonly string $title = '',
-        public readonly string $description = ''
+        public readonly string $description = '',
+        public readonly bool $nullable = false
     ) {
         $this->validateType();
         $this->validateStructure();
@@ -53,8 +54,11 @@ class SchemaObject
             $validation = ValidationConstraints::fromSchema($schema);
         }
 
+        // Parse type and nullable from OpenAPI 3.0/3.1 formats
+        $typeInfo = self::parseTypeAndNullable($schema);
+
         return new self(
-            type: self::validateString($schema['type'] ?? 'string') ?? 'string',
+            type: $typeInfo['type'],
             format: self::validateString($schema['format'] ?? null),
             properties: $properties,
             items: $items,
@@ -62,7 +66,8 @@ class SchemaObject
             validation: $validation,
             ref: self::validateString($schema['$ref'] ?? null),
             title: self::validateString($schema['title'] ?? '') ?? '',
-            description: self::validateString($schema['description'] ?? '') ?? ''
+            description: self::validateString($schema['description'] ?? '') ?? '',
+            nullable: $typeInfo['nullable']
         );
     }
 
@@ -288,6 +293,78 @@ class SchemaObject
     }
 
     /**
+     * Check if this schema is nullable (OpenAPI 3.0 nullable: true or 3.1 union with null)
+     */
+    public function isNullable(): bool
+    {
+        return $this->nullable;
+    }
+
+    /**
+     * Check if this uses union type syntax
+     */
+    public function hasUnionType(): bool
+    {
+        return $this->nullable && ! $this->isReference();
+    }
+
+    /**
+     * Get the primary type (non-null type from union or regular type)
+     */
+    public function getPrimaryType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * Parse type and nullable from OpenAPI schema
+     *
+     * @param  array<string, mixed>  $schema
+     * @return array{type: string, nullable: bool}
+     */
+    private static function parseTypeAndNullable(array $schema): array
+    {
+        $type = 'string'; // default
+        $nullable = false;
+
+        // Handle OpenAPI 3.0 nullable property
+        if (isset($schema['nullable']) && $schema['nullable'] === true) {
+            $nullable = true;
+        }
+
+        // Handle both single type and union type (OpenAPI 3.1)
+        if (isset($schema['type'])) {
+            if (is_string($schema['type'])) {
+                // OpenAPI 3.0 format: type: "string"
+                $type = self::validateString($schema['type']) ?? 'string';
+            } elseif (is_array($schema['type'])) {
+                // OpenAPI 3.1 format: type: ["string", "null"]
+                $unionTypes = $schema['type'];
+                $nonNullTypes = array_filter($unionTypes, fn ($t): bool => $t !== 'null');
+
+                if (in_array('null', $unionTypes)) {
+                    $nullable = true;
+                }
+
+                if (count($nonNullTypes) === 1) {
+                    $type = self::validateString(reset($nonNullTypes)) ?? 'string';
+                } elseif (count($nonNullTypes) === 0) {
+                    // Only null type, default to string but nullable
+                    $type = 'string';
+                } else {
+                    // Complex union type not supported, use first non-null type
+                    $type = self::validateString(reset($nonNullTypes)) ?? 'string';
+                }
+            }
+        }
+
+        return [
+            'type' => $type,
+            'nullable' => $nullable,
+        ];
+    }
+
+    /**
      * Validate type is supported
      */
     private function validateType(): void
@@ -385,6 +462,10 @@ class SchemaObject
             $array['description'] = $this->description;
         }
 
+        if ($this->nullable) {
+            $array['nullable'] = $this->nullable;
+        }
+
         return $array;
     }
 
@@ -459,7 +540,8 @@ class SchemaObject
             validation: $this->validation, // ValidationConstraints should be immutable
             ref: $this->ref,
             title: $this->title,
-            description: $this->description
+            description: $this->description,
+            nullable: $this->nullable
         );
     }
 
