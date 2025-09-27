@@ -30,6 +30,20 @@ describe('ValidationConstraints', function (): void {
             expect($constraints->multipleOf)->toBe(5);
         });
 
+        it('should create constraints with exclusive numeric validation', function (): void {
+            $constraints = new ValidationConstraints(
+                minimum: 5,
+                maximum: 95,
+                exclusiveMinimum: 0,
+                exclusiveMaximum: 100
+            );
+
+            expect($constraints->exclusiveMinimum)->toBe(0);
+            expect($constraints->exclusiveMaximum)->toBe(100);
+            expect($constraints->minimum)->toBe(5);
+            expect($constraints->maximum)->toBe(95);
+        });
+
         it('should create constraints with array validation', function (): void {
             $constraints = new ValidationConstraints(
                 minItems: 1,
@@ -51,6 +65,8 @@ describe('ValidationConstraints', function (): void {
             expect($constraints->enum)->toBeNull();
             expect($constraints->minimum)->toBeNull();
             expect($constraints->maximum)->toBeNull();
+            expect($constraints->exclusiveMinimum)->toBeNull();
+            expect($constraints->exclusiveMaximum)->toBeNull();
             expect($constraints->multipleOf)->toBeNull();
             expect($constraints->minItems)->toBeNull();
             expect($constraints->maxItems)->toBeNull();
@@ -100,6 +116,20 @@ describe('ValidationConstraints', function (): void {
             );
 
             expect($constraints->hasNumericConstraints())->toBeTrue();
+        });
+
+        it('should return true when exclusive bounds exist', function (): void {
+            $constraints = new ValidationConstraints(
+                exclusiveMinimum: 0
+            );
+
+            expect($constraints->hasNumericConstraints())->toBeTrue();
+
+            $constraints2 = new ValidationConstraints(
+                exclusiveMaximum: 100
+            );
+
+            expect($constraints2->hasNumericConstraints())->toBeTrue();
         });
 
         it('should return false when no numeric constraints exist', function (): void {
@@ -376,6 +406,124 @@ describe('ValidationConstraints', function (): void {
             $constraints = new ValidationConstraints;
 
             expect($constraints->getComplexityScore())->toBe(0);
+        });
+    });
+
+    describe('getNumericValidationRules', function (): void {
+        it('should generate gt rule for exclusiveMinimum', function (): void {
+            $constraints = new ValidationConstraints(
+                exclusiveMinimum: 0
+            );
+
+            $rules = $constraints->getNumericValidationRules();
+
+            expect($rules)->toContain('gt:0');
+        });
+
+        it('should generate lt rule for exclusiveMaximum', function (): void {
+            $constraints = new ValidationConstraints(
+                exclusiveMaximum: 100
+            );
+
+            $rules = $constraints->getNumericValidationRules();
+
+            expect($rules)->toContain('lt:100');
+        });
+
+        it('should prefer exclusive bounds over inclusive bounds', function (): void {
+            $constraints = new ValidationConstraints(
+                minimum: 5,
+                maximum: 95,
+                exclusiveMinimum: 0,
+                exclusiveMaximum: 100
+            );
+
+            $rules = $constraints->getNumericValidationRules();
+
+            expect($rules)->toContain('gt:0');
+            expect($rules)->toContain('lt:100');
+            expect($rules)->not->toContain('min:5');
+            expect($rules)->not->toContain('max:95');
+        });
+
+        it('should use inclusive bounds when no exclusive bounds exist', function (): void {
+            $constraints = new ValidationConstraints(
+                minimum: 5,
+                maximum: 95
+            );
+
+            $rules = $constraints->getNumericValidationRules();
+
+            expect($rules)->toContain('min:5');
+            expect($rules)->toContain('max:95');
+        });
+    });
+
+    describe('fromSchema', function (): void {
+        it('should parse OpenAPI 3.1 numeric exclusiveMinimum/exclusiveMaximum', function (): void {
+            $schema = [
+                'type' => 'number',
+                'exclusiveMinimum' => 0,
+                'exclusiveMaximum' => 100,
+                'minimum' => 5,
+                'maximum' => 95,
+            ];
+
+            $constraints = ValidationConstraints::fromSchema($schema);
+
+            expect($constraints->exclusiveMinimum)->toBe(0);
+            expect($constraints->exclusiveMaximum)->toBe(100);
+            expect($constraints->minimum)->toBe(5);
+            expect($constraints->maximum)->toBe(95);
+        });
+
+        it('should handle OpenAPI 3.0 boolean exclusiveMinimum/exclusiveMaximum', function (): void {
+            $schema = [
+                'type' => 'number',
+                'minimum' => 0,
+                'maximum' => 100,
+                'exclusiveMinimum' => true,
+                'exclusiveMaximum' => true,
+            ];
+
+            $constraints = ValidationConstraints::fromSchema($schema);
+
+            expect($constraints->exclusiveMinimum)->toBe(0);
+            expect($constraints->exclusiveMaximum)->toBe(100);
+            expect($constraints->minimum)->toBe(0);
+            expect($constraints->maximum)->toBe(100);
+        });
+
+        it('should ignore OpenAPI 3.0 false exclusiveMinimum/exclusiveMaximum', function (): void {
+            $schema = [
+                'type' => 'number',
+                'minimum' => 0,
+                'maximum' => 100,
+                'exclusiveMinimum' => false,
+                'exclusiveMaximum' => false,
+            ];
+
+            $constraints = ValidationConstraints::fromSchema($schema);
+
+            expect($constraints->exclusiveMinimum)->toBeNull();
+            expect($constraints->exclusiveMaximum)->toBeNull();
+            expect($constraints->minimum)->toBe(0);
+            expect($constraints->maximum)->toBe(100);
+        });
+
+        it('should handle mixed OpenAPI 3.1 numeric and 3.0 boolean syntax', function (): void {
+            $schema = [
+                'type' => 'number',
+                'minimum' => 5,
+                'exclusiveMaximum' => 100, // Numeric (3.1)
+                'exclusiveMinimum' => true, // Boolean (3.0) - should use minimum value
+            ];
+
+            $constraints = ValidationConstraints::fromSchema($schema);
+
+            expect($constraints->exclusiveMinimum)->toBe(5); // From minimum when exclusiveMinimum=true
+            expect($constraints->exclusiveMaximum)->toBe(100); // Numeric value
+            expect($constraints->minimum)->toBe(5);
         });
     });
 });
