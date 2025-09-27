@@ -671,7 +671,7 @@ class ValidationConstraints
             }
 
             // OpenAPI 3.0: exclusiveMinimum/exclusiveMaximum as boolean values
-            if (is_bool($value) && $value === true) {
+            if (is_bool($value) && $value) {
                 // Use the corresponding inclusive bound value
                 return self::validateNumeric($schema[$inclusiveKey] ?? null);
             }

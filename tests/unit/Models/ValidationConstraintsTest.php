@@ -32,10 +32,10 @@ describe('ValidationConstraints', function (): void {
 
         it('should create constraints with exclusive numeric validation', function (): void {
             $constraints = new ValidationConstraints(
-                exclusiveMinimum: 0,
-                exclusiveMaximum: 100,
                 minimum: 5,
-                maximum: 95
+                maximum: 95,
+                exclusiveMinimum: 0,
+                exclusiveMaximum: 100
             );
 
             expect($constraints->exclusiveMinimum)->toBe(0);
