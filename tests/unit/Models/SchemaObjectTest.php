@@ -3,9 +3,9 @@
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
 use Maan511\OpenapiToLaravel\Models\ValidationConstraints;
 
-describe('SchemaObject', function () {
-    describe('construction', function () {
-        it('should create simple schema object', function () {
+describe('SchemaObject', function (): void {
+    describe('construction', function (): void {
+        it('should create simple schema object', function (): void {
             $schema = new SchemaObject(
                 type: 'string'
             );
@@ -18,7 +18,7 @@ describe('SchemaObject', function () {
             expect($schema->validation)->toBeNull();
         });
 
-        it('should create object schema with properties', function () {
+        it('should create object schema with properties', function (): void {
             $nameProperty = new SchemaObject(type: 'string');
             $ageProperty = new SchemaObject(type: 'integer');
 
@@ -36,7 +36,7 @@ describe('SchemaObject', function () {
             expect($schema->properties['age']->type)->toBe('integer');
         });
 
-        it('should create array schema with items', function () {
+        it('should create array schema with items', function (): void {
             $itemSchema = new SchemaObject(type: 'string');
 
             $schema = new SchemaObject(
@@ -49,7 +49,7 @@ describe('SchemaObject', function () {
             expect($schema->items->type)->toBe('string');
         });
 
-        it('should create schema with validation constraints', function () {
+        it('should create schema with validation constraints', function (): void {
             $validation = new ValidationConstraints(
                 minLength: 5,
                 maxLength: 100,
@@ -67,7 +67,7 @@ describe('SchemaObject', function () {
             expect($schema->validation->pattern)->toBe('^[a-zA-Z]+$');
         });
 
-        it('should create schema with format', function () {
+        it('should create schema with format', function (): void {
             $schema = new SchemaObject(
                 type: 'string',
                 format: 'email'
@@ -78,14 +78,14 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('isObject', function () {
-        it('should return true for object type', function () {
+    describe('isObject', function (): void {
+        it('should return true for object type', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             expect($schema->isObject())->toBeTrue();
         });
 
-        it('should return false for non-object types', function () {
+        it('should return false for non-object types', function (): void {
             $stringSchema = new SchemaObject(type: 'string');
             $arraySchema = new SchemaObject(type: 'array');
 
@@ -94,14 +94,14 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('isArray', function () {
-        it('should return true for array type', function () {
+    describe('isArray', function (): void {
+        it('should return true for array type', function (): void {
             $schema = new SchemaObject(type: 'array');
 
             expect($schema->isArray())->toBeTrue();
         });
 
-        it('should return false for non-array types', function () {
+        it('should return false for non-array types', function (): void {
             $stringSchema = new SchemaObject(type: 'string');
             $objectSchema = new SchemaObject(type: 'object');
 
@@ -110,8 +110,8 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('isPrimitive', function () {
-        it('should return true for primitive types', function () {
+    describe('isPrimitive', function (): void {
+        it('should return true for primitive types', function (): void {
             $stringSchema = new SchemaObject(type: 'string');
             $integerSchema = new SchemaObject(type: 'integer');
             $numberSchema = new SchemaObject(type: 'number');
@@ -123,7 +123,7 @@ describe('SchemaObject', function () {
             expect($booleanSchema->isPrimitive())->toBeTrue();
         });
 
-        it('should return false for complex types', function () {
+        it('should return false for complex types', function (): void {
             $objectSchema = new SchemaObject(type: 'object');
             $arraySchema = new SchemaObject(type: 'array');
 
@@ -132,8 +132,8 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('hasValidation', function () {
-        it('should return true when validation constraints exist', function () {
+    describe('hasValidation', function (): void {
+        it('should return true when validation constraints exist', function (): void {
             $validation = new ValidationConstraints(minLength: 5);
             $schema = new SchemaObject(
                 type: 'string',
@@ -143,15 +143,15 @@ describe('SchemaObject', function () {
             expect($schema->hasValidation())->toBeTrue();
         });
 
-        it('should return false when no validation constraints exist', function () {
+        it('should return false when no validation constraints exist', function (): void {
             $schema = new SchemaObject(type: 'string');
 
             expect($schema->hasValidation())->toBeFalse();
         });
     });
 
-    describe('getProperty', function () {
-        it('should return property schema by name', function () {
+    describe('getProperty', function (): void {
+        it('should return property schema by name', function (): void {
             $nameProperty = new SchemaObject(type: 'string');
             $ageProperty = new SchemaObject(type: 'integer');
 
@@ -164,15 +164,15 @@ describe('SchemaObject', function () {
             expect($schema->getProperty('age'))->toBe($ageProperty);
         });
 
-        it('should return null for non-existent property', function () {
+        it('should return null for non-existent property', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             expect($schema->getProperty('nonexistent'))->toBeNull();
         });
     });
 
-    describe('hasProperty', function () {
-        it('should return true for existing properties', function () {
+    describe('hasProperty', function (): void {
+        it('should return true for existing properties', function (): void {
             $nameProperty = new SchemaObject(type: 'string');
 
             $schema = new SchemaObject(
@@ -183,15 +183,15 @@ describe('SchemaObject', function () {
             expect($schema->hasProperty('name'))->toBeTrue();
         });
 
-        it('should return false for non-existing properties', function () {
+        it('should return false for non-existing properties', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             expect($schema->hasProperty('nonexistent'))->toBeFalse();
         });
     });
 
-    describe('isRequired', function () {
-        it('should return true for required properties', function () {
+    describe('isRequired', function (): void {
+        it('should return true for required properties', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 required: ['name', 'email']
@@ -201,7 +201,7 @@ describe('SchemaObject', function () {
             expect($schema->isRequired('email'))->toBeTrue();
         });
 
-        it('should return false for optional properties', function () {
+        it('should return false for optional properties', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 required: ['name']
@@ -211,14 +211,14 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('getNestingLevel', function () {
-        it('should return 0 for primitive schemas', function () {
+    describe('getNestingLevel', function (): void {
+        it('should return 0 for primitive schemas', function (): void {
             $schema = new SchemaObject(type: 'string');
 
             expect($schema->getNestingLevel())->toBe(0);
         });
 
-        it('should return 1 for simple object schemas', function () {
+        it('should return 1 for simple object schemas', function (): void {
             $nameProperty = new SchemaObject(type: 'string');
 
             $schema = new SchemaObject(
@@ -229,7 +229,7 @@ describe('SchemaObject', function () {
             expect($schema->getNestingLevel())->toBe(1);
         });
 
-        it('should return correct level for nested object schemas', function () {
+        it('should return correct level for nested object schemas', function (): void {
             $bioProperty = new SchemaObject(type: 'string');
             $profileProperty = new SchemaObject(
                 type: 'object',
@@ -248,7 +248,7 @@ describe('SchemaObject', function () {
             expect($schema->getNestingLevel())->toBe(3);
         });
 
-        it('should handle array nesting', function () {
+        it('should handle array nesting', function (): void {
             $itemProperty = new SchemaObject(type: 'string');
             $arrayProperty = new SchemaObject(
                 type: 'array',
@@ -264,8 +264,8 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('toArray', function () {
-        it('should convert simple schema to array', function () {
+    describe('toArray', function (): void {
+        it('should convert simple schema to array', function (): void {
             $schema = new SchemaObject(
                 type: 'string',
                 format: 'email'
@@ -279,7 +279,7 @@ describe('SchemaObject', function () {
             expect($array['format'])->toBe('email');
         });
 
-        it('should convert complex schema to array', function () {
+        it('should convert complex schema to array', function (): void {
             $nameProperty = new SchemaObject(type: 'string');
             $validation = new ValidationConstraints(minLength: 2);
 
@@ -301,8 +301,8 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('fromArray', function () {
-        it('should create schema from array data', function () {
+    describe('fromArray', function (): void {
+        it('should create schema from array data', function (): void {
             $data = [
                 'type' => 'string',
                 'format' => 'email',
@@ -314,7 +314,7 @@ describe('SchemaObject', function () {
             expect($schema->format)->toBe('email');
         });
 
-        it('should create complex schema from array data', function () {
+        it('should create complex schema from array data', function (): void {
             $data = [
                 'type' => 'object',
                 'properties' => [
@@ -334,7 +334,7 @@ describe('SchemaObject', function () {
             expect($schema->properties['age']->type)->toBe('integer');
         });
 
-        it('should handle array schema from array data', function () {
+        it('should handle array schema from array data', function (): void {
             $data = [
                 'type' => 'array',
                 'items' => ['type' => 'string'],
@@ -348,8 +348,8 @@ describe('SchemaObject', function () {
         });
     });
 
-    describe('clone', function () {
-        it('should create deep copy of schema', function () {
+    describe('clone', function (): void {
+        it('should create deep copy of schema', function (): void {
             $nameProperty = new SchemaObject(type: 'string');
             $validation = new ValidationConstraints(minLength: 2);
 

@@ -137,7 +137,7 @@ class SchemaExtractor
         }
 
         return [
-            'valid' => empty($errors),
+            'valid' => $errors === [],
             'errors' => $errors,
             'warnings' => [],
         ];
@@ -184,7 +184,7 @@ class SchemaExtractor
      */
     public function extractFromParameters(array $parameters, OpenApiSpecification $specification): ?SchemaObject
     {
-        if (empty($parameters)) {
+        if ($parameters === []) {
             return null;
         }
 
@@ -220,7 +220,7 @@ class SchemaExtractor
             }
         }
 
-        if (empty($properties)) {
+        if ($properties === []) {
             return null;
         }
 
@@ -282,12 +282,14 @@ class SchemaExtractor
         // Extract from operation request bodies
         foreach ($specification->paths as $path => $pathItem) {
             foreach ($pathItem as $method => $operation) {
-                if (! is_array($operation) || ! isset($operation['requestBody'])) {
+                if (! is_array($operation)) {
                     continue;
                 }
-
+                if (! isset($operation['requestBody'])) {
+                    continue;
+                }
                 $schema = $this->extractFromRequestBody($operation['requestBody'], $specification);
-                if ($schema) {
+                if ($schema instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
                     $operationId = $operation['operationId'] ?? "{$method}_{$path}";
                     $schemas[$operationId] = $schema;
                 }
@@ -318,7 +320,7 @@ class SchemaExtractor
         }
 
         // Extract from array items
-        if ($schema->items) {
+        if ($schema->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             $nestedSchemas['*'] = $schema->items;
 
             // Recursively extract from array item schema
@@ -336,9 +338,14 @@ class SchemaExtractor
      */
     public function hasValidationConstraints(SchemaObject $schema): bool
     {
-        return $schema->hasValidation()
-            || ! empty($schema->required)
-            || $schema->format !== null;
+        if ($schema->hasValidation()) {
+            return true;
+        }
+        if ($schema->required !== []) {
+            return true;
+        }
+
+        return $schema->format !== null;
     }
 
     /**
@@ -362,7 +369,7 @@ class SchemaExtractor
                 }
 
                 $schema = $this->extractFromRequestBody($operation['requestBody'], $specification);
-                if (! $schema) {
+                if (! $schema instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
                     continue;
                 }
 
@@ -370,7 +377,7 @@ class SchemaExtractor
                 $schemas[$operationId] = [
                     'schema' => $schema,
                     'path' => $path,
-                    'method' => strtoupper($method),
+                    'method' => strtoupper((string) $method),
                     'operation' => $operation,
                 ];
             }
@@ -411,7 +418,7 @@ class SchemaExtractor
         }
 
         return [
-            'valid' => empty($errors),
+            'valid' => $errors === [],
             'errors' => $errors,
             'warnings' => $warnings,
         ];
@@ -442,7 +449,7 @@ class SchemaExtractor
         $score += count($schema->required);
 
         // Add for array items
-        if ($schema->items) {
+        if ($schema->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             $score += $this->getComplexityScore($schema->items);
         }
 

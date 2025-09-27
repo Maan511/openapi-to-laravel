@@ -4,13 +4,13 @@ use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
 use Maan511\OpenapiToLaravel\Models\FormRequestClass;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->templateEngine = new TemplateEngine;
 });
 
-describe('TemplateEngine', function () {
-    describe('renderFormRequest', function () {
-        it('should render basic FormRequest template', function () {
+describe('TemplateEngine', function (): void {
+    describe('renderFormRequest', function (): void {
+        it('should render basic FormRequest template', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -34,7 +34,7 @@ describe('TemplateEngine', function () {
             expect($rendered)->toContain("'name' => 'required|string'");
         });
 
-        it('should render FormRequest with custom authorization', function () {
+        it('should render FormRequest with custom authorization', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -54,7 +54,7 @@ describe('TemplateEngine', function () {
             expect($rendered)->toContain('return $this->user()->can("create-resource");');
         });
 
-        it('should render FormRequest with custom messages', function () {
+        it('should render FormRequest with custom messages', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -75,7 +75,7 @@ describe('TemplateEngine', function () {
             expect($rendered)->toContain("'name.required' => 'Name is required'");
         });
 
-        it('should render FormRequest with custom attributes', function () {
+        it('should render FormRequest with custom attributes', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -96,7 +96,7 @@ describe('TemplateEngine', function () {
             expect($rendered)->toContain("'name' => 'Full Name'");
         });
 
-        it('should handle complex validation rules formatting', function () {
+        it('should handle complex validation rules formatting', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: [
@@ -124,7 +124,7 @@ describe('TemplateEngine', function () {
             expect($rendered)->toContain("'array_field.*' => 'string|max:50'");
         });
 
-        it('should properly escape strings in templates', function () {
+        it('should properly escape strings in templates', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -144,8 +144,8 @@ describe('TemplateEngine', function () {
         });
     });
 
-    describe('getTemplate', function () {
-        it('should return default FormRequest template', function () {
+    describe('getTemplate', function (): void {
+        it('should return default FormRequest template', function (): void {
             $template = $this->templateEngine->getTemplate('form_request');
 
             expect($template)->toBeString();
@@ -155,24 +155,24 @@ describe('TemplateEngine', function () {
             expect($template)->toContain('{{rules}}');
         });
 
-        it('should throw exception for unknown template', function () {
+        it('should throw exception for unknown template', function (): void {
             expect(fn () => $this->templateEngine->getTemplate('unknown_template'))
                 ->toThrow(InvalidArgumentException::class, 'Unknown template: unknown_template');
         });
     });
 
-    describe('hasTemplate', function () {
-        it('should return true for existing templates', function () {
+    describe('hasTemplate', function (): void {
+        it('should return true for existing templates', function (): void {
             expect($this->templateEngine->hasTemplate('form_request'))->toBeTrue();
         });
 
-        it('should return false for non-existing templates', function () {
+        it('should return false for non-existing templates', function (): void {
             expect($this->templateEngine->hasTemplate('non_existing'))->toBeFalse();
         });
     });
 
-    describe('setTemplate', function () {
-        it('should allow setting custom templates', function () {
+    describe('setTemplate', function (): void {
+        it('should allow setting custom templates', function (): void {
             $customTemplate = '<?php /* custom template */ {{className}}';
 
             $this->templateEngine->setTemplate('custom', $customTemplate);
@@ -181,7 +181,7 @@ describe('TemplateEngine', function () {
             expect($this->templateEngine->getTemplate('custom'))->toBe($customTemplate);
         });
 
-        it('should override existing templates', function () {
+        it('should override existing templates', function (): void {
             $originalTemplate = $this->templateEngine->getTemplate('form_request');
             $newTemplate = '<?php /* modified template */';
 
@@ -192,8 +192,8 @@ describe('TemplateEngine', function () {
         });
     });
 
-    describe('renderTemplate', function () {
-        it('should replace template variables', function () {
+    describe('renderTemplate', function (): void {
+        it('should replace template variables', function (): void {
             $template = 'Hello {{name}}, your age is {{age}}';
             $variables = ['name' => 'John', 'age' => '30'];
 
@@ -202,7 +202,7 @@ describe('TemplateEngine', function () {
             expect($result)->toBe('Hello John, your age is 30');
         });
 
-        it('should handle missing variables gracefully', function () {
+        it('should handle missing variables gracefully', function (): void {
             $template = 'Hello {{name}}, your age is {{age}}';
             $variables = ['name' => 'John'];
 
@@ -211,7 +211,7 @@ describe('TemplateEngine', function () {
             expect($result)->toBe('Hello John, your age is {{age}}');
         });
 
-        it('should handle empty variables array', function () {
+        it('should handle empty variables array', function (): void {
             $template = 'Hello {{name}}';
             $variables = [];
 
@@ -221,8 +221,8 @@ describe('TemplateEngine', function () {
         });
     });
 
-    describe('formatValidationRules', function () {
-        it('should format simple rules array', function () {
+    describe('formatValidationRules', function (): void {
+        it('should format simple rules array', function (): void {
             $rules = [
                 'name' => 'required|string',
                 'email' => 'required|email',
@@ -236,7 +236,7 @@ describe('TemplateEngine', function () {
             expect($formatted)->toContain("\n        ]");
         });
 
-        it('should format rules with proper indentation', function () {
+        it('should format rules with proper indentation', function (): void {
             $rules = [
                 'nested.field' => 'nullable|string',
                 'array.*' => 'string',
@@ -248,7 +248,7 @@ describe('TemplateEngine', function () {
             expect($formatted)->toContain("            'array.*' => 'string'");
         });
 
-        it('should handle empty rules array', function () {
+        it('should handle empty rules array', function (): void {
             $rules = [];
 
             $formatted = $this->templateEngine->formatValidationRules($rules);
@@ -256,7 +256,7 @@ describe('TemplateEngine', function () {
             expect($formatted)->toBe("[\n        ]");
         });
 
-        it('should escape special characters in rule values', function () {
+        it('should escape special characters in rule values', function (): void {
             $rules = [
                 'pattern' => "regex:/^[A-Z][a-z']+$/",
             ];
@@ -267,8 +267,8 @@ describe('TemplateEngine', function () {
         });
     });
 
-    describe('formatArray', function () {
-        it('should format string arrays', function () {
+    describe('formatArray', function (): void {
+        it('should format string arrays', function (): void {
             $array = ['item1', 'item2', 'item3'];
 
             $formatted = $this->templateEngine->formatArray($array);
@@ -280,7 +280,7 @@ describe('TemplateEngine', function () {
             expect($formatted)->toContain("\n        ]");
         });
 
-        it('should format associative arrays', function () {
+        it('should format associative arrays', function (): void {
             $array = ['key1' => 'value1', 'key2' => 'value2'];
 
             $formatted = $this->templateEngine->formatArray($array);
@@ -289,7 +289,7 @@ describe('TemplateEngine', function () {
             expect($formatted)->toContain("'key2' => 'value2'");
         });
 
-        it('should handle empty arrays', function () {
+        it('should handle empty arrays', function (): void {
             $array = [];
 
             $formatted = $this->templateEngine->formatArray($array);
@@ -297,7 +297,7 @@ describe('TemplateEngine', function () {
             expect($formatted)->toBe("[\n        ]");
         });
 
-        it('should handle nested arrays', function () {
+        it('should handle nested arrays', function (): void {
             $array = [
                 'level1' => [
                     'level2' => 'value',
@@ -311,8 +311,8 @@ describe('TemplateEngine', function () {
         });
     });
 
-    describe('validateTemplate', function () {
-        it('should validate correct template syntax', function () {
+    describe('validateTemplate', function (): void {
+        it('should validate correct template syntax', function (): void {
             $validTemplate = '<?php class {{className}} extends FormRequest { }';
 
             $result = $this->templateEngine->validateTemplate($validTemplate);
@@ -321,7 +321,7 @@ describe('TemplateEngine', function () {
             expect($result['errors'])->toBeEmpty();
         });
 
-        it('should detect PHP syntax errors', function () {
+        it('should detect PHP syntax errors', function (): void {
             $invalidTemplate = '<?php class {{className}} extends FormRequest { unclosed_function() {';
 
             $result = $this->templateEngine->validateTemplate($invalidTemplate);
@@ -330,7 +330,7 @@ describe('TemplateEngine', function () {
             expect($result['errors'])->not->toBeEmpty();
         });
 
-        it('should warn about missing PHP opening tag', function () {
+        it('should warn about missing PHP opening tag', function (): void {
             $templateWithoutPhpTag = 'class {{className}} extends FormRequest { }';
 
             $result = $this->templateEngine->validateTemplate($templateWithoutPhpTag);
@@ -339,8 +339,8 @@ describe('TemplateEngine', function () {
         });
     });
 
-    describe('getAvailableVariables', function () {
-        it('should return list of available template variables', function () {
+    describe('getAvailableVariables', function (): void {
+        it('should return list of available template variables', function (): void {
             $variables = $this->templateEngine->getAvailableVariables('form_request');
 
             expect($variables)->toBeArray();
@@ -350,7 +350,7 @@ describe('TemplateEngine', function () {
             expect($variables)->toContain('authorize');
         });
 
-        it('should throw exception for unknown template type', function () {
+        it('should throw exception for unknown template type', function (): void {
             expect(fn () => $this->templateEngine->getAvailableVariables('unknown'))
                 ->toThrow(InvalidArgumentException::class);
         });

@@ -554,7 +554,7 @@ class LaravelIntegrationTest extends TestCase
         $this->assertCount(2, $formRequests);
 
         // Verify PascalCase naming with "Request" suffix
-        $classNames = array_map(fn ($fr) => $fr->className, $formRequests);
+        $classNames = array_map(fn (\Maan511\OpenapiToLaravel\Models\FormRequestClass $fr): string => $fr->className, $formRequests);
         $this->assertContains('CreateUserRequest', $classNames);
         $this->assertContains('UpdateUserProfileRequest', $classNames);
 
@@ -755,12 +755,12 @@ class LaravelIntegrationTest extends TestCase
         $fieldNames = array_keys($formRequest->validationRules);
 
         // Should contain nested properties with dot notation
-        $nestedFields = array_filter($fieldNames, fn ($field) => str_contains($field, '.'));
+        $nestedFields = array_filter($fieldNames, fn (string $field): bool => str_contains($field, '.'));
         $this->assertNotEmpty($nestedFields, 'Should have nested fields with dot notation');
 
         // Check for specific nested patterns we expect
-        $hasProfileFields = ! empty(array_filter($fieldNames, fn ($field) => str_starts_with($field, 'profile.')));
-        $hasAddressFields = ! empty(array_filter($fieldNames, fn ($field) => str_starts_with($field, 'addresses.')));
+        $hasProfileFields = array_filter($fieldNames, fn (string $field): bool => str_starts_with($field, 'profile.')) !== [];
+        $hasAddressFields = array_filter($fieldNames, fn (string $field): bool => str_starts_with($field, 'addresses.')) !== [];
 
         // At minimum, we should have some nested structure
         $this->assertTrue($hasProfileFields || $hasAddressFields, 'Should have profile or address nested fields');
@@ -1301,7 +1301,7 @@ class LaravelIntegrationTest extends TestCase
         $this->assertStringContainsString('array', $formRequest->validationRules['tags']);
 
         // Should handle nested object fields correctly
-        $metadataFields = array_filter(array_keys($formRequest->validationRules), fn ($field) => str_starts_with($field, 'metadata'));
+        $metadataFields = array_filter(array_keys($formRequest->validationRules), fn (string $field): bool => str_starts_with($field, 'metadata'));
         $this->assertNotEmpty($metadataFields);
 
         unlink($tempFile);
@@ -1420,70 +1420,8 @@ class LaravelIntegrationTest extends TestCase
     private function createGenerator(): FormRequestGenerator
     {
         $ruleMapper = new ValidationRuleMapper;
-        $templateEngine = new TemplateEngine;
+        new TemplateEngine;
 
         return new FormRequestGenerator($ruleMapper);
-    }
-
-    /**
-     * Helper method to simulate a Laravel request with data
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     *
-     * @phpstan-ignore-next-line method.unused
-     */
-    private function createLaravelRequest(array $data): array
-    {
-        // Simulate Laravel request structure
-        return [
-            'data' => $data,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ],
-        ];
-    }
-
-    /**
-     * Helper method to get valid request data for testing
-     *
-     * @return array<string, mixed>
-     *
-     * @phpstan-ignore-next-line method.unused
-     */
-    private function getValidRequestData(): array
-    {
-        return [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'age' => 30,
-            'profile' => [
-                'bio' => 'Software developer with 10 years of experience.',
-                'social' => [
-                    'twitter' => '@johndoe',
-                    'linkedin' => 'https://linkedin.com/in/johndoe',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Helper method to get invalid request data for testing
-     *
-     * @return array<string, mixed>
-     *
-     * @phpstan-ignore-next-line method.unused
-     */
-    private function getInvalidRequestData(): array
-    {
-        return [
-            'name' => '', // Required field empty
-            'email' => 'invalid-email', // Invalid email format
-            'age' => -5, // Below minimum
-            'profile' => [
-                'bio' => str_repeat('a', 501), // Exceeds max length
-            ],
-        ];
     }
 }

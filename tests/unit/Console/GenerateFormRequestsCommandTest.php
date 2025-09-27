@@ -11,7 +11,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Input\InputInterface;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->command = new GenerateFormRequestsCommand;
 
     // Create mock application and set up command
@@ -22,25 +22,25 @@ beforeEach(function () {
     $this->command->setApplication($this->application);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     Mockery::close();
 });
 
-describe('GenerateFormRequestsCommand', function () {
-    describe('command signature', function () {
-        it('should have correct signature', function () {
+describe('GenerateFormRequestsCommand', function (): void {
+    describe('command signature', function (): void {
+        it('should have correct signature', function (): void {
             $signature = $this->command->getName();
             expect($signature)->toBe('openapi-to-laravel:make-requests');
         });
 
-        it('should have correct description', function () {
+        it('should have correct description', function (): void {
             $description = $this->command->getDescription();
             expect($description)->toBe('Generate Laravel FormRequest classes from OpenAPI specification');
         });
     });
 
-    describe('validateInputs', function () {
-        it('should validate existing readable spec file', function () {
+    describe('validateInputs', function (): void {
+        it('should validate existing readable spec file', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -52,7 +52,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('validateInputs');
-            $method->setAccessible(true);
 
             $result = $method->invoke(
                 $this->command,
@@ -66,10 +65,9 @@ describe('GenerateFormRequestsCommand', function () {
             unlink($tempFile);
         });
 
-        it('should reject non-existent spec file', function () {
+        it('should reject non-existent spec file', function (): void {
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('validateInputs');
-            $method->setAccessible(true);
 
             $result = $method->invoke(
                 $this->command,
@@ -82,7 +80,7 @@ describe('GenerateFormRequestsCommand', function () {
             expect($result['message'])->toContain('not found');
         });
 
-        it('should reject invalid namespace format', function () {
+        it('should reject invalid namespace format', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -90,7 +88,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('validateInputs');
-            $method->setAccessible(true);
 
             $result = $method->invoke(
                 $this->command,
@@ -105,7 +102,7 @@ describe('GenerateFormRequestsCommand', function () {
             unlink($tempFile);
         });
 
-        it('should create output directory if it does not exist', function () {
+        it('should create output directory if it does not exist', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -115,7 +112,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('validateInputs');
-            $method->setAccessible(true);
 
             $result = $method->invoke(
                 $this->command,
@@ -132,7 +128,7 @@ describe('GenerateFormRequestsCommand', function () {
             rmdir($tempDir);
         });
 
-        it('should reject non-writable output directory', function () {
+        it('should reject non-writable output directory', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -144,7 +140,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('validateInputs');
-            $method->setAccessible(true);
 
             $result = $method->invoke(
                 $this->command,
@@ -162,7 +157,7 @@ describe('GenerateFormRequestsCommand', function () {
             rmdir($tempDir);
         });
 
-        it('should not create output directory in dry-run mode', function () {
+        it('should not create output directory in dry-run mode', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -172,7 +167,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('validateInputs');
-            $method->setAccessible(true);
 
             // Test with dry-run enabled
             $result = $method->invoke(
@@ -204,8 +198,8 @@ describe('GenerateFormRequestsCommand', function () {
         });
     });
 
-    describe('handleDryRun', function () {
-        it('should display dry run results without creating files', function () {
+    describe('handleDryRun', function (): void {
+        it('should display dry run results without creating files', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -227,7 +221,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('handleDryRun');
-            $method->setAccessible(true);
 
             // Mock the console output
             $outputMock = Mockery::mock(OutputStyle::class);
@@ -249,8 +242,8 @@ describe('GenerateFormRequestsCommand', function () {
         });
     });
 
-    describe('displayResults', function () {
-        it('should display generation results correctly', function () {
+    describe('displayResults', function (): void {
+        it('should display generation results correctly', function (): void {
             $results = [
                 'summary' => [
                     'total' => 2,
@@ -274,7 +267,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('displayResults');
-            $method->setAccessible(true);
 
             // Mock the console output
             $outputMock = Mockery::mock(OutputStyle::class);
@@ -284,12 +276,12 @@ describe('GenerateFormRequestsCommand', function () {
             $this->command->setOutput($outputMock);
 
             // Should not throw any exceptions
-            expect(fn () => $method->invoke($this->command, $results, true))->not->toThrow(Exception::class);
+            expect(fn (): mixed => $method->invoke($this->command, $results, true))->not->toThrow(Exception::class);
         });
     });
 
-    describe('displayStats', function () {
-        it('should display generation statistics correctly', function () {
+    describe('displayStats', function (): void {
+        it('should display generation statistics correctly', function (): void {
             $stats = [
                 'totalClasses' => 5,
                 'totalRules' => 15,
@@ -304,7 +296,6 @@ describe('GenerateFormRequestsCommand', function () {
 
             $reflection = new ReflectionClass($this->command);
             $method = $reflection->getMethod('displayStats');
-            $method->setAccessible(true);
 
             // Mock the console output
             $outputMock = Mockery::mock(OutputStyle::class);
@@ -314,12 +305,12 @@ describe('GenerateFormRequestsCommand', function () {
             $this->command->setOutput($outputMock);
 
             // Should not throw any exceptions
-            expect(fn () => $method->invoke($this->command, $stats))->not->toThrow(Exception::class);
+            expect(fn (): mixed => $method->invoke($this->command, $stats))->not->toThrow(Exception::class);
         });
     });
 
-    describe('handle method flow', function () {
-        it('should handle valid OpenAPI specification file', function () {
+    describe('handle method flow', function (): void {
+        it('should handle valid OpenAPI specification file', function (): void {
             // Create a valid OpenAPI spec file
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
@@ -378,7 +369,7 @@ describe('GenerateFormRequestsCommand', function () {
             unlink($tempFile);
         });
 
-        it('should return error code for invalid specification', function () {
+        it('should return error code for invalid specification', function (): void {
             // Create an invalid spec file
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
@@ -411,8 +402,8 @@ describe('GenerateFormRequestsCommand', function () {
         });
     });
 
-    describe('error handling', function () {
-        it('should handle exceptions gracefully', function () {
+    describe('error handling', function (): void {
+        it('should handle exceptions gracefully', function (): void {
             // Mock console input/output to trigger an exception
             $inputMock = Mockery::mock(InputInterface::class);
             $outputMock = Mockery::mock(OutputStyle::class);

@@ -40,13 +40,13 @@ class ValidationRuleMapper
         $rules = [];
 
         // Add object validation rule
-        if ($fieldPrefix) {
+        if ($fieldPrefix !== '') {
             $rules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
         }
 
         // Map each property
         foreach ($schema->properties as $propertyName => $propertySchema) {
-            $fieldPath = $fieldPrefix ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
+            $fieldPath = $fieldPrefix !== '' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
             $isRequired = $schema->isPropertyRequired($propertyName);
 
             $nestedRules = $this->mapSchema($propertySchema, $fieldPath);
@@ -89,7 +89,7 @@ class ValidationRuleMapper
         $rules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
 
         // Map array items if defined
-        if ($schema->items) {
+        if ($schema->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             $itemsFieldPath = "{$fieldPrefix}.*";
             $itemRules = $this->mapSchema($schema->items, $itemsFieldPath);
             $rules = array_merge($rules, $itemRules);
@@ -107,7 +107,7 @@ class ValidationRuleMapper
     {
         $rules = [];
 
-        if ($fieldPrefix) {
+        if ($fieldPrefix !== '') {
             $rules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
         }
 
@@ -131,7 +131,7 @@ class ValidationRuleMapper
         }
 
         // Validation constraints
-        if ($schema->validation !== null) {
+        if ($schema->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
             $constraintRules = $schema->validation->getValidationRules($schema->type);
             $ruleParts = array_merge($ruleParts, $constraintRules);
         }
@@ -153,7 +153,7 @@ class ValidationRuleMapper
 
         if ($schema->isObject()) {
             foreach ($schema->properties as $propertyName => $propertySchema) {
-                $fieldPath = $fieldPrefix ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
+                $fieldPath = $fieldPrefix !== '' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
                 $isRequired = $schema->isPropertyRequired($propertyName);
 
                 $rules = $this->mapValidationRules($propertySchema, $fieldPath);
@@ -167,18 +167,18 @@ class ValidationRuleMapper
 
                 // Type and constraint rules
                 $fieldRule = $this->buildRule($propertySchema, $fieldPath, false);
-                if ($fieldRule) {
+                if ($fieldRule !== '') {
                     $ruleParts[] = $fieldRule;
                 }
 
                 $validationRules[$fieldPath] = implode('|', $ruleParts);
             }
         } elseif ($schema->isArray()) {
-            if ($fieldPrefix) {
+            if ($fieldPrefix !== '') {
                 // Array validation
                 $ruleParts = ['array'];
 
-                if ($schema->validation !== null) {
+                if ($schema->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
                     $arrayRules = $schema->validation->getArrayValidationRules();
                     $ruleParts = array_merge($ruleParts, $arrayRules);
                 }
@@ -186,7 +186,7 @@ class ValidationRuleMapper
                 $validationRules[$fieldPrefix] = implode('|', $ruleParts);
 
                 // Array items validation
-                if ($schema->items) {
+                if ($schema->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
                     $itemsFieldPath = "{$fieldPrefix}.*";
 
                     if ($schema->items->isObject()) {
@@ -206,7 +206,7 @@ class ValidationRuleMapper
                             $ruleParts[] = $isRequired ? 'required' : 'nullable';
 
                             $fieldRule = $this->buildRule($propertySchema, $propertyFieldPath, false);
-                            if ($fieldRule) {
+                            if ($fieldRule !== '') {
                                 $ruleParts[] = $fieldRule;
                             }
 
@@ -219,11 +219,9 @@ class ValidationRuleMapper
                     }
                 }
             }
-        } else {
+        } elseif ($fieldPrefix !== '') {
             // Scalar field
-            if ($fieldPrefix) {
-                $validationRules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
-            }
+            $validationRules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
         }
 
         return $validationRules;
@@ -240,18 +238,14 @@ class ValidationRuleMapper
 
         if ($schema->isObject()) {
             foreach ($schema->properties as $propertyName => $propertySchema) {
-                $fieldPath = $fieldPrefix ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
+                $fieldPath = $fieldPrefix !== '' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
                 $isRequired = $schema->isPropertyRequired($propertyName);
 
                 // Collect all rules for this field
                 $allRules = [];
 
                 // Add required or nullable
-                if ($isRequired) {
-                    $allRules[] = 'required';
-                } else {
-                    $allRules[] = 'nullable';
-                }
+                $allRules[] = $isRequired ? 'required' : 'nullable';
 
                 // Add type rule
                 $typeRule = $propertySchema->getTypeValidationRule();
@@ -292,10 +286,10 @@ class ValidationRuleMapper
                 }
             }
         } elseif ($schema->isArray() && $schema->items) {
-            if ($fieldPrefix) {
+            if ($fieldPrefix !== '') {
                 // Create rule for the array itself
                 $arrayRules = ['array'];
-                if ($schema->validation !== null) {
+                if ($schema->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
                     $arrayConstraints = $schema->validation->getArrayValidationRules();
                     $arrayRules = array_merge($arrayRules, $arrayConstraints);
                 }
@@ -316,7 +310,7 @@ class ValidationRuleMapper
                 $itemRules = $this->createValidationRules($schema->items, $itemsFieldPath);
                 $rules = array_merge($rules, $itemRules);
             }
-        } elseif ($fieldPrefix) {
+        } elseif ($fieldPrefix !== '') {
             // Scalar field
             $scalarRules = [$schema->getTypeValidationRule()];
 
@@ -327,7 +321,7 @@ class ValidationRuleMapper
             }
 
             // Add constraint rules
-            if ($schema->validation !== null) {
+            if ($schema->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
                 $constraintRules = $schema->validation->getValidationRules($schema->type);
                 $scalarRules = array_merge($scalarRules, $constraintRules);
             }
@@ -356,7 +350,7 @@ class ValidationRuleMapper
      */
     public function sortValidationRules(array $rules): array
     {
-        if (empty($rules)) {
+        if ($rules === []) {
             return $rules;
         }
 
@@ -405,7 +399,7 @@ class ValidationRuleMapper
         $errors = [];
 
         foreach ($rules as $field => $ruleString) {
-            if (! is_string($ruleString) || empty($ruleString)) {
+            if (! is_string($ruleString) || ($ruleString === '' || $ruleString === '0')) {
                 $errors[] = "Invalid rule for field '{$field}': must be non-empty string";
 
                 continue;
@@ -413,7 +407,7 @@ class ValidationRuleMapper
 
             $ruleParts = explode('|', $ruleString);
             foreach ($ruleParts as $rule) {
-                if (empty($rule)) {
+                if ($rule === '' || $rule === '0') {
                     $errors[] = "Empty rule part in field '{$field}'";
 
                     continue;
@@ -422,7 +416,7 @@ class ValidationRuleMapper
                 // Basic validation of rule format
                 if (str_contains($rule, ':')) {
                     [$ruleName, $parameters] = explode(':', $rule, 2);
-                    if (empty($ruleName)) {
+                    if ($ruleName === '' || $ruleName === '0') {
                         $errors[] = "Invalid rule format in field '{$field}': '{$rule}'";
                     }
                 }

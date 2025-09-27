@@ -121,7 +121,7 @@ class TemplateEngine
         // Process {{#if variable}} ... {{/if}} blocks
         $pattern = '/\{\{#if\s+(\w+)\}\}(.*?)\{\{\/if\}\}/s';
 
-        $result = preg_replace_callback($pattern, function ($matches) use ($variables) {
+        $result = preg_replace_callback($pattern, function (array $matches) use ($variables): string {
             $variableName = $matches[1];
             $content = $matches[2];
 
@@ -241,7 +241,7 @@ PHP;
      */
     public function formatPhpArray(array $data, int $indentLevel = 2): string
     {
-        if (empty($data)) {
+        if ($data === []) {
             return '[]';
         }
 
@@ -374,7 +374,7 @@ PHP;
         }
 
         // Check for basic PHP syntax errors
-        if (strpos($testTemplate, 'class') !== false && strpos($testTemplate, 'extends') === false) {
+        if (str_contains($testTemplate, 'class') && ! str_contains($testTemplate, 'extends')) {
             $result['warnings'][] = 'Class definition without extends clause';
         }
 
@@ -461,7 +461,7 @@ PHP;
      */
     public function formatArray(array $array, int $indentLevel = 2): string
     {
-        if (empty($array)) {
+        if ($array === []) {
             return "[\n        ]";
         }
 

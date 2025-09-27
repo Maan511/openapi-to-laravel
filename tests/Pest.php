@@ -30,10 +30,9 @@ require_once __DIR__ . '/TestConstants.php';
 |
 */
 
-expect()->extend('toBeOne', function () {
+expect()->extend('toBeOne', fn () =>
     // @phpstan-ignore-next-line
-    return $this->toBe(1);
-});
+    $this->toBe(1));
 
 /*
 |--------------------------------------------------------------------------

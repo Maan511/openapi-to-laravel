@@ -5,14 +5,14 @@ use Maan511\OpenapiToLaravel\Models\SchemaObject;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->referenceResolver = new ReferenceResolver;
     $this->schemaExtractor = new SchemaExtractor($this->referenceResolver);
 });
 
-describe('SchemaExtractor', function () {
-    describe('extractFromRequestBody', function () {
-        it('should extract schema from simple request body', function () {
+describe('SchemaExtractor', function (): void {
+    describe('extractFromRequestBody', function (): void {
+        it('should extract schema from simple request body', function (): void {
             $requestBody = [
                 'content' => [
                     'application/json' => [
@@ -42,7 +42,7 @@ describe('SchemaExtractor', function () {
             expect($schema->required)->toBe(['name']);
         });
 
-        it('should prefer application/json content type', function () {
+        it('should prefer application/json content type', function (): void {
             $requestBody = [
                 'content' => [
                     'application/xml' => [
@@ -71,7 +71,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties)->not->toHaveKey('xml_field');
         });
 
-        it('should fall back to first available content type', function () {
+        it('should fall back to first available content type', function (): void {
             $requestBody = [
                 'content' => [
                     'application/xml' => [
@@ -99,7 +99,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties)->toHaveKey('xml_field');
         });
 
-        it('should resolve schema references', function () {
+        it('should resolve schema references', function (): void {
             $requestBody = [
                 'content' => [
                     'application/json' => [
@@ -131,7 +131,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties)->toHaveKey('name');
         });
 
-        it('should throw exception for missing content', function () {
+        it('should throw exception for missing content', function (): void {
             $requestBody = [];
 
             $specification = OpenApiSpecification::fromArray([
@@ -144,8 +144,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('extractFromParameters', function () {
-        it('should extract schema from parameters', function () {
+    describe('extractFromParameters', function (): void {
+        it('should extract schema from parameters', function (): void {
             $parameters = [
                 [
                     'name' => 'id',
@@ -182,7 +182,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties['sort']->validation->enum)->toBe(['name', 'date']);
         });
 
-        it('should skip header and cookie parameters', function () {
+        it('should skip header and cookie parameters', function (): void {
             $parameters = [
                 [
                     'name' => 'user_id',
@@ -216,7 +216,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties)->not->toHaveKey('session_id');
         });
 
-        it('should resolve parameter references', function () {
+        it('should resolve parameter references', function (): void {
             $parameters = [
                 ['$ref' => '#/components/parameters/PageParam'],
                 [
@@ -248,7 +248,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties['page']->validation->minimum)->toBe(1);
         });
 
-        it('should return null for empty parameters', function () {
+        it('should return null for empty parameters', function (): void {
             $parameters = [];
 
             $specification = OpenApiSpecification::fromArray([
@@ -262,8 +262,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('createSchemaObject', function () {
-        it('should create simple schema object', function () {
+    describe('createSchemaObject', function (): void {
+        it('should create simple schema object', function (): void {
             $schemaData = [
                 'type' => 'string',
                 'minLength' => 3,
@@ -278,7 +278,7 @@ describe('SchemaExtractor', function () {
             expect($schema->validation->maxLength)->toBe(50);
         });
 
-        it('should create object schema with properties', function () {
+        it('should create object schema with properties', function (): void {
             $schemaData = [
                 'type' => 'object',
                 'properties' => [
@@ -297,7 +297,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties['age']->validation->minimum)->toBe(0);
         });
 
-        it('should create array schema with items', function () {
+        it('should create array schema with items', function (): void {
             $schemaData = [
                 'type' => 'array',
                 'items' => ['type' => 'string'],
@@ -313,7 +313,7 @@ describe('SchemaExtractor', function () {
             expect($schema->validation->maxItems)->toBe(10);
         });
 
-        it('should handle schema with format', function () {
+        it('should handle schema with format', function (): void {
             $schemaData = [
                 'type' => 'string',
                 'format' => 'email',
@@ -325,7 +325,7 @@ describe('SchemaExtractor', function () {
             expect($schema->format)->toBe('email');
         });
 
-        it('should handle schema with enum', function () {
+        it('should handle schema with enum', function (): void {
             $schemaData = [
                 'type' => 'string',
                 'enum' => ['active', 'inactive', 'pending'],
@@ -336,7 +336,7 @@ describe('SchemaExtractor', function () {
             expect($schema->validation->enum)->toBe(['active', 'inactive', 'pending']);
         });
 
-        it('should handle schema with pattern', function () {
+        it('should handle schema with pattern', function (): void {
             $schemaData = [
                 'type' => 'string',
                 'pattern' => '^[A-Z][a-z]+$',
@@ -348,8 +348,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('extractValidationConstraints', function () {
-        it('should extract string constraints', function () {
+    describe('extractValidationConstraints', function (): void {
+        it('should extract string constraints', function (): void {
             $schemaData = [
                 'type' => 'string',
                 'minLength' => 5,
@@ -366,7 +366,7 @@ describe('SchemaExtractor', function () {
             expect($constraints->enum)->toBe(['option1', 'option2']);
         });
 
-        it('should extract numeric constraints', function () {
+        it('should extract numeric constraints', function (): void {
             $schemaData = [
                 'type' => 'integer',
                 'minimum' => 0,
@@ -381,7 +381,7 @@ describe('SchemaExtractor', function () {
             expect($constraints->multipleOf)->toBe(5);
         });
 
-        it('should extract array constraints', function () {
+        it('should extract array constraints', function (): void {
             $schemaData = [
                 'type' => 'array',
                 'minItems' => 1,
@@ -396,7 +396,7 @@ describe('SchemaExtractor', function () {
             expect($constraints->uniqueItems)->toBeTrue();
         });
 
-        it('should handle missing constraints', function () {
+        it('should handle missing constraints', function (): void {
             $schemaData = ['type' => 'string'];
 
             $constraints = $this->schemaExtractor->extractValidationConstraints($schemaData);
@@ -407,15 +407,15 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('getSchemaType', function () {
-        it('should return schema type from type field', function () {
+    describe('getSchemaType', function (): void {
+        it('should return schema type from type field', function (): void {
             $schemaData = ['type' => 'string'];
             $type = $this->schemaExtractor->getSchemaType($schemaData);
 
             expect($type)->toBe('string');
         });
 
-        it('should return object for schemas with properties', function () {
+        it('should return object for schemas with properties', function (): void {
             $schemaData = [
                 'properties' => [
                     'name' => ['type' => 'string'],
@@ -426,7 +426,7 @@ describe('SchemaExtractor', function () {
             expect($type)->toBe('object');
         });
 
-        it('should return array for schemas with items', function () {
+        it('should return array for schemas with items', function (): void {
             $schemaData = [
                 'items' => ['type' => 'string'],
             ];
@@ -435,7 +435,7 @@ describe('SchemaExtractor', function () {
             expect($type)->toBe('array');
         });
 
-        it('should return null for schemas without clear type', function () {
+        it('should return null for schemas without clear type', function (): void {
             $schemaData = ['description' => 'Some description'];
             $type = $this->schemaExtractor->getSchemaType($schemaData);
 
@@ -443,8 +443,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('isSchemaObject', function () {
-        it('should identify object schemas', function () {
+    describe('isSchemaObject', function (): void {
+        it('should identify object schemas', function (): void {
             $objectSchema = ['type' => 'object'];
             $nonObjectSchema = ['type' => 'string'];
 
@@ -452,7 +452,7 @@ describe('SchemaExtractor', function () {
             expect($this->schemaExtractor->isSchemaObject($nonObjectSchema))->toBeFalse();
         });
 
-        it('should identify implicit object schemas', function () {
+        it('should identify implicit object schemas', function (): void {
             $implicitObjectSchema = [
                 'properties' => [
                     'name' => ['type' => 'string'],
@@ -463,8 +463,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('mergeSchemas', function () {
-        it('should merge object schemas', function () {
+    describe('mergeSchemas', function (): void {
+        it('should merge object schemas', function (): void {
             $schema1 = [
                 'type' => 'object',
                 'properties' => [
@@ -491,7 +491,7 @@ describe('SchemaExtractor', function () {
             expect($merged['required'])->toBe(['name', 'email']);
         });
 
-        it('should handle non-object schemas', function () {
+        it('should handle non-object schemas', function (): void {
             $schema1 = ['type' => 'string'];
             $schema2 = ['type' => 'integer'];
 
@@ -501,8 +501,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('validateSchemaData', function () {
-        it('should validate correct schema data', function () {
+    describe('validateSchemaData', function (): void {
+        it('should validate correct schema data', function (): void {
             $schemaData = [
                 'type' => 'object',
                 'properties' => [
@@ -516,7 +516,7 @@ describe('SchemaExtractor', function () {
             expect($result['errors'])->toBeEmpty();
         });
 
-        it('should detect invalid schema structure', function () {
+        it('should detect invalid schema structure', function (): void {
             $schemaData = [
                 'properties' => 'invalid_properties_format',
             ];
@@ -527,7 +527,7 @@ describe('SchemaExtractor', function () {
             expect($result['errors'])->not->toBeEmpty();
         });
 
-        it('should detect missing required fields', function () {
+        it('should detect missing required fields', function (): void {
             $schemaData = []; // Empty schema
 
             $result = $this->schemaExtractor->validateSchemaData($schemaData);
@@ -537,8 +537,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('extractFromComponents', function () {
-        it('should extract schema from component reference', function () {
+    describe('extractFromComponents', function (): void {
+        it('should extract schema from component reference', function (): void {
             $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -568,7 +568,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties['email']->format)->toBe('email');
         });
 
-        it('should return null for non-existent component reference', function () {
+        it('should return null for non-existent component reference', function (): void {
             $specification = OpenApiSpecification::fromArray([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -581,8 +581,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('error handling edge cases', function () {
-        it('should handle request body with no schema in content', function () {
+    describe('error handling edge cases', function (): void {
+        it('should handle request body with no schema in content', function (): void {
             $requestBody = [
                 'content' => [
                     'application/json' => [
@@ -600,7 +600,7 @@ describe('SchemaExtractor', function () {
                 ->toThrow(InvalidArgumentException::class, 'No content found in request body');
         });
 
-        it('should handle parameters with missing names gracefully', function () {
+        it('should handle parameters with missing names gracefully', function (): void {
             $parameters = [
                 [
                     'in' => 'query',
@@ -626,7 +626,7 @@ describe('SchemaExtractor', function () {
             expect(count($schema->properties))->toBe(1);
         });
 
-        it('should handle parameters with default schema when missing', function () {
+        it('should handle parameters with default schema when missing', function (): void {
             $parameters = [
                 [
                     'name' => 'param_without_schema',
@@ -647,8 +647,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('complex merging scenarios', function () {
-        it('should handle merging schemas with partial properties', function () {
+    describe('complex merging scenarios', function (): void {
+        it('should handle merging schemas with partial properties', function (): void {
             $schema1 = [
                 'type' => 'object',
                 'properties' => [
@@ -668,7 +668,7 @@ describe('SchemaExtractor', function () {
             expect($merged['required'])->toBe(['name']);
         });
 
-        it('should handle merging when only first schema has properties', function () {
+        it('should handle merging when only first schema has properties', function (): void {
             $schema1 = [
                 'type' => 'object',
                 'properties' => [
@@ -689,7 +689,7 @@ describe('SchemaExtractor', function () {
             expect($merged['description'])->toBe('Updated description');
         });
 
-        it('should handle merging when only first schema has required fields', function () {
+        it('should handle merging when only first schema has required fields', function (): void {
             $schema1 = [
                 'type' => 'object',
                 'required' => ['existing_field'],
@@ -709,8 +709,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('additional validation edge cases', function () {
-        it('should validate schemas with items array structure', function () {
+    describe('additional validation edge cases', function (): void {
+        it('should validate schemas with items array structure', function (): void {
             $schemaData = [
                 'type' => 'array',
                 'items' => 'invalid_items_format',
@@ -722,7 +722,7 @@ describe('SchemaExtractor', function () {
             expect($result['errors'])->toContain('Items must be an array');
         });
 
-        it('should validate schemas with required field array structure', function () {
+        it('should validate schemas with required field array structure', function (): void {
             $schemaData = [
                 'type' => 'object',
                 'properties' => ['name' => ['type' => 'string']],
@@ -735,7 +735,7 @@ describe('SchemaExtractor', function () {
             expect($result['errors'])->toContain('Required field must be an array');
         });
 
-        it('should accept schema with valid type field only', function () {
+        it('should accept schema with valid type field only', function (): void {
             $schemaData = ['type' => 'string'];
 
             $result = $this->schemaExtractor->validateSchemaData($schemaData);
@@ -744,7 +744,7 @@ describe('SchemaExtractor', function () {
             expect($result['errors'])->toBeEmpty();
         });
 
-        it('should accept schema with properties only', function () {
+        it('should accept schema with properties only', function (): void {
             $schemaData = [
                 'properties' => [
                     'name' => ['type' => 'string'],
@@ -757,7 +757,7 @@ describe('SchemaExtractor', function () {
             expect($result['errors'])->toBeEmpty();
         });
 
-        it('should accept schema with items only', function () {
+        it('should accept schema with items only', function (): void {
             $schemaData = [
                 'items' => ['type' => 'string'],
             ];
@@ -769,8 +769,8 @@ describe('SchemaExtractor', function () {
         });
     });
 
-    describe('parameter extraction edge cases', function () {
-        it('should handle parameters with missing schema gracefully', function () {
+    describe('parameter extraction edge cases', function (): void {
+        it('should handle parameters with missing schema gracefully', function (): void {
             $parameters = [
                 [
                     'name' => 'param1',
@@ -799,7 +799,7 @@ describe('SchemaExtractor', function () {
             expect($schema->required)->toBe(['param2']);
         });
 
-        it('should handle parameters with missing in field', function () {
+        it('should handle parameters with missing in field', function (): void {
             $parameters = [
                 [
                     'name' => 'param1',
@@ -818,7 +818,7 @@ describe('SchemaExtractor', function () {
             expect($schema->properties['param1']->type)->toBe('string');
         });
 
-        it('should correctly parse schema for parameters', function () {
+        it('should correctly parse schema for parameters', function (): void {
             $parameters = [
                 [
                     'name' => 'complex_param',

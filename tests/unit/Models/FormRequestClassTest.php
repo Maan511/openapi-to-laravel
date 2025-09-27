@@ -3,9 +3,9 @@
 use Maan511\OpenapiToLaravel\Models\FormRequestClass;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
 
-describe('FormRequestClass', function () {
-    describe('create', function () {
-        it('should create FormRequestClass with valid data', function () {
+describe('FormRequestClass', function (): void {
+    describe('create', function (): void {
+        it('should create FormRequestClass with valid data', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -27,10 +27,10 @@ describe('FormRequestClass', function () {
             expect($formRequest->sourceSchema)->toBe($schema);
         });
 
-        it('should throw exception for invalid class name', function () {
+        it('should throw exception for invalid class name', function (): void {
             $schema = new SchemaObject(type: 'object');
 
-            expect(fn () => FormRequestClass::create(
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\FormRequestClass => FormRequestClass::create(
                 className: 'invalid-class-name',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/invalid-class-name.php',
@@ -39,10 +39,10 @@ describe('FormRequestClass', function () {
             ))->toThrow(InvalidArgumentException::class, 'Invalid class name: invalid-class-name');
         });
 
-        it('should throw exception for invalid namespace', function () {
+        it('should throw exception for invalid namespace', function (): void {
             $schema = new SchemaObject(type: 'object');
 
-            expect(fn () => FormRequestClass::create(
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\FormRequestClass => FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'invalid-namespace',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -51,10 +51,10 @@ describe('FormRequestClass', function () {
             ))->toThrow(InvalidArgumentException::class, 'Invalid namespace: invalid-namespace');
         });
 
-        it('should throw exception for empty validation rules', function () {
+        it('should throw exception for empty validation rules', function (): void {
             $schema = new SchemaObject(type: 'object');
 
-            expect(fn () => FormRequestClass::create(
+            expect(fn (): \Maan511\OpenapiToLaravel\Models\FormRequestClass => FormRequestClass::create(
                 className: 'TestRequest',
                 namespace: 'App\\Http\\Requests',
                 filePath: '/app/Http/Requests/TestRequest.php',
@@ -63,7 +63,7 @@ describe('FormRequestClass', function () {
             ))->toThrow(InvalidArgumentException::class, 'Validation rules cannot be empty');
         });
 
-        it('should accept custom options', function () {
+        it('should accept custom options', function (): void {
             $schema = new SchemaObject(type: 'object');
             $options = ['authorize_return' => 'false', 'include_comments' => true];
 
@@ -80,8 +80,8 @@ describe('FormRequestClass', function () {
         });
     });
 
-    describe('generatePhpCode', function () {
-        it('should generate valid PHP code', function () {
+    describe('generatePhpCode', function (): void {
+        it('should generate valid PHP code', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -103,7 +103,7 @@ describe('FormRequestClass', function () {
             expect($phpCode)->toContain("'email' => 'nullable|email'");
         });
 
-        it('should include custom messages when provided', function () {
+        it('should include custom messages when provided', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -121,7 +121,7 @@ describe('FormRequestClass', function () {
             expect($phpCode)->toContain("'name.required' => 'Name is required'");
         });
 
-        it('should include custom attributes when provided', function () {
+        it('should include custom attributes when provided', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -140,8 +140,8 @@ describe('FormRequestClass', function () {
         });
     });
 
-    describe('getComplexity', function () {
-        it('should calculate complexity based on rules and nesting', function () {
+    describe('getComplexity', function (): void {
+        it('should calculate complexity based on rules and nesting', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -163,7 +163,7 @@ describe('FormRequestClass', function () {
             expect($complexity)->toBeInt();
         });
 
-        it('should return 0 complexity for empty rules', function () {
+        it('should return 0 complexity for empty rules', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -180,8 +180,8 @@ describe('FormRequestClass', function () {
         });
     });
 
-    describe('getEstimatedSize', function () {
-        it('should estimate file size based on content', function () {
+    describe('getEstimatedSize', function (): void {
+        it('should estimate file size based on content', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -198,7 +198,7 @@ describe('FormRequestClass', function () {
             expect($size)->toBeInt();
         });
 
-        it('should return larger size for more complex FormRequests', function () {
+        it('should return larger size for more complex FormRequests', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $simpleRequest = FormRequestClass::create(
@@ -228,8 +228,8 @@ describe('FormRequestClass', function () {
         });
     });
 
-    describe('validate', function () {
-        it('should validate correct FormRequest structure', function () {
+    describe('validate', function (): void {
+        it('should validate correct FormRequest structure', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -246,7 +246,7 @@ describe('FormRequestClass', function () {
             expect($validation['errors'])->toBeEmpty();
         });
 
-        it('should detect invalid validation rules', function () {
+        it('should detect invalid validation rules', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(
@@ -264,8 +264,8 @@ describe('FormRequestClass', function () {
         });
     });
 
-    describe('toArray', function () {
-        it('should convert FormRequest to array representation', function () {
+    describe('toArray', function (): void {
+        it('should convert FormRequest to array representation', function (): void {
             $schema = new SchemaObject(type: 'object');
 
             $formRequest = FormRequestClass::create(

@@ -1,52 +1,56 @@
 {
-    "name": "maan511/openapi-to-laravel",
-    "description": "Bringing API-first development to Laravel",
-    "type": "library",
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "Maan511\\OpenapiToLaravel\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Maan511\\OpenapiToLaravel\\Tests\\": "tests/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Martin Andersen",
-            "email": "Maan511@users.noreply.github.com"
-        }
-    ],
-    "require": {
-        "php": "^8.3",
-        "cebe/php-openapi": "^1.8",
-        "illuminate/support": "^11.0",
-        "illuminate/console": "^11.0",
-        "illuminate/validation": "^11.0"
-    },
-    "require-dev": {
-        "pestphp/pest": "^4.1",
-        "laravel/pint": "^1.25",
-        "mockery/mockery": "^1.5",
-        "larastan/larastan": "^3.7"
-    },
-    "config": {
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
-    },
-    "scripts": {
-        "test": "./vendor/bin/pest",
-        "format": "./vendor/bin/pint",
-        "analyse": "./vendor/bin/phpstan analyse --memory-limit=2G"
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Maan511\\OpenapiToLaravel\\OpenapiToLaravelServiceProvider"
-            ]
-        }
+  "name": "maan511/openapi-to-laravel",
+  "description": "Bringing API-first development to Laravel",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Maan511\\OpenapiToLaravel\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Maan511\\OpenapiToLaravel\\Tests\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Martin Andersen",
+      "email": "Maan511@users.noreply.github.com"
+    }
+  ],
+  "require": {
+    "php": "^8.3",
+    "cebe/php-openapi": "^1.8",
+    "illuminate/support": "^11.0",
+    "illuminate/console": "^11.0",
+    "illuminate/validation": "^11.0"
+  },
+  "require-dev": {
+    "pestphp/pest": "^4.1",
+    "laravel/pint": "^1.25",
+    "mockery/mockery": "^1.5",
+    "larastan/larastan": "^3.7",
+    "rector/rector": "^2.1"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "scripts": {
+    "test": "./vendor/bin/pest",
+    "format": "./vendor/bin/pint",
+    "analyse": "./vendor/bin/phpstan analyse --memory-limit=2G",
+    "refactor": "./vendor/bin/rector process",
+    "test:format": "./vendor/bin/pint --test",
+    "test:refactor": "./vendor/bin/rector process --dry-run"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Maan511\\OpenapiToLaravel\\OpenapiToLaravelServiceProvider"
+      ]
+    }
+  }
 }

@@ -3,8 +3,8 @@
 use Illuminate\Support\ServiceProvider;
 use Maan511\OpenapiToLaravel\OpenapiToLaravelServiceProvider;
 
-describe('OpenapiToLaravelServiceProvider', function () {
-    it('should be a valid Laravel service provider', function () {
+describe('OpenapiToLaravelServiceProvider', function (): void {
+    it('should be a valid Laravel service provider', function (): void {
         $app = mock(\Illuminate\Contracts\Foundation\Application::class);
         $app->shouldReceive('runningInConsole')->andReturn(false);
 
@@ -13,7 +13,7 @@ describe('OpenapiToLaravelServiceProvider', function () {
         expect($serviceProvider)->toBeInstanceOf(ServiceProvider::class);
     });
 
-    it('should register without errors', function () {
+    it('should register without errors', function (): void {
         $app = mock(\Illuminate\Contracts\Foundation\Application::class);
         $app->shouldReceive('runningInConsole')->andReturn(false);
 
@@ -24,7 +24,7 @@ describe('OpenapiToLaravelServiceProvider', function () {
         expect(true)->toBeTrue();
     });
 
-    it('should handle console and non-console boot scenarios', function () {
+    it('should handle console and non-console boot scenarios', function (): void {
         // Test non-console scenario
         $app = mock(\Illuminate\Contracts\Foundation\Application::class);
         $app->shouldReceive('runningInConsole')->andReturn(false);

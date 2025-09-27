@@ -7,15 +7,15 @@ use Maan511\OpenapiToLaravel\Models\EndpointDefinition;
 use Maan511\OpenapiToLaravel\Models\FormRequestClass;
 use Maan511\OpenapiToLaravel\Models\SchemaObject;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->ruleMapper = new ValidationRuleMapper;
     $this->templateEngine = new TemplateEngine;
     $this->generator = new FormRequestGenerator($this->ruleMapper);
 });
 
-describe('FormRequestGenerator', function () {
-    describe('generateFromEndpoint', function () {
-        it('should generate FormRequest from endpoint with request body', function () {
+describe('FormRequestGenerator', function (): void {
+    describe('generateFromEndpoint', function (): void {
+        it('should generate FormRequest from endpoint with request body', function (): void {
             $requestSchema = new SchemaObject(
                 type: 'object',
                 properties: [
@@ -29,8 +29,8 @@ describe('FormRequestGenerator', function () {
                 path: '/users',
                 method: 'POST',
                 operationId: 'createUser',
-                summary: 'Create a new user',
-                requestSchema: $requestSchema
+                requestSchema: $requestSchema,
+                summary: 'Create a new user'
             );
 
             $formRequest = $this->generator->generateFromEndpoint(
@@ -47,7 +47,7 @@ describe('FormRequestGenerator', function () {
             expect($formRequest->validationRules)->toHaveKey('email');
         });
 
-        it('should throw exception for endpoint without request body', function () {
+        it('should throw exception for endpoint without request body', function (): void {
             $endpoint = new EndpointDefinition(
                 path: '/users',
                 method: 'GET',
@@ -62,7 +62,7 @@ describe('FormRequestGenerator', function () {
             ))->toThrow(InvalidArgumentException::class, 'has no request body');
         });
 
-        it('should handle options parameter', function () {
+        it('should handle options parameter', function (): void {
             $requestSchema = new SchemaObject(
                 type: 'object',
                 properties: [
@@ -90,8 +90,8 @@ describe('FormRequestGenerator', function () {
         });
     });
 
-    describe('generateFromSchema', function () {
-        it('should generate FormRequest from schema directly', function () {
+    describe('generateFromSchema', function (): void {
+        it('should generate FormRequest from schema directly', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: [
@@ -118,8 +118,8 @@ describe('FormRequestGenerator', function () {
         });
     });
 
-    describe('generateFromEndpoints', function () {
-        it('should generate multiple FormRequests from endpoints', function () {
+    describe('generateFromEndpoints', function (): void {
+        it('should generate multiple FormRequests from endpoints', function (): void {
             $schema1 = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -156,7 +156,7 @@ describe('FormRequestGenerator', function () {
             expect($formRequests[1]->className)->toBe('CreatePostRequest');
         });
 
-        it('should handle naming conflicts', function () {
+        it('should handle naming conflicts', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['data' => new SchemaObject(type: 'string')]
@@ -188,7 +188,7 @@ describe('FormRequestGenerator', function () {
             expect($formRequests[1]->className)->toBe('CreateUserPutRequest');
         });
 
-        it('should skip endpoints without request bodies', function () {
+        it('should skip endpoints without request bodies', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -220,8 +220,8 @@ describe('FormRequestGenerator', function () {
 
     });
 
-    describe('generateAndWrite', function () {
-        it('should write FormRequest to file', function () {
+    describe('generateAndWrite', function (): void {
+        it('should write FormRequest to file', function (): void {
             $tempDir = sys_get_temp_dir() . '/openapi_test_' . uniqid();
             mkdir($tempDir, 0755, true);
 
@@ -253,7 +253,7 @@ describe('FormRequestGenerator', function () {
             rmdir($tempDir);
         });
 
-        it('should skip existing file without force flag', function () {
+        it('should skip existing file without force flag', function (): void {
             $tempDir = sys_get_temp_dir() . '/openapi_test_' . uniqid();
             mkdir($tempDir, 0755, true);
 
@@ -286,7 +286,7 @@ describe('FormRequestGenerator', function () {
             rmdir($tempDir);
         });
 
-        it('should overwrite existing file with force flag', function () {
+        it('should overwrite existing file with force flag', function (): void {
             $tempDir = sys_get_temp_dir() . '/openapi_test_' . uniqid();
             mkdir($tempDir, 0755, true);
 
@@ -319,8 +319,8 @@ describe('FormRequestGenerator', function () {
         });
     });
 
-    describe('generateAndWriteMultiple', function () {
-        it('should generate multiple FormRequests and provide summary', function () {
+    describe('generateAndWriteMultiple', function (): void {
+        it('should generate multiple FormRequests and provide summary', function (): void {
             $tempDir = sys_get_temp_dir() . '/openapi_test_' . uniqid();
             mkdir($tempDir, 0755, true);
 
@@ -362,8 +362,8 @@ describe('FormRequestGenerator', function () {
 
     });
 
-    describe('validate', function () {
-        it('should validate correct FormRequest classes', function () {
+    describe('validate', function (): void {
+        it('should validate correct FormRequest classes', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]
@@ -387,8 +387,8 @@ describe('FormRequestGenerator', function () {
 
     });
 
-    describe('getStats', function () {
-        it('should generate correct statistics', function () {
+    describe('getStats', function (): void {
+        it('should generate correct statistics', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: [
@@ -424,7 +424,7 @@ describe('FormRequestGenerator', function () {
             expect($stats['mostComplex'])->toHaveKey('complexity');
         });
 
-        it('should handle empty FormRequest array', function () {
+        it('should handle empty FormRequest array', function (): void {
             $stats = $this->generator->getStats([]);
 
             expect($stats['totalClasses'])->toBe(0);
@@ -435,8 +435,8 @@ describe('FormRequestGenerator', function () {
         });
     });
 
-    describe('dryRun', function () {
-        it('should show what would be generated without creating files', function () {
+    describe('dryRun', function (): void {
+        it('should show what would be generated without creating files', function (): void {
             $schema = new SchemaObject(
                 type: 'object',
                 properties: ['name' => new SchemaObject(type: 'string')]

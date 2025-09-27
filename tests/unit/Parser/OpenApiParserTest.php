@@ -5,15 +5,15 @@ use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->referenceResolver = new ReferenceResolver;
     $this->schemaExtractor = new SchemaExtractor($this->referenceResolver);
     $this->parser = new OpenApiParser($this->schemaExtractor);
 });
 
-describe('OpenApiParser', function () {
-    describe('parseFromString', function () {
-        it('should parse valid JSON OpenAPI specification', function () {
+describe('OpenApiParser', function (): void {
+    describe('parseFromString', function (): void {
+        it('should parse valid JSON OpenAPI specification', function (): void {
             $json = json_encode([
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -40,7 +40,7 @@ describe('OpenApiParser', function () {
             expect($specification->info['title'])->toBe('Test API');
         });
 
-        it('should parse valid YAML OpenAPI specification', function () {
+        it('should parse valid YAML OpenAPI specification', function (): void {
             $yaml = "openapi: '3.0.0'\ninfo:\n  title: 'Test API'\n  version: '1.0.0'\npaths:\n  /test:\n    post:\n      operationId: testOperation\n      requestBody:\n        content:\n          application/json:\n            schema:\n              type: object\n              properties:\n                name:\n                  type: string";
 
             $specification = $this->parser->parseFromString($yaml, 'yaml');
@@ -50,24 +50,24 @@ describe('OpenApiParser', function () {
             expect($specification->info['title'])->toBe('Test API');
         });
 
-        it('should throw exception for invalid JSON', function () {
+        it('should throw exception for invalid JSON', function (): void {
             expect(fn () => $this->parser->parseFromString('invalid json', 'json'))
                 ->toThrow(InvalidArgumentException::class);
         });
 
-        it('should throw exception for invalid YAML', function () {
+        it('should throw exception for invalid YAML', function (): void {
             expect(fn () => $this->parser->parseFromString('invalid: yaml: content: [', 'yaml'))
                 ->toThrow(InvalidArgumentException::class);
         });
     });
 
-    describe('parseFromFile', function () {
-        it('should throw exception for non-existent file', function () {
+    describe('parseFromFile', function (): void {
+        it('should throw exception for non-existent file', function (): void {
             expect(fn () => $this->parser->parseFromFile('/non/existent/file.json'))
                 ->toThrow(InvalidArgumentException::class, 'OpenAPI specification file not found');
         });
 
-        it('should detect JSON format from extension', function () {
+        it('should detect JSON format from extension', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -83,7 +83,7 @@ describe('OpenApiParser', function () {
             unlink($tempFile);
         });
 
-        it('should detect YAML format from extension', function () {
+        it('should detect YAML format from extension', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test') . '.yaml';
             file_put_contents($tempFile, "openapi: '3.0.0'\ninfo:\n  title: 'Test'\n  version: '1.0.0'\npaths: {}");
 
@@ -93,7 +93,7 @@ describe('OpenApiParser', function () {
             unlink($tempFile);
         });
 
-        it('should handle relative paths correctly', function () {
+        it('should handle relative paths correctly', function (): void {
             // Create a temporary file in the current directory
             $relativePath = 'temp_openapi_test.json';
             file_put_contents($relativePath, json_encode([
@@ -112,8 +112,8 @@ describe('OpenApiParser', function () {
         });
     });
 
-    describe('extractEndpoints', function () {
-        it('should extract all endpoints from specification', function () {
+    describe('extractEndpoints', function (): void {
+        it('should extract all endpoints from specification', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -156,7 +156,7 @@ describe('OpenApiParser', function () {
             expect($endpoints[1]->method)->toBe('POST');
         });
 
-        it('should skip non-HTTP methods', function () {
+        it('should skip non-HTTP methods', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -177,8 +177,8 @@ describe('OpenApiParser', function () {
         });
     });
 
-    describe('getEndpointsWithRequestBodies', function () {
-        it('should filter endpoints that have request bodies', function () {
+    describe('getEndpointsWithRequestBodies', function (): void {
+        it('should filter endpoints that have request bodies', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -207,7 +207,7 @@ describe('OpenApiParser', function () {
             expect($endpoints[0]->hasRequestBody())->toBeTrue();
         });
 
-        it('should return empty array when no endpoints have request bodies', function () {
+        it('should return empty array when no endpoints have request bodies', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -225,8 +225,8 @@ describe('OpenApiParser', function () {
         });
     });
 
-    describe('validateSpecification', function () {
-        it('should validate correct specification', function () {
+    describe('validateSpecification', function (): void {
+        it('should validate correct specification', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -253,7 +253,7 @@ describe('OpenApiParser', function () {
             expect($validation['errors'])->toHaveCount(0);
         });
 
-        it('should detect missing info section', function () {
+        it('should detect missing info section', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'paths' => [],
@@ -266,7 +266,7 @@ describe('OpenApiParser', function () {
             expect($validation['errors'])->toContain('Missing required info section');
         });
 
-        it('should detect missing paths section', function () {
+        it('should detect missing paths section', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -279,7 +279,7 @@ describe('OpenApiParser', function () {
             expect($validation['errors'])->toContain('Missing required paths section');
         });
 
-        it('should warn about unsupported OpenAPI version', function () {
+        it('should warn about unsupported OpenAPI version', function (): void {
             $specData = [
                 'openapi' => '2.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -292,7 +292,7 @@ describe('OpenApiParser', function () {
             expect($validation['warnings'])->toContain('OpenAPI version 2.0.0 may not be fully supported');
         });
 
-        it('should warn when no endpoints have request bodies', function () {
+        it('should warn when no endpoints have request bodies', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -310,8 +310,8 @@ describe('OpenApiParser', function () {
         });
     });
 
-    describe('getSpecificationStats', function () {
-        it('should generate correct statistics', function () {
+    describe('getSpecificationStats', function (): void {
+        it('should generate correct statistics', function (): void {
             $specData = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],
@@ -354,8 +354,8 @@ describe('OpenApiParser', function () {
         });
     });
 
-    describe('isValidOpenApiFile', function () {
-        it('should return true for valid OpenAPI file', function () {
+    describe('isValidOpenApiFile', function (): void {
+        it('should return true for valid OpenAPI file', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -370,7 +370,7 @@ describe('OpenApiParser', function () {
             unlink($tempFile);
         });
 
-        it('should return false for invalid OpenAPI file', function () {
+        it('should return false for invalid OpenAPI file', function (): void {
             $tempFile = tempnam(sys_get_temp_dir(), 'openapi_test');
             unlink($tempFile); // Remove the empty temp file created by tempnam()
             $tempFile .= '.json'; // Add .json extension
@@ -381,13 +381,13 @@ describe('OpenApiParser', function () {
             unlink($tempFile);
         });
 
-        it('should return false for non-existent file', function () {
+        it('should return false for non-existent file', function (): void {
             expect($this->parser->isValidOpenApiFile('/non/existent/file.json'))->toBeFalse();
         });
     });
 
-    describe('getSupportedExtensions', function () {
-        it('should return correct supported extensions', function () {
+    describe('getSupportedExtensions', function (): void {
+        it('should return correct supported extensions', function (): void {
             $extensions = $this->parser->getSupportedExtensions();
 
             expect($extensions)->toBe(['json', 'yaml', 'yml']);

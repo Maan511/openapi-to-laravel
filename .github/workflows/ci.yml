@@ -70,10 +70,13 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Check code formatting (Pint)
-      run: vendor/bin/pint --test
+      run: composer test:format
 
     - name: Run static analysis (PHPStan)
-      run: vendor/bin/phpstan analyse --memory-limit=2G
+      run: composer analyse
+
+    - name: Check refactoring (Rector)
+      run: composer test:refactor
 
   security:
     runs-on: ubuntu-latest

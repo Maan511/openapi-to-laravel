@@ -3,13 +3,13 @@
 use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->referenceResolver = new ReferenceResolver;
 });
 
-describe('ReferenceResolver', function () {
-    describe('resolve', function () {
-        it('should resolve simple component reference', function () {
+describe('ReferenceResolver', function (): void {
+    describe('resolve', function (): void {
+        it('should resolve simple component reference', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -35,7 +35,7 @@ describe('ReferenceResolver', function () {
             expect($resolved['properties']['name']['type'])->toBe('string');
         });
 
-        it('should resolve nested reference', function () {
+        it('should resolve nested reference', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -67,7 +67,7 @@ describe('ReferenceResolver', function () {
             expect($resolved['properties']['address']['properties']['street']['type'])->toBe('string');
         });
 
-        it('should resolve parameter reference', function () {
+        it('should resolve parameter reference', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -91,7 +91,7 @@ describe('ReferenceResolver', function () {
             expect($resolved['schema']['type'])->toBe('integer');
         });
 
-        it('should throw exception for invalid reference path', function () {
+        it('should throw exception for invalid reference path', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -104,7 +104,7 @@ describe('ReferenceResolver', function () {
                 ->toThrow(InvalidArgumentException::class, 'Reference not found: #/components/schemas/NonExistent');
         });
 
-        it('should throw exception for malformed reference', function () {
+        it('should throw exception for malformed reference', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -116,7 +116,7 @@ describe('ReferenceResolver', function () {
                 ->toThrow(InvalidArgumentException::class, 'Invalid reference format: invalid-reference');
         });
 
-        it('should handle external file references', function () {
+        it('should handle external file references', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -129,8 +129,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('isReference', function () {
-        it('should detect reference objects', function () {
+    describe('isReference', function (): void {
+        it('should detect reference objects', function (): void {
             $refObject = ['$ref' => '#/components/schemas/User'];
             $normalObject = ['type' => 'string'];
 
@@ -138,15 +138,15 @@ describe('ReferenceResolver', function () {
             expect($this->referenceResolver->isReference($normalObject))->toBeFalse();
         });
 
-        it('should handle non-array inputs', function () {
+        it('should handle non-array inputs', function (): void {
             expect($this->referenceResolver->isReference('string'))->toBeFalse();
             expect($this->referenceResolver->isReference(null))->toBeFalse();
             expect($this->referenceResolver->isReference(123))->toBeFalse();
         });
     });
 
-    describe('resolveAllReferences', function () {
-        it('should resolve all references in schema recursively', function () {
+    describe('resolveAllReferences', function (): void {
+        it('should resolve all references in schema recursively', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -188,7 +188,7 @@ describe('ReferenceResolver', function () {
             expect($resolved['properties']['contact']['properties']['email']['format'])->toBe('email');
         });
 
-        it('should handle arrays with references', function () {
+        it('should handle arrays with references', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -224,7 +224,7 @@ describe('ReferenceResolver', function () {
             expect($resolved['properties']['tags']['items']['properties']['name']['type'])->toBe('string');
         });
 
-        it('should detect and prevent circular references', function () {
+        it('should detect and prevent circular references', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -252,29 +252,29 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('getReferenceType', function () {
-        it('should identify schema references', function () {
+    describe('getReferenceType', function (): void {
+        it('should identify schema references', function (): void {
             $ref = '#/components/schemas/User';
             $type = $this->referenceResolver->getReferenceType($ref);
 
             expect($type)->toBe('schema');
         });
 
-        it('should identify parameter references', function () {
+        it('should identify parameter references', function (): void {
             $ref = '#/components/parameters/pageParam';
             $type = $this->referenceResolver->getReferenceType($ref);
 
             expect($type)->toBe('parameter');
         });
 
-        it('should identify response references', function () {
+        it('should identify response references', function (): void {
             $ref = '#/components/responses/ErrorResponse';
             $type = $this->referenceResolver->getReferenceType($ref);
 
             expect($type)->toBe('response');
         });
 
-        it('should return unknown for unrecognized references', function () {
+        it('should return unknown for unrecognized references', function (): void {
             $ref = '#/components/unknown/Something';
             $type = $this->referenceResolver->getReferenceType($ref);
 
@@ -282,22 +282,22 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('extractReferencePath', function () {
-        it('should extract path from reference', function () {
+    describe('extractReferencePath', function (): void {
+        it('should extract path from reference', function (): void {
             $ref = '#/components/schemas/User';
             $path = $this->referenceResolver->extractReferencePath($ref);
 
             expect($path)->toBe(['components', 'schemas', 'User']);
         });
 
-        it('should handle nested paths', function () {
+        it('should handle nested paths', function (): void {
             $ref = '#/paths/~1users~1{id}/get/responses/200';
             $path = $this->referenceResolver->extractReferencePath($ref);
 
             expect($path)->toBe(['paths', '/users/{id}', 'get', 'responses', '200']);
         });
 
-        it('should decode JSON pointer escapes', function () {
+        it('should decode JSON pointer escapes', function (): void {
             $ref = '#/components/schemas/User~1Profile';
             $path = $this->referenceResolver->extractReferencePath($ref);
 
@@ -305,8 +305,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('validateReference', function () {
-        it('should validate correct reference format', function () {
+    describe('validateReference', function (): void {
+        it('should validate correct reference format', function (): void {
             $ref = '#/components/schemas/User';
             $result = $this->referenceResolver->validateReference($ref);
 
@@ -314,7 +314,7 @@ describe('ReferenceResolver', function () {
             expect($result['errors'])->toBeEmpty();
         });
 
-        it('should detect invalid reference format', function () {
+        it('should detect invalid reference format', function (): void {
             $ref = 'invalid-reference';
             $result = $this->referenceResolver->validateReference($ref);
 
@@ -322,7 +322,7 @@ describe('ReferenceResolver', function () {
             expect($result['errors'])->toContain('Reference must start with #/');
         });
 
-        it('should detect empty reference', function () {
+        it('should detect empty reference', function (): void {
             $ref = '';
             $result = $this->referenceResolver->validateReference($ref);
 
@@ -330,7 +330,7 @@ describe('ReferenceResolver', function () {
             expect($result['errors'])->toContain('Reference cannot be empty');
         });
 
-        it('should detect external file references', function () {
+        it('should detect external file references', function (): void {
             $ref = 'external.json#/schemas/User';
             $result = $this->referenceResolver->validateReference($ref);
 
@@ -339,8 +339,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('caching', function () {
-        it('should cache resolved references for performance', function () {
+    describe('caching', function (): void {
+        it('should cache resolved references for performance', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -373,7 +373,7 @@ describe('ReferenceResolver', function () {
             expect($resolved1['properties'])->toHaveKey('name');
         });
 
-        it('should clear cache when requested', function () {
+        it('should clear cache when requested', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -401,8 +401,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('advanced edge cases', function () {
-        it('should detect complex circular references across multiple schemas', function () {
+    describe('advanced edge cases', function (): void {
+        it('should detect complex circular references across multiple schemas', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -436,7 +436,7 @@ describe('ReferenceResolver', function () {
                 ->toThrow(InvalidArgumentException::class, 'Circular reference detected');
         });
 
-        it('should handle deep nested reference chains', function () {
+        it('should handle deep nested reference chains', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -489,7 +489,7 @@ describe('ReferenceResolver', function () {
                 ->toBe('string');
         });
 
-        it('should handle deeply nested missing references', function () {
+        it('should handle deeply nested missing references', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -512,7 +512,7 @@ describe('ReferenceResolver', function () {
                 ->toThrow(InvalidArgumentException::class, 'Reference not found');
         });
 
-        it('should handle references to empty schemas', function () {
+        it('should handle references to empty schemas', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -532,8 +532,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('referenceExists', function () {
-        it('should return true for existing reference', function () {
+    describe('referenceExists', function (): void {
+        it('should return true for existing reference', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -549,7 +549,7 @@ describe('ReferenceResolver', function () {
             expect($this->referenceResolver->referenceExists('#/components/schemas/User', $specification))->toBe(true);
         });
 
-        it('should return false for non-existing reference', function () {
+        it('should return false for non-existing reference', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -562,8 +562,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('getReferences', function () {
-        it('should extract all references from schema', function () {
+    describe('getReferences', function (): void {
+        it('should extract all references from schema', function (): void {
             $schema = [
                 'type' => 'object',
                 'properties' => [
@@ -590,7 +590,7 @@ describe('ReferenceResolver', function () {
             expect(count($references))->toBe(4);
         });
 
-        it('should return empty array for schema without references', function () {
+        it('should return empty array for schema without references', function (): void {
             $schema = [
                 'type' => 'object',
                 'properties' => [
@@ -605,8 +605,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('validateReferences', function () {
-        it('should validate all references in specification', function () {
+    describe('validateReferences', function (): void {
+        it('should validate all references in specification', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -635,7 +635,7 @@ describe('ReferenceResolver', function () {
             expect($result['errors'])->toBeEmpty();
         });
 
-        it('should detect invalid references in specification', function () {
+        it('should detect invalid references in specification', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -661,8 +661,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('flattenReferences', function () {
-        it('should flatten nested reference chains', function () {
+    describe('flattenReferences', function (): void {
+        it('should flatten nested reference chains', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -693,7 +693,7 @@ describe('ReferenceResolver', function () {
             expect($flattened['allOf'])->toHaveCount(2);
         });
 
-        it('should handle non-existent reference gracefully', function () {
+        it('should handle non-existent reference gracefully', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -702,27 +702,27 @@ describe('ReferenceResolver', function () {
 
             $specification = OpenApiSpecification::fromArray($spec, 'test.json');
 
-            expect(function () use ($specification) {
+            expect(function () use ($specification): void {
                 $this->referenceResolver->flattenReferences('#/components/schemas/NonExistent', $specification);
             })->toThrow(InvalidArgumentException::class, 'Reference not found: #/components/schemas/NonExistent');
         });
     });
 
-    describe('parseReference', function () {
-        it('should parse reference into path parts', function () {
+    describe('parseReference', function (): void {
+        it('should parse reference into path parts', function (): void {
             $parts = $this->referenceResolver->parseReference('#/components/schemas/User');
 
             expect($parts)->toBe(['components', 'schemas', 'User']);
         });
 
-        it('should throw exception for invalid reference format', function () {
+        it('should throw exception for invalid reference format', function (): void {
             expect(fn () => $this->referenceResolver->parseReference('invalid'))
                 ->toThrow(InvalidArgumentException::class, 'Invalid reference format: invalid. Must start with \'#/\'');
         });
     });
 
-    describe('composition schemas', function () {
-        it('should resolve references in oneOf schemas', function () {
+    describe('composition schemas', function (): void {
+        it('should resolve references in oneOf schemas', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -755,7 +755,7 @@ describe('ReferenceResolver', function () {
             expect($resolved['oneOf'][1]['properties']['bark']['type'])->toBe('boolean');
         });
 
-        it('should resolve references in anyOf schemas', function () {
+        it('should resolve references in anyOf schemas', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -789,8 +789,8 @@ describe('ReferenceResolver', function () {
         });
     });
 
-    describe('cache management', function () {
-        it('should manage cache size to prevent unbounded growth', function () {
+    describe('cache management', function (): void {
+        it('should manage cache size to prevent unbounded growth', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],
@@ -818,7 +818,7 @@ describe('ReferenceResolver', function () {
             expect($resolved['type'])->toBe('object');
         });
 
-        it('should track cache hit statistics', function () {
+        it('should track cache hit statistics', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test', 'version' => '1.0.0'],

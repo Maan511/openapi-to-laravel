@@ -4,13 +4,13 @@ use Exception;
 use Maan511\OpenapiToLaravel\Models\FormRequestClass;
 use Maan511\OpenapiToLaravel\Models\OpenApiSpecification;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->parser = createTestParser();
     $this->generator = createTestGenerator();
 });
 
-describe('Basic Generation Workflow', function () {
-    it('should handle complete end-to-end generation workflow', function () {
+describe('Basic Generation Workflow', function (): void {
+    it('should handle complete end-to-end generation workflow', function (): void {
         $tempSpecFile = createTempOpenApiSpec();
         $tempDir = createTempOutputDirectory();
 
@@ -62,7 +62,7 @@ describe('Basic Generation Workflow', function () {
         }
     });
 
-    it('should generate with custom namespace and valid Laravel structure', function () {
+    it('should generate with custom namespace and valid Laravel structure', function (): void {
         $tempSpec = createTempOpenApiSpec();
 
         try {
@@ -96,7 +96,7 @@ describe('Basic Generation Workflow', function () {
         }
     });
 
-    it('should handle multiple endpoints', function () {
+    it('should handle multiple endpoints', function (): void {
         $spec = [
             'openapi' => '3.0.0',
             'info' => ['title' => 'Multi-endpoint API', 'version' => '1.0.0'],
@@ -152,8 +152,8 @@ describe('Basic Generation Workflow', function () {
         unlink($tempFile);
     });
 
-    describe('error handling', function () {
-        it('should handle invalid spec files', function () {
+    describe('error handling', function (): void {
+        it('should handle invalid spec files', function (): void {
             $invalidSpecFile = tempnam(sys_get_temp_dir(), 'invalid_spec_');
             unlink($invalidSpecFile); // Remove the empty temp file created by tempnam()
             $invalidSpecFile .= '.json'; // Add .json extension
@@ -165,7 +165,7 @@ describe('Basic Generation Workflow', function () {
             unlink($invalidSpecFile);
         });
 
-        it('should handle missing spec files', function () {
+        it('should handle missing spec files', function (): void {
             $nonExistentFile = '/path/to/non/existent/file.json';
 
             expect(fn () => $this->parser->parseFromFile($nonExistentFile))
@@ -173,8 +173,8 @@ describe('Basic Generation Workflow', function () {
         });
     });
 
-    describe('class naming', function () {
-        it('should use operationId for class naming', function () {
+    describe('class naming', function (): void {
+        it('should use operationId for class naming', function (): void {
             $spec = [
                 'openapi' => '3.0.0',
                 'info' => ['title' => 'Test API', 'version' => '1.0.0'],

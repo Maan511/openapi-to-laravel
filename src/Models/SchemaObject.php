@@ -71,7 +71,7 @@ class SchemaObject
      */
     public function isReference(): bool
     {
-        return ! empty($this->ref);
+        return $this->ref !== null && $this->ref !== '' && $this->ref !== '0';
     }
 
     /**
@@ -119,7 +119,7 @@ class SchemaObject
      */
     public function hasProperties(): bool
     {
-        return ! empty($this->properties);
+        return $this->properties !== [];
     }
 
     /**
@@ -173,7 +173,7 @@ class SchemaObject
      */
     public function hasValidation(): bool
     {
-        return $this->validation !== null;
+        return $this->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints;
     }
 
     /**
@@ -234,7 +234,7 @@ class SchemaObject
             }
         }
 
-        if ($this->items) {
+        if ($this->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             $schemas['*'] = $this->items;
             $nestedSchemas = $this->items->getAllNestedSchemas();
             foreach ($nestedSchemas as $nestedName => $nestedSchema) {
@@ -257,7 +257,7 @@ class SchemaObject
             $maxDepth = max($maxDepth, $depth);
         }
 
-        if ($this->items) {
+        if ($this->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             $depth = 1 + $this->items->getMaxDepth();
             $maxDepth = max($maxDepth, $depth);
         }
@@ -284,11 +284,7 @@ class SchemaObject
             }
         }
 
-        if ($this->items && $this->items->hasCircularReference($newVisited)) {
-            return true;
-        }
-
-        return false;
+        return $this->items && $this->items->hasCircularReference($newVisited);
     }
 
     /**
@@ -311,7 +307,7 @@ class SchemaObject
     private function validateStructure(): void
     {
         // Validate type is not empty
-        if (empty($this->type)) {
+        if ($this->type === '' || $this->type === '0') {
             throw new InvalidArgumentException('Schema type cannot be empty');
         }
 
@@ -365,7 +361,7 @@ class SchemaObject
             }
         }
 
-        if ($this->items) {
+        if ($this->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             $array['items'] = $this->items->toArray();
         }
 
@@ -373,7 +369,7 @@ class SchemaObject
             $array['required'] = $this->required;
         }
 
-        if ($this->validation) {
+        if ($this->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
             $array['validation'] = $this->validation->toArray();
         }
 
@@ -381,11 +377,11 @@ class SchemaObject
             $array['$ref'] = $this->ref;
         }
 
-        if ($this->title) {
+        if ($this->title !== '' && $this->title !== '0') {
             $array['title'] = $this->title;
         }
 
-        if ($this->description) {
+        if ($this->description !== '' && $this->description !== '0') {
             $array['description'] = $this->description;
         }
 
@@ -429,7 +425,7 @@ class SchemaObject
             return 1 + $this->items->getNestingLevel();
         }
 
-        if ($this->isObject() && ! empty($this->properties)) {
+        if ($this->isObject() && $this->properties !== []) {
             $maxLevel = 0;
             foreach ($this->properties as $property) {
                 $level = 1 + $property->getNestingLevel();
@@ -452,7 +448,7 @@ class SchemaObject
             $properties[$name] = $property->clone();
         }
 
-        $items = $this->items ? $this->items->clone() : null;
+        $items = $this->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject ? $this->items->clone() : null;
 
         return new self(
             type: $this->type,
@@ -482,21 +478,18 @@ class SchemaObject
                 $clonedProperties[$name] = clone $property;
             }
             $propertiesProperty = $reflection->getProperty('properties');
-            $propertiesProperty->setAccessible(true);
             $propertiesProperty->setValue($this, $clonedProperties);
         }
 
         // Deep clone items
-        if ($this->items) {
+        if ($this->items instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
             $itemsProperty = $reflection->getProperty('items');
-            $itemsProperty->setAccessible(true);
             $itemsProperty->setValue($this, clone $this->items);
         }
 
         // Deep clone validation
-        if ($this->validation) {
+        if ($this->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
             $validationProperty = $reflection->getProperty('validation');
-            $validationProperty->setAccessible(true);
             $validationProperty->setValue($this, clone $this->validation);
         }
     }

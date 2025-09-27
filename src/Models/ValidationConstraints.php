@@ -56,7 +56,7 @@ class ValidationConstraints
             || $this->minimum !== null
             || $this->maximum !== null
             || $this->pattern !== null
-            || ($this->enum !== null && ! empty($this->enum))
+            || ($this->enum !== null && $this->enum !== [])
             || $this->multipleOf !== null
             || $this->minItems !== null
             || $this->maxItems !== null
@@ -84,7 +84,7 @@ class ValidationConstraints
             $rules[] = "regex:/{$this->getEscapedPattern()}/";
         }
 
-        if ($this->enum !== null && ! empty($this->enum)) {
+        if ($this->enum !== null && $this->enum !== []) {
             $enumValues = implode(',', $this->enum);
             $rules[] = "in:{$enumValues}";
         }
@@ -115,7 +115,7 @@ class ValidationConstraints
             $rules[] = "multiple_of:{$this->multipleOf}";
         }
 
-        if ($this->enum !== null && ! empty($this->enum)) {
+        if ($this->enum !== null && $this->enum !== []) {
             $enumValues = implode(',', $this->enum);
             $rules[] = "in:{$enumValues}";
         }
@@ -170,7 +170,7 @@ class ValidationConstraints
         return $this->minLength !== null
             || $this->maxLength !== null
             || $this->pattern !== null
-            || ($this->enum !== null && ! empty($this->enum));
+            || ($this->enum !== null && $this->enum !== []);
     }
 
     /**
@@ -181,7 +181,7 @@ class ValidationConstraints
         return $this->minimum !== null
             || $this->maximum !== null
             || $this->multipleOf !== null
-            || ($this->enum !== null && ! empty($this->enum));
+            || ($this->enum !== null && $this->enum !== []);
     }
 
     /**
@@ -199,7 +199,7 @@ class ValidationConstraints
      */
     public function hasEnum(): bool
     {
-        return $this->enum !== null && ! empty($this->enum);
+        return $this->enum !== null && $this->enum !== [];
     }
 
     /**
@@ -264,10 +264,10 @@ class ValidationConstraints
         }
 
         // If basic checks failed, don't attempt preg_match
-        if (! empty($errors)) {
+        if ($errors !== []) {
             return [
                 'valid' => false,
-                'errors' => array_map(fn ($error) => "Invalid regex pattern: {$this->pattern}. Error: {$error}", $errors),
+                'errors' => array_map(fn ($error): string => "Invalid regex pattern: {$this->pattern}. Error: {$error}", $errors),
             ];
         }
 
@@ -310,7 +310,7 @@ class ValidationConstraints
         if ($this->pattern !== null) {
             $summary[] = "pattern: {$this->pattern}";
         }
-        if ($this->enum !== null && ! empty($this->enum)) {
+        if ($this->enum !== null && $this->enum !== []) {
             $enumStr = implode(', ', $this->enum);
             $summary[] = "enum: [{$enumStr}]";
         }
@@ -398,7 +398,7 @@ class ValidationConstraints
         if ($this->pattern !== null) {
             $array['pattern'] = $this->pattern;
         }
-        if ($this->enum !== null && ! empty($this->enum)) {
+        if ($this->enum !== null && $this->enum !== []) {
             $array['enum'] = $this->enum;
         }
         if ($this->multipleOf !== null) {
@@ -481,7 +481,7 @@ class ValidationConstraints
             minimum: $other->minimum ?? $this->minimum,
             maximum: $other->maximum ?? $this->maximum,
             pattern: $other->pattern ?? $this->pattern,
-            enum: ($other->enum !== null && ! empty($other->enum)) ? $other->enum : $this->enum,
+            enum: ($other->enum !== null && $other->enum !== []) ? $other->enum : $this->enum,
             multipleOf: $other->multipleOf ?? $this->multipleOf,
             minItems: $other->minItems ?? $this->minItems,
             maxItems: $other->maxItems ?? $this->maxItems,
@@ -511,7 +511,7 @@ class ValidationConstraints
         if ($this->pattern !== null) {
             $score += 2;
         } // Patterns are more complex
-        if ($this->enum !== null && ! empty($this->enum)) {
+        if ($this->enum !== null && $this->enum !== []) {
             $score++;
         }
         if ($this->multipleOf !== null) {

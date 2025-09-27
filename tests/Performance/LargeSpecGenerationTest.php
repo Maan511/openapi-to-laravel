@@ -9,8 +9,8 @@ use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 
-describe('Large OpenAPI Specification Performance', function () {
-    it('should generate FormRequests for 100 endpoints in less than 5 seconds', function () {
+describe('Large OpenAPI Specification Performance', function (): void {
+    it('should generate FormRequests for 100 endpoints in less than 5 seconds', function (): void {
         $startTime = microtime(true);
 
         // Create a large OpenAPI specification with 100 endpoints
@@ -158,7 +158,7 @@ describe('Large OpenAPI Specification Performance', function () {
         expect($sampleFormRequest->validationRules['name'])->toContain('max:255');
     });
 
-    it('should handle deeply nested schemas efficiently', function () {
+    it('should handle deeply nested schemas efficiently', function (): void {
         $startTime = microtime(true);
 
         // Create a deeply nested schema structure
@@ -261,7 +261,7 @@ describe('Large OpenAPI Specification Performance', function () {
         echo '- Total validation rules generated: ' . count($formRequest->validationRules) . "\n";
     });
 
-    it('should efficiently generate FormRequests with complex validation constraints', function () {
+    it('should efficiently generate FormRequests with complex validation constraints', function (): void {
         $startTime = microtime(true);
 
         // Create schemas with complex validation constraints
@@ -394,6 +394,6 @@ describe('Large OpenAPI Specification Performance', function () {
         echo "\nComplex Validation Performance:\n";
         echo '- Execution time: ' . number_format($executionTime, 3) . " seconds\n";
         echo '- FormRequests generated: ' . count($formRequests) . "\n";
-        echo '- Average rules per FormRequest: ' . number_format(array_sum(array_map(fn ($fr) => count($fr->validationRules), $formRequests)) / count($formRequests), 1) . "\n";
+        echo '- Average rules per FormRequest: ' . number_format(array_sum(array_map(fn (\Maan511\OpenapiToLaravel\Models\FormRequestClass $fr): int => count($fr->validationRules), $formRequests)) / count($formRequests), 1) . "\n";
     });
 });

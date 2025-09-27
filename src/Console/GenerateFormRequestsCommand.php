@@ -96,7 +96,7 @@ class GenerateFormRequestsCommand extends Command
             // Get endpoints with request bodies
             $endpoints = $parser->getEndpointsWithRequestBodies($specification);
 
-            if (empty($endpoints)) {
+            if ($endpoints === []) {
                 $this->warn('No endpoints with request bodies found. No FormRequests will be generated.');
 
                 return 0;
@@ -199,13 +199,11 @@ class GenerateFormRequestsCommand extends Command
         }
 
         // Check if output directory is writable (create if needed)
-        if (! is_dir($outputDir)) {
-            if (! mkdir($outputDir, 0755, true)) {
-                return [
-                    'success' => false,
-                    'message' => "Cannot create output directory: {$outputDir}",
-                ];
-            }
+        if (! is_dir($outputDir) && (! mkdir($outputDir, 0755, true) && ! is_dir($outputDir))) {
+            return [
+                'success' => false,
+                'message' => "Cannot create output directory: {$outputDir}",
+            ];
         }
 
         if (! is_writable($outputDir)) {
@@ -249,7 +247,7 @@ class GenerateFormRequestsCommand extends Command
 
         $this->info("\nSummary:");
         $this->info('Total classes: ' . count($dryRunResults));
-        $this->info('Existing files: ' . count(array_filter($dryRunResults, fn ($r) => $r['fileExists'])));
+        $this->info('Existing files: ' . count(array_filter($dryRunResults, fn (array $r): bool => $r['fileExists'])));
         $this->info('Total estimated size: ' . number_format(array_sum(array_column($dryRunResults, 'estimatedSize'))) . ' bytes');
 
         return 0;

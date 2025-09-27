@@ -4,6 +4,7 @@ namespace Maan511\OpenapiToLaravel;
 
 use Illuminate\Support\ServiceProvider;
 use Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand;
+use Override;
 
 /**
  * Service provider for OpenAPI to Laravel FormRequest package
@@ -13,6 +14,7 @@ class OpenapiToLaravelServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
+    #[Override]
     public function register(): void
     {
         // Register services if needed in the future

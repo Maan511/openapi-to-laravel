@@ -76,7 +76,7 @@ class EndpointDefinition
      */
     public function hasRequestBody(): bool
     {
-        return $this->requestSchema !== null;
+        return $this->requestSchema instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject;
     }
 
     /**
@@ -84,7 +84,7 @@ class EndpointDefinition
      */
     public function hasParameters(): bool
     {
-        return ! empty($this->parameters);
+        return $this->parameters !== [];
     }
 
     /**
@@ -105,7 +105,7 @@ class EndpointDefinition
     public function getRequiredParameterNames(): array
     {
         return array_column(
-            array_filter($this->parameters, fn ($param) => $param['required'] ?? false),
+            array_filter($this->parameters, fn (array $param): mixed => $param['required'] ?? false),
             'name'
         );
     }
@@ -132,7 +132,7 @@ class EndpointDefinition
     public function generateFormRequestClassName(): string
     {
         // Use operationId if available and convert to PascalCase
-        if (! empty($this->operationId)) {
+        if ($this->operationId !== '' && $this->operationId !== '0') {
             $className = $this->convertToPascalCase($this->operationId);
         } else {
             // Fallback: generate from method and path
@@ -164,7 +164,7 @@ class EndpointDefinition
      */
     public function hasPathParameters(): bool
     {
-        return ! empty($this->getPathParameters());
+        return $this->getPathParameters() !== [];
     }
 
     /**
@@ -188,7 +188,7 @@ class EndpointDefinition
      */
     private function validatePath(): void
     {
-        if (empty($this->path)) {
+        if ($this->path === '' || $this->path === '0') {
             throw new InvalidArgumentException('Path cannot be empty');
         }
 
@@ -216,11 +216,11 @@ class EndpointDefinition
      */
     private function validateOperationId(): void
     {
-        if (empty($this->operationId)) {
+        if ($this->operationId === '' || $this->operationId === '0') {
             throw new InvalidArgumentException('Operation ID cannot be empty');
         }
 
-        if (! preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $this->operationId)) {
+        if (! preg_match('/^[a-zA-Z]\w*$/', $this->operationId)) {
             throw new InvalidArgumentException(
                 "Invalid operation ID: {$this->operationId}. Must start with letter and contain only letters, numbers, and underscores."
             );
