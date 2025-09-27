@@ -199,7 +199,7 @@ class GenerateFormRequestsCommand extends Command
         }
 
         // Check if output directory is writable (create if needed)
-        if (! is_dir($outputDir) && ! mkdir($outputDir, 0755, true)) {
+        if (! is_dir($outputDir) && (! mkdir($outputDir, 0755, true) && ! is_dir($outputDir))) {
             return [
                 'success' => false,
                 'message' => "Cannot create output directory: {$outputDir}",

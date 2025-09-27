@@ -27,7 +27,7 @@ class FormRequestGenerator
         string $outputDir,
         array $options = []
     ): FormRequestClass {
-        if (! $endpoint->hasRequestBody() || ! $endpoint->requestSchema instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject) {
+        if (! $endpoint->hasRequestBody() || ! ($endpoint->requestSchema instanceof \Maan511\OpenapiToLaravel\Models\SchemaObject)) {
             throw new InvalidArgumentException("Endpoint {$endpoint->getDisplayName()} has no request body");
         }
 

@@ -40,13 +40,13 @@ class ValidationRuleMapper
         $rules = [];
 
         // Add object validation rule
-        if ($fieldPrefix !== '' && $fieldPrefix !== '0') {
+        if ($fieldPrefix !== '') {
             $rules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
         }
 
         // Map each property
         foreach ($schema->properties as $propertyName => $propertySchema) {
-            $fieldPath = $fieldPrefix !== '' && $fieldPrefix !== '0' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
+            $fieldPath = $fieldPrefix !== '' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
             $isRequired = $schema->isPropertyRequired($propertyName);
 
             $nestedRules = $this->mapSchema($propertySchema, $fieldPath);
@@ -107,7 +107,7 @@ class ValidationRuleMapper
     {
         $rules = [];
 
-        if ($fieldPrefix !== '' && $fieldPrefix !== '0') {
+        if ($fieldPrefix !== '') {
             $rules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
         }
 
@@ -153,7 +153,7 @@ class ValidationRuleMapper
 
         if ($schema->isObject()) {
             foreach ($schema->properties as $propertyName => $propertySchema) {
-                $fieldPath = $fieldPrefix !== '' && $fieldPrefix !== '0' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
+                $fieldPath = $fieldPrefix !== '' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
                 $isRequired = $schema->isPropertyRequired($propertyName);
 
                 $rules = $this->mapValidationRules($propertySchema, $fieldPath);
@@ -167,14 +167,14 @@ class ValidationRuleMapper
 
                 // Type and constraint rules
                 $fieldRule = $this->buildRule($propertySchema, $fieldPath, false);
-                if ($fieldRule !== '' && $fieldRule !== '0') {
+                if ($fieldRule !== '') {
                     $ruleParts[] = $fieldRule;
                 }
 
                 $validationRules[$fieldPath] = implode('|', $ruleParts);
             }
         } elseif ($schema->isArray()) {
-            if ($fieldPrefix !== '' && $fieldPrefix !== '0') {
+            if ($fieldPrefix !== '') {
                 // Array validation
                 $ruleParts = ['array'];
 
@@ -206,7 +206,7 @@ class ValidationRuleMapper
                             $ruleParts[] = $isRequired ? 'required' : 'nullable';
 
                             $fieldRule = $this->buildRule($propertySchema, $propertyFieldPath, false);
-                            if ($fieldRule !== '' && $fieldRule !== '0') {
+                            if ($fieldRule !== '') {
                                 $ruleParts[] = $fieldRule;
                             }
 
@@ -219,7 +219,7 @@ class ValidationRuleMapper
                     }
                 }
             }
-        } elseif ($fieldPrefix !== '' && $fieldPrefix !== '0') {
+        } elseif ($fieldPrefix !== '') {
             // Scalar field
             $validationRules[$fieldPrefix] = $this->buildRule($schema, $fieldPrefix, false);
         }
@@ -238,7 +238,7 @@ class ValidationRuleMapper
 
         if ($schema->isObject()) {
             foreach ($schema->properties as $propertyName => $propertySchema) {
-                $fieldPath = $fieldPrefix !== '' && $fieldPrefix !== '0' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
+                $fieldPath = $fieldPrefix !== '' ? "{$fieldPrefix}.{$propertyName}" : $propertyName;
                 $isRequired = $schema->isPropertyRequired($propertyName);
 
                 // Collect all rules for this field
@@ -286,7 +286,7 @@ class ValidationRuleMapper
                 }
             }
         } elseif ($schema->isArray() && $schema->items) {
-            if ($fieldPrefix !== '' && $fieldPrefix !== '0') {
+            if ($fieldPrefix !== '') {
                 // Create rule for the array itself
                 $arrayRules = ['array'];
                 if ($schema->validation instanceof \Maan511\OpenapiToLaravel\Models\ValidationConstraints) {
@@ -310,7 +310,7 @@ class ValidationRuleMapper
                 $itemRules = $this->createValidationRules($schema->items, $itemsFieldPath);
                 $rules = array_merge($rules, $itemRules);
             }
-        } elseif ($fieldPrefix !== '' && $fieldPrefix !== '0') {
+        } elseif ($fieldPrefix !== '') {
             // Scalar field
             $scalarRules = [$schema->getTypeValidationRule()];
 
