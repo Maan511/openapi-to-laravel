@@ -706,11 +706,11 @@ describe('ValidationRuleMapper', function (): void {
                 $schema = new SchemaObject(
                     type: 'string',
                     format: 'email',
-                    nullable: true,
                     validation: new ValidationConstraints(
                         minLength: 5,
                         maxLength: 100
-                    )
+                    ),
+                    nullable: true
                 );
 
                 $rule = $this->mapper->buildRule($schema, 'email');
@@ -737,14 +737,14 @@ describe('ValidationRuleMapper', function (): void {
 
                 $rules = $this->mapper->createValidationRules($schema);
 
-                $nameRules = array_filter($rules, fn ($rule) => $rule->fieldPath === 'name');
-                $bioRules = array_filter($rules, fn ($rule) => $rule->fieldPath === 'bio');
+                $nameRules = array_filter($rules, fn ($rule): bool => $rule->fieldPath === 'name');
+                $bioRules = array_filter($rules, fn ($rule): bool => $rule->fieldPath === 'bio');
 
                 expect($nameRules)->not->toBeEmpty();
                 expect($bioRules)->not->toBeEmpty();
 
-                $nameRequiredRules = array_filter($nameRules, fn ($rule) => in_array('required', $rule->rules));
-                $bioNullableRules = array_filter($bioRules, fn ($rule) => in_array('nullable', $rule->rules));
+                $nameRequiredRules = array_filter($nameRules, fn ($rule): bool => in_array('required', $rule->rules));
+                $bioNullableRules = array_filter($bioRules, fn ($rule): bool => in_array('nullable', $rule->rules));
 
                 expect($nameRequiredRules)->not->toBeEmpty();
                 expect($bioNullableRules)->not->toBeEmpty();

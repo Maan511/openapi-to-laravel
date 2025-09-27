@@ -340,7 +340,7 @@ class SchemaObject
             } elseif (is_array($schema['type'])) {
                 // OpenAPI 3.1 format: type: ["string", "null"]
                 $unionTypes = $schema['type'];
-                $nonNullTypes = array_filter($unionTypes, fn ($t) => $t !== 'null');
+                $nonNullTypes = array_filter($unionTypes, fn ($t): bool => $t !== 'null');
 
                 if (in_array('null', $unionTypes)) {
                     $nullable = true;
