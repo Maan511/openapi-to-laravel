@@ -368,4 +368,165 @@ describe('SchemaObject', function (): void {
             expect($cloned->validation->minLength)->toBe($original->validation->minLength);
         });
     });
+
+    describe('OpenAPI 3.1 Union Type Support', function (): void {
+        describe('union type parsing', function (): void {
+            it('should parse union type with null as nullable', function (): void {
+                $data = [
+                    'type' => ['string', 'null'],
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('string');
+                expect($schema->isNullable())->toBeTrue();
+                expect($schema->hasUnionType())->toBeTrue();
+                expect($schema->getPrimaryType())->toBe('string');
+            });
+
+            it('should parse integer union type with null', function (): void {
+                $data = [
+                    'type' => ['integer', 'null'],
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('integer');
+                expect($schema->isNullable())->toBeTrue();
+                expect($schema->hasUnionType())->toBeTrue();
+                expect($schema->getPrimaryType())->toBe('integer');
+            });
+
+            it('should parse array union type with null', function (): void {
+                $data = [
+                    'type' => ['array', 'null'],
+                    'items' => ['type' => 'string'],
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('array');
+                expect($schema->isNullable())->toBeTrue();
+                expect($schema->hasUnionType())->toBeTrue();
+                expect($schema->getPrimaryType())->toBe('array');
+                expect($schema->items)->not->toBeNull();
+                expect($schema->items->type)->toBe('string');
+            });
+
+            it('should handle union type with null first', function (): void {
+                $data = [
+                    'type' => ['null', 'string'],
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('string');
+                expect($schema->isNullable())->toBeTrue();
+                expect($schema->getPrimaryType())->toBe('string');
+            });
+
+            it('should handle only null type gracefully', function (): void {
+                $data = [
+                    'type' => ['null'],
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('string'); // defaults to string
+                expect($schema->isNullable())->toBeTrue();
+            });
+
+            it('should handle complex union types by using first non-null', function (): void {
+                $data = [
+                    'type' => ['string', 'integer', 'null'],
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('string'); // first non-null type
+                expect($schema->isNullable())->toBeTrue();
+            });
+        });
+
+        describe('backward compatibility with OpenAPI 3.0', function (): void {
+            it('should handle OpenAPI 3.0 nullable property', function (): void {
+                $data = [
+                    'type' => 'string',
+                    'nullable' => true,
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('string');
+                expect($schema->isNullable())->toBeTrue();
+                expect($schema->getPrimaryType())->toBe('string');
+            });
+
+            it('should handle non-nullable OpenAPI 3.0 schema', function (): void {
+                $data = [
+                    'type' => 'string',
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('string');
+                expect($schema->isNullable())->toBeFalse();
+                expect($schema->hasUnionType())->toBeFalse();
+                expect($schema->getPrimaryType())->toBe('string');
+            });
+
+            it('should handle OpenAPI 3.0 nullable false explicitly', function (): void {
+                $data = [
+                    'type' => 'string',
+                    'nullable' => false,
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+
+                expect($schema->type)->toBe('string');
+                expect($schema->isNullable())->toBeFalse();
+            });
+        });
+
+        describe('toArray with nullable', function (): void {
+            it('should include nullable in array representation', function (): void {
+                $data = [
+                    'type' => ['string', 'null'],
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+                $array = $schema->toArray();
+
+                expect($array)->toHaveKey('nullable');
+                expect($array['nullable'])->toBe(true);
+                expect($array['type'])->toBe('string');
+            });
+
+            it('should not include nullable when false', function (): void {
+                $data = [
+                    'type' => 'string',
+                ];
+
+                $schema = SchemaObject::fromArray($data);
+                $array = $schema->toArray();
+
+                expect($array)->not->toHaveKey('nullable');
+            });
+        });
+
+        describe('cloning with nullable', function (): void {
+            it('should preserve nullable property when cloning', function (): void {
+                $data = [
+                    'type' => ['string', 'null'],
+                ];
+
+                $original = SchemaObject::fromArray($data);
+                $cloned = clone $original;
+
+                expect($cloned->isNullable())->toBe($original->isNullable());
+                expect($cloned->hasUnionType())->toBe($original->hasUnionType());
+                expect($cloned->getPrimaryType())->toBe($original->getPrimaryType());
+            });
+        });
+    });
 });
