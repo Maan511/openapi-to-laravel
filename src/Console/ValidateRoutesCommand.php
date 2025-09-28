@@ -25,6 +25,7 @@ class ValidateRoutesCommand extends Command
      */
     protected $signature = 'openapi-to-laravel:validate-routes
                             {spec : Path to OpenAPI specification file}
+                            {--base-path= : Override server base path (e.g., /api)}
                             {--include-pattern=* : Route URI patterns to include (supports wildcards)}
                             {--exclude-middleware=* : Middleware groups to exclude}
                             {--ignore-route=* : Route names/patterns to ignore}
@@ -46,6 +47,8 @@ class ValidateRoutesCommand extends Command
         $specPathValue = $this->argument('spec');
         $specPath = is_string($specPathValue) ? $specPathValue : '';
 
+        /** @var string|null $basePath */
+        $basePath = is_string($this->option('base-path')) ? $this->option('base-path') : null;
         /** @var array<string> $includePatterns */
         $includePatterns = is_array($this->option('include-pattern')) ? $this->option('include-pattern') : [];
         /** @var array<string> $excludeMiddleware */
@@ -71,6 +74,10 @@ class ValidateRoutesCommand extends Command
             $this->info('Starting route validation...');
             $this->info("OpenAPI spec: {$specPath}");
 
+            if ($basePath !== null) {
+                $this->info("Base path override: {$basePath}");
+            }
+
             if (! empty($includePatterns)) {
                 $this->info('Include patterns: ' . implode(', ', $includePatterns));
             }
@@ -89,6 +96,7 @@ class ValidateRoutesCommand extends Command
 
             // Prepare validation options
             $options = [
+                'base_path' => $basePath,
                 'include_patterns' => $includePatterns,
                 'exclude_middleware' => $excludeMiddleware,
                 'ignore_routes' => $ignoreRoutes,

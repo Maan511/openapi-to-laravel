@@ -18,7 +18,8 @@ use Throwable;
 class OpenApiParser
 {
     public function __construct(
-        private readonly SchemaExtractor $schemaExtractor
+        private readonly SchemaExtractor $schemaExtractor,
+        private readonly ServerPathExtractor $serverPathExtractor = new ServerPathExtractor
     ) {}
 
     /**
@@ -75,12 +76,20 @@ class OpenApiParser
      *
      * @return array<EndpointDefinition>
      */
-    public function extractEndpoints(OpenApiSpecification $specification): array
+    public function extractEndpoints(OpenApiSpecification $specification, ?string $basePath = null): array
     {
+        // Resolve base path from servers if not explicitly provided
+        if ($basePath === null) {
+            $basePath = $this->serverPathExtractor->getDefaultBasePath($specification);
+        }
+
         $endpoints = [];
 
         foreach (array_keys($specification->paths) as $path) {
             $operations = $specification->getOperationsForPath($path);
+
+            // Prepend base path to the endpoint path
+            $fullPath = $basePath . $path;
 
             foreach ($operations as $method => $operation) {
                 $method = strtoupper($method);
@@ -92,7 +101,7 @@ class OpenApiParser
 
                 $requestSchema = $this->extractRequestSchema($operation, $specification);
 
-                $endpoint = EndpointDefinition::fromOperation($path, $method, $operation, $requestSchema);
+                $endpoint = EndpointDefinition::fromOperation($fullPath, $method, $operation, $requestSchema);
                 $endpoints[] = $endpoint;
             }
         }
@@ -105,9 +114,9 @@ class OpenApiParser
      *
      * @return array<EndpointDefinition>
      */
-    public function getEndpointsWithRequestBodies(OpenApiSpecification $specification): array
+    public function getEndpointsWithRequestBodies(OpenApiSpecification $specification, ?string $basePath = null): array
     {
-        $allEndpoints = $this->extractEndpoints($specification);
+        $allEndpoints = $this->extractEndpoints($specification, $basePath);
 
         return array_values(array_filter($allEndpoints, fn (EndpointDefinition $endpoint): bool => $endpoint->hasRequestBody()));
     }
@@ -117,10 +126,10 @@ class OpenApiParser
      *
      * @return array{specification: OpenApiSpecification, endpoints: array<EndpointDefinition>}
      */
-    public function parseSpecification(string $content, string $format): array
+    public function parseSpecification(string $content, string $format, ?string $basePath = null): array
     {
         $specification = $this->parseFromString($content, $format);
-        $endpoints = $this->extractEndpoints($specification);
+        $endpoints = $this->extractEndpoints($specification, $basePath);
 
         return [
             'specification' => $specification,
@@ -170,9 +179,9 @@ class OpenApiParser
      *
      * @return array{totalEndpoints: int, endpointsWithRequestBodies: int, httpMethods: array<string>, tags: array<string>, hasComponents: bool, schemaCount: int}
      */
-    public function getSpecificationStats(OpenApiSpecification $specification): array
+    public function getSpecificationStats(OpenApiSpecification $specification, ?string $basePath = null): array
     {
-        $endpoints = $this->extractEndpoints($specification);
+        $endpoints = $this->extractEndpoints($specification, $basePath);
         $endpointsWithBodies = array_filter($endpoints, fn (\Maan511\OpenapiToLaravel\Models\EndpointDefinition $e): bool => $e->hasRequestBody());
 
         $methods = [];

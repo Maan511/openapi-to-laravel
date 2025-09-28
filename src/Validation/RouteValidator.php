@@ -8,16 +8,22 @@ use Maan511\OpenapiToLaravel\Models\LaravelRoute;
 use Maan511\OpenapiToLaravel\Models\RouteMismatch;
 use Maan511\OpenapiToLaravel\Models\ValidationResult;
 use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
+use Maan511\OpenapiToLaravel\Parser\ServerPathExtractor;
 
 /**
  * Main orchestrator for route validation
  */
 class RouteValidator
 {
+    private readonly ServerPathExtractor $serverPathExtractor;
+
     public function __construct(
         private readonly LaravelRouteCollector $routeCollector,
-        private readonly OpenApiParser $openApiParser
-    ) {}
+        private readonly OpenApiParser $openApiParser,
+        ?ServerPathExtractor $serverPathExtractor = null
+    ) {
+        $this->serverPathExtractor = $serverPathExtractor ?? new ServerPathExtractor;
+    }
 
     /**
      * Validate routes against OpenAPI specification
@@ -29,7 +35,14 @@ class RouteValidator
         try {
             // Parse OpenAPI specification
             $specification = $this->openApiParser->parseFromFile($specPath);
-            $endpoints = $this->openApiParser->extractEndpoints($specification);
+
+            // Resolve base path from servers or user specification
+            $basePath = $this->serverPathExtractor->resolveBasePath(
+                $specification,
+                $options['base_path'] ?? null
+            );
+
+            $endpoints = $this->openApiParser->extractEndpoints($specification, $basePath);
 
             // Collect Laravel routes
             $laravelRoutes = $this->routeCollector->collect($options);
