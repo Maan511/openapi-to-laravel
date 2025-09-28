@@ -93,6 +93,22 @@ class LaravelRoute
     }
 
     /**
+     * Get normalized signature with generic parameter placeholders for matching
+     */
+    public function getNormalizedSignature(): string
+    {
+        $path = $this->getNormalizedPath();
+
+        // Replace parameter names with generic placeholders
+        $paramCounter = 1;
+        $normalizedPath = preg_replace_callback('/\{[^}]+\}/', function () use (&$paramCounter): string {
+            return '{param' . $paramCounter++ . '}';
+        }, $path) ?? $path;
+
+        return $this->getPrimaryMethod() . ':' . $normalizedPath;
+    }
+
+    /**
      * Check if route should be included in API documentation
      */
     public function isApiRoute(): bool

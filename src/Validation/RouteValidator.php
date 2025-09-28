@@ -121,11 +121,11 @@ class RouteValidator
     {
         $map = [];
         foreach ($routes as $route) {
-            $signature = $route->getSignature();
-            if (! isset($map[$signature])) {
-                $map[$signature] = [];
+            $normalizedSignature = $route->getNormalizedSignature();
+            if (! isset($map[$normalizedSignature])) {
+                $map[$normalizedSignature] = [];
             }
-            $map[$signature][] = $route;
+            $map[$normalizedSignature][] = $route;
         }
 
         return $map;
@@ -141,11 +141,11 @@ class RouteValidator
     {
         $map = [];
         foreach ($endpoints as $endpoint) {
-            $signature = "{$endpoint->method}:{$endpoint->path}";
-            if (! isset($map[$signature])) {
-                $map[$signature] = [];
+            $normalizedSignature = $endpoint->getNormalizedSignature();
+            if (! isset($map[$normalizedSignature])) {
+                $map[$normalizedSignature] = [];
             }
-            $map[$signature][] = $endpoint;
+            $map[$normalizedSignature][] = $endpoint;
         }
 
         return $map;
@@ -256,13 +256,10 @@ class RouteValidator
                 $normalizedRouteParams = is_array($routeParams) ? $routeParams : [];
                 $normalizedEndpointParams = is_array($endpointParams) ? $endpointParams : [];
 
-                // Sort copies to ignore order differences
-                $sortedRouteParams = $normalizedRouteParams;
-                $sortedEndpointParams = $normalizedEndpointParams;
-                sort($sortedRouteParams);
-                sort($sortedEndpointParams);
-
-                if ($sortedRouteParams !== $sortedEndpointParams) {
+                // Only check for mismatches if parameter counts differ
+                // Since we're using normalized signatures for matching,
+                // routes with same parameter structure should not be flagged as mismatches
+                if (count($normalizedRouteParams) !== count($normalizedEndpointParams)) {
                     $mismatches[] = RouteMismatch::parameterMismatch(
                         $route->getNormalizedPath(),
                         $route->getPrimaryMethod(),
