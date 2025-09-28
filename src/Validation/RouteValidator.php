@@ -332,12 +332,28 @@ class RouteValidator
             $mismatchCounts[$type] = ($mismatchCounts[$type] ?? 0) + 1;
         }
 
+        // Calculate individual coverage statistics
+        $missingDocs = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_DOCUMENTATION));
+        $missingImpl = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_IMPLEMENTATION));
+
+        $totalRoutes = count($routes);
+        $totalEndpoints = count($endpoints);
+        $coveredRoutes = $totalRoutes - $missingDocs;
+        $coveredEndpoints = $totalEndpoints - $missingImpl;
+
+        $routeCoveragePercentage = $totalRoutes > 0 ? round(($coveredRoutes / $totalRoutes) * 100, 2) : 100.0;
+        $endpointCoveragePercentage = $totalEndpoints > 0 ? round(($coveredEndpoints / $totalEndpoints) * 100, 2) : 100.0;
+
         return [
-            'total_routes' => count($routes),
-            'total_endpoints' => count($endpoints),
+            'total_routes' => $totalRoutes,
+            'covered_routes' => $coveredRoutes,
+            'route_coverage_percentage' => $routeCoveragePercentage,
+            'total_endpoints' => $totalEndpoints,
+            'covered_endpoints' => $coveredEndpoints,
+            'endpoint_coverage_percentage' => $endpointCoveragePercentage,
             'total_mismatches' => count($mismatches),
             'mismatch_breakdown' => $mismatchCounts,
-            'coverage_percentage' => $this->calculateCoverage($routes, $endpoints, $mismatches),
+            'total_coverage_percentage' => $this->calculateCoverage($routes, $endpoints, $mismatches),
         ];
     }
 

@@ -251,16 +251,16 @@ class ValidateRoutesCommand extends Command
 
         $stats = $result->statistics;
 
-        if (isset($stats['total_routes'])) {
-            $this->line("Total Laravel routes: {$stats['total_routes']}");
+        if (isset($stats['total_routes'], $stats['covered_routes'], $stats['route_coverage_percentage'])) {
+            $this->line("Total Laravel routes: {$stats['total_routes']} ({$stats['covered_routes']} covered, {$stats['route_coverage_percentage']}%)");
         }
 
-        if (isset($stats['total_endpoints'])) {
-            $this->line("Total OpenAPI endpoints: {$stats['total_endpoints']}");
+        if (isset($stats['total_endpoints'], $stats['covered_endpoints'], $stats['endpoint_coverage_percentage'])) {
+            $this->line("Total OpenAPI endpoints: {$stats['total_endpoints']} ({$stats['covered_endpoints']} covered, {$stats['endpoint_coverage_percentage']}%)");
         }
 
-        if (isset($stats['coverage_percentage'])) {
-            $this->line("Coverage: {$stats['coverage_percentage']}%");
+        if (isset($stats['total_coverage_percentage'])) {
+            $this->line("Total coverage: {$stats['total_coverage_percentage']}%");
         }
 
         if (isset($stats['mismatch_breakdown']) && ! empty($stats['mismatch_breakdown'])) {
