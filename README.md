@@ -4,18 +4,48 @@
 [![Laravel](https://img.shields.io/badge/laravel-%5E11.0-red)](https://laravel.com)
 [![Tests](https://img.shields.io/badge/tests-passing-green)](https://github.com/maan511/openapi-to-laravel)
 
-A powerful PHP tool that automatically generates Laravel FormRequest classes from OpenAPI 3.x specifications, enabling true API-first development workflows.
+Stop writing Laravel FormRequest validation rules by hand and manually checking route consistency. Automatically generate FormRequests and validate route compliance from your OpenAPI specification, keeping your API documentation, validation logic, and routes perfectly synchronized.
 
-## Features
+## The Problem
 
-- **OpenAPI 3.x Compliance**: Full support for OpenAPI 3.0 and 3.1 specifications
-- **Comprehensive Validation**: Maps OpenAPI constraints to Laravel validation rules
-- **Smart Class Generation**: Generates properly formatted FormRequest classes with validation rules
-- **Reference Resolution**: Handles `$ref` objects and circular reference detection
-- **Flexible Output**: Customizable namespaces, output directories, and templates
-- **CLI Integration**: Laravel Artisan command for easy integration
-- **Performance Optimized**: Handles large specifications with 100+ endpoints efficiently
-- **Test-Driven**: Comprehensive test coverage with Pest framework
+- **Time-consuming manual work**: Writing FormRequest classes for each endpoint takes 5-15 minutes per class
+- **Documentation drift**: API documentation gets out of sync with validation rules and actual routes over time
+- **Error-prone process**: Manual validation rule creation leads to inconsistencies and bugs
+- **Route mismatches**: Laravel routes don't match OpenAPI specification, breaking API contracts
+- **Maintenance overhead**: Changing OpenAPI specs requires tedious updates across multiple FormRequest files and route validation
+
+## The Solution
+
+Two powerful commands that keep your Laravel application and OpenAPI specification perfectly synchronized:
+
+**1. Generate FormRequest classes:**
+```bash
+php artisan openapi-to-laravel:make-requests api-spec.yaml
+```
+
+**2. Validate route consistency:**
+```bash
+php artisan openapi-to-laravel:validate-routes api-spec.yaml
+```
+
+**Result:** Transform 50+ endpoints into perfectly validated FormRequest classes AND ensure your routes match your documentation - all in seconds, not hours.
+
+## Key Benefits
+
+- **Save hours of development time**: Generate comprehensive FormRequest classes instantly
+- **Maintain perfect sync**: Your validation rules and routes automatically match your API documentation
+- **Eliminate human error**: Consistent, accurate validation rules and route validation generated from your source of truth
+- **Catch API drift early**: Validate that your Laravel routes match your OpenAPI specification before deployment
+
+## Why Use This?
+
+**Instead of manually writing FormRequests:** Writing validation rules for complex API endpoints is tedious and error-prone. A single endpoint with nested validation can take 15+ minutes to implement correctly.
+
+**Instead of letting documentation drift:** Teams often update either the OpenAPI spec OR the Laravel validation rules/routes, but not both. This leads to inconsistent API behavior and broken contracts.
+
+**Instead of manual route checking:** Manually comparing your Laravel routes against your OpenAPI specification is time-consuming and error-prone, especially with large APIs.
+
+**For API-first development:** Generate your OpenAPI specification first, then automatically create the corresponding Laravel validation layer AND verify your routes match your contract. Your API specification becomes your single source of truth.
 
 ## Installation
 
@@ -37,40 +67,29 @@ The package will automatically register the command with Laravel using auto-disc
 
 ## Quick Start
 
-### 1. Generate FormRequests from OpenAPI Specification
+**1. Generate FormRequest classes from your OpenAPI specification:**
 
 ```bash
 php artisan openapi-to-laravel:make-requests path/to/your/openapi.json
 ```
 
-### 2. With Custom Options
+**Common options:**
+- `--dry-run` - Preview without creating files
+- `--output=path` - Custom output directory
+- `--force` - Overwrite existing files
+
+**2. Validate that your Laravel routes match your OpenAPI specification:**
 
 ```bash
-php artisan openapi-to-laravel:make-requests api-spec.yaml \
-    --output=app/Http/Requests/Api \
-    --namespace="App\\Http\\Requests\\Api" \
-    --force \
-    --verbose
+php artisan openapi-to-laravel:validate-routes path/to/your/openapi.json
 ```
 
-### 3. Dry Run Mode
+**Common options:**
+- `--strict` - Fail on any mismatches (perfect for CI/CD)
+- `--report-format=console,json,html` - Choose output format
+- `--include-pattern="api/*"` - Only validate specific routes
 
-Preview what will be generated without creating files:
-
-```bash
-php artisan openapi-to-laravel:make-requests openapi.json --dry-run
-```
-
-## Command Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `spec` | Path to OpenAPI specification file (JSON/YAML) | Required |
-| `--output` | Output directory for generated FormRequest classes | `./app/Http/Requests` |
-| `--namespace` | PHP namespace for generated classes | `App\\Http\\Requests` |
-| `--force` | Overwrite existing FormRequest files | `false` |
-| `--dry-run` | Show what would be generated without creating files | `false` |
-| `--verbose` | Enable verbose output with detailed information | `false` |
+**Next Steps:** Use your generated FormRequest classes in your Laravel controllers for automatic validation and run route validation in your CI/CD pipeline.
 
 ## Supported OpenAPI Features
 
@@ -89,21 +108,6 @@ php artisan openapi-to-laravel:make-requests openapi.json --dry-run
 - ✅ `uri` - Laravel url validation
 - ✅ `uuid` - Laravel uuid validation
 
-### Validation Constraints
-
-| OpenAPI Constraint | Laravel Rule | Example |
-|-------------------|--------------|---------|
-| `required` | `required` | `'name' => 'required\|string'` |
-| `minLength` | `min` | `'name' => 'string\|min:3'` |
-| `maxLength` | `max` | `'name' => 'string\|max:255'` |
-| `pattern` | `regex` | `'code' => 'string\|regex:/^[A-Z]{3}$/'` |
-| `minimum` | `min` | `'age' => 'integer\|min:0'` |
-| `maximum` | `max` | `'age' => 'integer\|max:120'` |
-| `minItems` | `min` | `'tags' => 'array\|min:1'` |
-| `maxItems` | `max` | `'tags' => 'array\|max:10'` |
-| `uniqueItems` | `distinct` | `'ids' => 'array\|distinct'` |
-| `enum` | `in` | `'status' => 'string\|in:active,inactive'` |
-
 ### Advanced Features
 - ✅ **Reference Resolution**: `$ref` objects are automatically resolved
 - ✅ **Nested Objects**: Deep nesting support with dot notation
@@ -111,7 +115,9 @@ php artisan openapi-to-laravel:make-requests openapi.json --dry-run
 - ✅ **Circular Reference Detection**: Prevents infinite loops
 - ✅ **Content Type Detection**: Supports JSON, form-data, and URL-encoded
 
-## Example Usage
+## See It In Action
+
+Transform this OpenAPI specification into a complete FormRequest class in seconds:
 
 ### OpenAPI Specification
 
@@ -193,6 +199,36 @@ class CreateUserRequest extends FormRequest
 }
 ```
 
+**⏱️ Time Saved:** This FormRequest would take 10-15 minutes to write manually with careful validation rule mapping. Generated in seconds with perfect accuracy.
+
+## Route Validation in Action
+
+Ensure your Laravel routes match your OpenAPI specification:
+
+```bash
+php artisan openapi-to-laravel:validate-routes api-spec.yaml
+```
+
+**Example output when mismatches are found:**
+
+```
+=== Route Validation Report ===
+Status: FAILED
+Total mismatches: 2
+
+=== Mismatches ===
+
+MISSING DOCUMENTATION (1)
+✗ Route 'GET:/api/users/{id}/avatar' is implemented but not documented
+  Suggestions: Add 'GET /api/users/{id}/avatar' to your OpenAPI specification
+
+MISSING IMPLEMENTATION (1)
+✗ Endpoint 'DELETE:/api/users/{id}' is documented but not implemented
+  Suggestions: Implement route 'DELETE /api/users/{id}' in Laravel
+```
+
+**⚡ CI/CD Integration:** Use `--strict` flag to fail builds when routes don't match your specification, ensuring your API documentation stays accurate.
+
 ## Advanced Configuration
 
 ### Custom Templates
@@ -206,74 +242,13 @@ $templateEngine = new TemplateEngine();
 $templateEngine->addTemplate('custom_request', $yourCustomTemplate);
 ```
 
-### Programmatic Usage
-
-```php
-use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
-use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
-use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
-use Maan511\OpenapiToLaravel\Generator\FormRequestGenerator;
-use Maan511\OpenapiToLaravel\Generator\ValidationRuleMapper;
-use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
-
-// Initialize services
-$referenceResolver = new ReferenceResolver();
-$schemaExtractor = new SchemaExtractor($referenceResolver);
-$parser = new OpenApiParser($schemaExtractor, $referenceResolver);
-$ruleMapper = new ValidationRuleMapper();
-$templateEngine = new TemplateEngine();
-$generator = new FormRequestGenerator($ruleMapper, $templateEngine);
-
-// Parse OpenAPI specification
-$specification = $parser->parseFromFile('path/to/openapi.json');
-
-// Get endpoints with request bodies
-$endpoints = $parser->getEndpointsWithRequestBodies($specification);
-
-// Generate FormRequest classes
-$formRequests = $generator->generateFromEndpoints(
-    $endpoints,
-    'App\\Http\\Requests',
-    './app/Http/Requests'
-);
-
-// Write to files
-$results = $generator->generateAndWriteMultiple($formRequests, $force = false);
-```
-
 ## Testing
 
-### Run All Tests
+Run the test suite:
 
 ```bash
 composer test
 ```
-
-### Run Specific Test Suites
-
-```bash
-# Contract tests
-./vendor/bin/pest tests/contract
-
-# Integration tests
-./vendor/bin/pest tests/integration
-
-# Unit tests
-./vendor/bin/pest tests/unit
-
-# Performance tests
-./vendor/bin/pest tests/Performance
-```
-
-
-## Performance
-
-The tool is optimized for large OpenAPI specifications:
-
-- ✅ **100+ endpoints**: Processes in under 5 seconds
-- ✅ **Deep nesting**: Handles 10+ levels efficiently
-- ✅ **Complex validation**: Supports multiple constraints per field
-- ✅ **Memory efficient**: Minimal memory footprint even for large specs
 
 ## Contributing
 
@@ -282,57 +257,10 @@ We welcome contributions! Please feel free to submit a Pull Request.
 ### Development Setup
 
 ```bash
-# Clone the repository
 git clone https://github.com/maan511/openapi-to-laravel.git
 cd openapi-to-laravel
-
-# Install dependencies
 composer install
-
-# Run tests
 composer test
-
-# Run code formatting
-./vendor/bin/pint
-
-# Run automated refactoring (dry-run)
-composer refactor
-# or
-./vendor/bin/rector process --dry-run
-
-# Apply automated refactoring changes
-composer refactor-fix
-# or
-./vendor/bin/rector process src
-```
-
-### Code Refactoring with Rector
-
-This project uses [Rector](https://getrector.com/) for automated PHP refactoring and code modernization. Rector helps maintain code quality by automatically applying modern PHP patterns and removing deprecated code.
-
-```bash
-# Preview refactoring changes (recommended first)
-composer refactor
-./vendor/bin/rector process --dry-run
-
-# Apply refactoring changes to source code
-composer refactor-fix
-./vendor/bin/rector process src
-
-# Process specific directories
-./vendor/bin/rector process src/Generator
-./vendor/bin/rector process tests/unit
-
-# Process specific files
-./vendor/bin/rector process src/Models/FormRequestClass.php
-```
-
-The Rector configuration in `rector.php` includes rules for:
-- **Modern PHP 8.3 features**: Override attributes, readonly properties
-- **Type declarations**: Void return types, typed properties from constructors  
-- **Code quality**: Inline constructor defaults, explicit bool comparisons
-- **Documentation cleanup**: Remove redundant PHPDoc tags
-
 ```
 
 ## Security
@@ -348,12 +276,6 @@ The MIT License (MIT).
 - 📖 [Documentation](https://github.com/maan511/openapi-to-laravel/wiki)
 - 🐛 [Issue Tracker](https://github.com/maan511/openapi-to-laravel/issues)
 - 💬 [Discussions](https://github.com/maan511/openapi-to-laravel/discussions)
-
-## Related Projects
-
-- [Laravel OpenAPI](https://github.com/goldspecdigital/oooas) - Generate OpenAPI specs from Laravel
-- [Swagger UI](https://swagger.io/tools/swagger-ui/) - Interactive API documentation
-- [OpenAPI Generator](https://openapi-generator.tech/) - Multi-language code generation
 
 ---
 
