@@ -13,7 +13,6 @@ use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 use Maan511\OpenapiToLaravel\Validation\LaravelRouteCollector;
-use Maan511\OpenapiToLaravel\Validation\RouteComparator;
 use Maan511\OpenapiToLaravel\Validation\RouteValidator;
 
 /**

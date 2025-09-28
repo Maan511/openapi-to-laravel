@@ -229,8 +229,8 @@ class ConsoleReporter implements ReporterInterface
 
         // Sort by severity (errors first)
         uasort($grouped, function ($a, $b): int {
-            $severityA = max(array_map(fn ($m) => $m->getSeverityLevel(), $a));
-            $severityB = max(array_map(fn ($m) => $m->getSeverityLevel(), $b));
+            $severityA = max(array_map(fn ($m): int => $m->getSeverityLevel(), $a));
+            $severityB = max(array_map(fn ($m): int => $m->getSeverityLevel(), $b));
 
             return $severityB <=> $severityA;
         });
