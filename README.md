@@ -4,38 +4,48 @@
 [![Laravel](https://img.shields.io/badge/laravel-%5E11.0-red)](https://laravel.com)
 [![Tests](https://img.shields.io/badge/tests-passing-green)](https://github.com/maan511/openapi-to-laravel)
 
-Stop writing Laravel FormRequest validation rules by hand. Generate them automatically from your OpenAPI specification and keep your API documentation and validation logic perfectly synchronized.
+Stop writing Laravel FormRequest validation rules by hand and manually checking route consistency. Automatically generate FormRequests and validate route compliance from your OpenAPI specification, keeping your API documentation, validation logic, and routes perfectly synchronized.
 
 ## The Problem
 
 - **Time-consuming manual work**: Writing FormRequest classes for each endpoint takes 5-15 minutes per class
-- **Documentation drift**: API documentation gets out of sync with validation rules over time
+- **Documentation drift**: API documentation gets out of sync with validation rules and actual routes over time
 - **Error-prone process**: Manual validation rule creation leads to inconsistencies and bugs
-- **Maintenance overhead**: Changing OpenAPI specs requires tedious updates across multiple FormRequest files
+- **Route mismatches**: Laravel routes don't match OpenAPI specification, breaking API contracts
+- **Maintenance overhead**: Changing OpenAPI specs requires tedious updates across multiple FormRequest files and route validation
 
 ## The Solution
 
-One command generates all your FormRequest classes with proper validation rules:
+Two powerful commands that keep your Laravel application and OpenAPI specification perfectly synchronized:
 
+**1. Generate FormRequest classes:**
 ```bash
 php artisan openapi-to-laravel:make-requests api-spec.yaml
 ```
 
-**Result:** Transform 50+ endpoints into 50+ perfectly validated FormRequest classes in seconds, not hours.
+**2. Validate route consistency:**
+```bash
+php artisan openapi-to-laravel:validate-routes api-spec.yaml
+```
+
+**Result:** Transform 50+ endpoints into perfectly validated FormRequest classes AND ensure your routes match your documentation - all in seconds, not hours.
 
 ## Key Benefits
 
 - **Save hours of development time**: Generate comprehensive FormRequest classes instantly
-- **Maintain perfect sync**: Your validation rules automatically match your API documentation
-- **Eliminate human error**: Consistent, accurate validation rules generated from your source of truth
+- **Maintain perfect sync**: Your validation rules and routes automatically match your API documentation
+- **Eliminate human error**: Consistent, accurate validation rules and route validation generated from your source of truth
+- **Catch API drift early**: Validate that your Laravel routes match your OpenAPI specification before deployment
 
 ## Why Use This?
 
 **Instead of manually writing FormRequests:** Writing validation rules for complex API endpoints is tedious and error-prone. A single endpoint with nested validation can take 15+ minutes to implement correctly.
 
-**Instead of letting documentation drift:** Teams often update either the OpenAPI spec OR the Laravel validation rules, but not both. This leads to inconsistent API behavior.
+**Instead of letting documentation drift:** Teams often update either the OpenAPI spec OR the Laravel validation rules/routes, but not both. This leads to inconsistent API behavior and broken contracts.
 
-**For API-first development:** Generate your OpenAPI specification first, then automatically create the corresponding Laravel validation layer. Your API contract becomes your single source of truth.
+**Instead of manual route checking:** Manually comparing your Laravel routes against your OpenAPI specification is time-consuming and error-prone, especially with large APIs.
+
+**For API-first development:** Generate your OpenAPI specification first, then automatically create the corresponding Laravel validation layer AND verify your routes match your contract. Your API specification becomes your single source of truth.
 
 ## Installation
 
@@ -57,7 +67,7 @@ The package will automatically register the command with Laravel using auto-disc
 
 ## Quick Start
 
-Generate FormRequest classes from your OpenAPI specification:
+**1. Generate FormRequest classes from your OpenAPI specification:**
 
 ```bash
 php artisan openapi-to-laravel:make-requests path/to/your/openapi.json
@@ -68,7 +78,18 @@ php artisan openapi-to-laravel:make-requests path/to/your/openapi.json
 - `--output=path` - Custom output directory
 - `--force` - Overwrite existing files
 
-**Next Steps:** Use your generated FormRequest classes in your Laravel controllers for automatic validation.
+**2. Validate that your Laravel routes match your OpenAPI specification:**
+
+```bash
+php artisan openapi-to-laravel:validate-routes path/to/your/openapi.json
+```
+
+**Common options:**
+- `--strict` - Fail on any mismatches (perfect for CI/CD)
+- `--report-format=console,json,html` - Choose output format
+- `--include-pattern="api/*"` - Only validate specific routes
+
+**Next Steps:** Use your generated FormRequest classes in your Laravel controllers for automatic validation and run route validation in your CI/CD pipeline.
 
 ## Supported OpenAPI Features
 
@@ -179,6 +200,34 @@ class CreateUserRequest extends FormRequest
 ```
 
 **⏱️ Time Saved:** This FormRequest would take 10-15 minutes to write manually with careful validation rule mapping. Generated in seconds with perfect accuracy.
+
+## Route Validation in Action
+
+Ensure your Laravel routes match your OpenAPI specification:
+
+```bash
+php artisan openapi-to-laravel:validate-routes api-spec.yaml
+```
+
+**Example output when mismatches are found:**
+
+```
+=== Route Validation Report ===
+Status: FAILED
+Total mismatches: 2
+
+=== Mismatches ===
+
+MISSING DOCUMENTATION (1)
+✗ Route 'GET:/api/users/{id}/avatar' is implemented but not documented
+  Suggestions: Add 'GET /api/users/{id}/avatar' to your OpenAPI specification
+
+MISSING IMPLEMENTATION (1)
+✗ Endpoint 'DELETE:/api/users/{id}' is documented but not implemented
+  Suggestions: Implement route 'DELETE /api/users/{id}' in Laravel
+```
+
+**⚡ CI/CD Integration:** Use `--strict` flag to fail builds when routes don't match your specification, ensuring your API documentation stays accurate.
 
 ## Advanced Configuration
 
