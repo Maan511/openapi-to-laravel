@@ -34,7 +34,7 @@ class ReporterFactory
         $reporterClass = self::$reporterMap[$format];
 
         /** @var class-string<ReporterInterface> $reporterClass */
-        return new $reporterClass();
+        return new $reporterClass;
     }
 
     /**
