@@ -19,6 +19,8 @@ class RouteMismatch
 
     public const TYPE_PATH_MISMATCH = 'path_mismatch';
 
+    public const TYPE_VALIDATION_ERROR = 'validation_error';
+
     /**
      * @param  array<string, mixed>  $details
      * @param  array<string>  $suggestions
@@ -220,6 +222,7 @@ class RouteMismatch
             self::TYPE_METHOD_MISMATCH,
             self::TYPE_PARAMETER_MISMATCH,
             self::TYPE_PATH_MISMATCH,
+            self::TYPE_VALIDATION_ERROR,
         ];
 
         if (! in_array($this->type, $validTypes)) {

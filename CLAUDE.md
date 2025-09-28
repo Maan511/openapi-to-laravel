@@ -29,6 +29,12 @@ composer test
 # or
 composer format
 
+# Code quality validation (REQUIRED after ALL code changes)
+composer test:format    # Check code formatting
+composer analyse        # Run static analysis
+composer test:refactor  # Run refactoring validation
+composer test          # Run full test suite
+
 # Generate FormRequests from OpenAPI spec
 php artisan openapi-to-laravel:make-requests path/to/openapi.json
 php artisan openapi-to-laravel:make-requests spec.yaml --output=app/Http/Requests/Api --namespace="App\\Http\\Requests\\Api" --force --verbose
@@ -124,6 +130,7 @@ The project uses Laravel Pint for code formatting with custom rules defined in `
 
 ### Testing & Quality Assurance
 - Generate test coverage reports using: ./vendor/bin/pest --coverage (or herd coverage ./vendor/bin/pest --coverage if using Laravel Herd)
+- **CRITICAL**: ALL code changes MUST be validated with: `composer test:format`, `composer analyse`, `composer test:refactor`, and `composer test` before committing
 
 ## Route Validation
 

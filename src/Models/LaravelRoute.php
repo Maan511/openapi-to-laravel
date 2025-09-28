@@ -189,7 +189,7 @@ class LaravelRoute
         $validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
 
         foreach ($this->methods as $method) {
-            if (! in_array(strtoupper($method), $validMethods)) {
+            if (! in_array(strtoupper($method), $validMethods, true)) {
                 throw new InvalidArgumentException("Invalid HTTP method: {$method}");
             }
         }

@@ -71,6 +71,12 @@ composer test
 # or
 composer format
 
+# Code quality validation (REQUIRED after ALL code changes)
+composer test:format    # Check code formatting
+composer analyse        # Run static analysis
+composer test:refactor  # Run refactoring validation
+composer test          # Run full test suite
+
 # Generate FormRequests from OpenAPI
 php artisan openapi-to-laravel:make-requests path/to/spec.json
 php artisan openapi-to-laravel:make-requests spec.yaml --output=app/Http/Requests/Api --namespace="App\\Http\\Requests\\Api" --force --verbose
@@ -121,7 +127,7 @@ php artisan openapi-to-laravel:make-requests spec.yaml --output=app/Http/Request
 1. Write failing tests first (TDD approach)
 2. Implement minimal code to pass tests
 3. Refactor while keeping tests green
-4. Run full test suite before committing
+4. **CRITICAL**: Validate ALL code changes with: `composer test:format`, `composer analyse`, `composer test:refactor`, and `composer test`
 5. Format code with Pint before committing
 6. Update documentation if public API changes
 

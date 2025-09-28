@@ -161,12 +161,11 @@ class RouteComparator
             return false;
         }
         // Check parameter names (allowing for case differences)
-        $counter = count($routeParams);
+        $paramCount = count($routeParams);
 
-        // Check parameter names (allowing for case differences)
-        for ($i = 0; $i < $counter; $i++) {
-            $routeParam = strtolower($routeParams[$i]);
-            $endpointParam = strtolower($endpointParams[$i]);
+        for ($index = 0; $index < $paramCount; $index++) {
+            $routeParam = strtolower($routeParams[$index]);
+            $endpointParam = strtolower($endpointParams[$index]);
 
             // Allow for common variations
             if ($routeParam !== $endpointParam && ! $this->areParameterVariations($routeParam, $endpointParam)) {

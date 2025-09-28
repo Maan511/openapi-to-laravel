@@ -38,7 +38,7 @@ class RouteValidator
             return $this->performValidation($laravelRoutes, $endpoints, $options);
         } catch (Exception $e) {
             return ValidationResult::failed([
-                RouteMismatch::createError('validation_error', $e->getMessage(), '', ''),
+                RouteMismatch::createError(RouteMismatch::TYPE_VALIDATION_ERROR, $e->getMessage(), '', ''),
             ]);
         }
     }
@@ -204,8 +204,16 @@ class RouteValidator
             $routeMethods = $data['route_methods'] ?? [];
             $endpointMethods = $data['endpoint_methods'] ?? [];
 
-            if (! empty($routeMethods) && ! empty($endpointMethods) && $routeMethods !== $endpointMethods) {
-                $mismatches[] = RouteMismatch::methodMismatch($path, $routeMethods, $endpointMethods);
+            if (! empty($routeMethods) && ! empty($endpointMethods)) {
+                // Normalize both arrays to handle order differences and duplicates
+                $normalizedRouteMethods = array_values(array_unique(array_map('strtoupper', $routeMethods)));
+                $normalizedEndpointMethods = array_values(array_unique(array_map('strtoupper', $endpointMethods)));
+                sort($normalizedRouteMethods);
+                sort($normalizedEndpointMethods);
+
+                if ($normalizedRouteMethods !== $normalizedEndpointMethods) {
+                    $mismatches[] = RouteMismatch::methodMismatch($path, $routeMethods, $endpointMethods);
+                }
             }
         }
 
@@ -231,7 +239,17 @@ class RouteValidator
                 $routeParams = $route->pathParameters;
                 $endpointParams = $endpoint->getPathParameters();
 
-                if ($routeParams !== $endpointParams) {
+                // Normalize parameter lists to handle order differences
+                $normalizedRouteParams = is_array($routeParams) ? $routeParams : [];
+                $normalizedEndpointParams = is_array($endpointParams) ? $endpointParams : [];
+
+                // Sort copies to ignore order differences
+                $sortedRouteParams = $normalizedRouteParams;
+                $sortedEndpointParams = $normalizedEndpointParams;
+                sort($sortedRouteParams);
+                sort($sortedEndpointParams);
+
+                if ($sortedRouteParams !== $sortedEndpointParams) {
                     $mismatches[] = RouteMismatch::parameterMismatch(
                         $route->getNormalizedPath(),
                         $route->getPrimaryMethod(),
@@ -258,7 +276,11 @@ class RouteValidator
 
         // Process routes
         foreach (array_keys($routeMap) as $signature) {
-            [$method, $path] = explode(':', (string) $signature, 2);
+            $signatureString = (string) $signature;
+            if (! str_contains($signatureString, ':')) {
+                continue; // Skip malformed signatures
+            }
+            [$method, $path] = explode(':', $signatureString, 2);
             if (! isset($groups[$path])) {
                 $groups[$path] = ['route_methods' => [], 'endpoint_methods' => []];
             }
@@ -269,7 +291,11 @@ class RouteValidator
 
         // Process endpoints
         foreach (array_keys($endpointMap) as $signature) {
-            [$method, $path] = explode(':', (string) $signature, 2);
+            $signatureString = (string) $signature;
+            if (! str_contains($signatureString, ':')) {
+                continue; // Skip malformed signatures
+            }
+            [$method, $path] = explode(':', $signatureString, 2);
             if (! isset($groups[$path])) {
                 $groups[$path] = ['route_methods' => [], 'endpoint_methods' => []];
             }
@@ -335,33 +361,10 @@ class RouteValidator
      */
     private function shouldIncludeRoute(LaravelRoute $route, array $options): bool
     {
-        // Apply include patterns
-        if (isset($options['include_patterns'])) {
-            $included = false;
-            foreach ($options['include_patterns'] as $pattern) {
-                if (fnmatch($pattern, $route->uri)) {
-                    $included = true;
-                    break;
-                }
-            }
-            if (! $included) {
-                return false;
-            }
-        }
-
-        // Apply exclude middleware
+        // Apply exclude middleware (needed for direct route validation)
         if (isset($options['exclude_middleware'])) {
             foreach ($options['exclude_middleware'] as $middleware) {
                 if ($route->hasMiddleware($middleware)) {
-                    return false;
-                }
-            }
-        }
-
-        // Apply ignore routes patterns
-        if (isset($options['ignore_routes'])) {
-            foreach ($options['ignore_routes'] as $pattern) {
-                if (fnmatch($pattern, $route->name) || fnmatch($pattern, $route->uri)) {
                     return false;
                 }
             }
