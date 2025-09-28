@@ -8,11 +8,13 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 use Maan511\OpenapiToLaravel\Models\ValidationResult;
 use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
 use Maan511\OpenapiToLaravel\Parser\ReferenceResolver;
 use Maan511\OpenapiToLaravel\Parser\SchemaExtractor;
 use Maan511\OpenapiToLaravel\Validation\LaravelRouteCollector;
+use Maan511\OpenapiToLaravel\Validation\Reporters\ReporterFactory;
 use Maan511\OpenapiToLaravel\Validation\RouteValidator;
 
 /**
@@ -29,7 +31,7 @@ class ValidateRoutesCommand extends Command
                             {--include-pattern=* : Route URI patterns to include (supports wildcards)}
                             {--exclude-middleware=* : Middleware groups to exclude}
                             {--ignore-route=* : Route names/patterns to ignore}
-                            {--report-format=console : Report format (console, json, html)}
+                            {--report-format=console : Report format (console, json, html, table)}
                             {--output-file= : Save report to file}
                             {--strict : Fail command on any mismatches}
                             {--suggestions : Include fix suggestions in output}';
@@ -110,7 +112,7 @@ class ValidateRoutesCommand extends Command
 
             // Save to file if requested
             if ($outputFile) {
-                $this->saveReport($result, $outputFile, $reportFormat);
+                $this->saveReport($result, $outputFile, $reportFormat, $suggestions);
             }
 
             // Handle strict mode
@@ -163,16 +165,25 @@ class ValidateRoutesCommand extends Command
      */
     private function displayResults(ValidationResult $result, string $format, bool $includeSuggestions): void
     {
-        if ($format === 'json') {
-            $jsonOutput = json_encode($result->toArray(), JSON_PRETTY_PRINT);
-            if ($jsonOutput !== false) {
-                $this->line($jsonOutput);
-            }
+        // Use reporter factory for all formats except legacy console handling
+        if ($format !== 'console' || ReporterFactory::isSupported($format)) {
+            try {
+                $reporter = ReporterFactory::create($format);
+                $reportOptions = [
+                    'include_suggestions' => $includeSuggestions,
+                    'use_colors' => true,
+                ];
 
-            return;
+                $report = $reporter->generateReport($result, $reportOptions);
+                $this->line($report);
+
+                return;
+            } catch (InvalidArgumentException) {
+                $this->warn("Unsupported format '{$format}', falling back to console format");
+            }
         }
 
-        // Console format
+        // Fallback to legacy console format
         $this->displayConsoleSummary($result);
 
         if (! $result->isValid) {
@@ -274,13 +285,29 @@ class ValidateRoutesCommand extends Command
     /**
      * Save report to file
      */
-    private function saveReport(ValidationResult $result, string $filename, string $format): void
+    private function saveReport(ValidationResult $result, string $filename, string $format, bool $includeSuggestions): void
     {
-        $content = match ($format) {
-            'json' => json_encode($result->toArray(), JSON_PRETTY_PRINT),
-            'console' => $this->generateTextReport($result),
-            default => $this->generateTextReport($result),
-        };
+        try {
+            $reporter = ReporterFactory::create($format);
+            $reportOptions = [
+                'include_suggestions' => $includeSuggestions,
+                'use_colors' => false, // Disable colors for file output
+            ];
+
+            $content = $reporter->generateReport($result, $reportOptions);
+
+            // Add appropriate file extension if not provided
+            if (pathinfo($filename, PATHINFO_EXTENSION) === '' || pathinfo($filename, PATHINFO_EXTENSION) === '0') {
+                $extension = $reporter->getFileExtension();
+                $filename .= ".{$extension}";
+            }
+        } catch (InvalidArgumentException) {
+            // Fall back to legacy text format
+            $content = $this->generateTextReport($result);
+            if (pathinfo($filename, PATHINFO_EXTENSION) === '' || pathinfo($filename, PATHINFO_EXTENSION) === '0') {
+                $filename .= '.txt';
+            }
+        }
 
         file_put_contents($filename, $content);
         $this->info("Report saved to: {$filename}");

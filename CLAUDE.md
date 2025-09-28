@@ -149,7 +149,7 @@ php artisan openapi-to-laravel:validate-routes spec.json --include-pattern="api/
 php artisan openapi-to-laravel:validate-routes spec.yaml --exclude-middleware="web" --exclude-middleware="guest"
 
 # Generate multiple report formats
-php artisan openapi-to-laravel:validate-routes spec.json --report-format=console,json,html --output-file=validation-report
+php artisan openapi-to-laravel:validate-routes spec.json --report-format=console,json,html,table --output-file=validation-report
 ```
 
 ### Command Options
@@ -157,7 +157,7 @@ php artisan openapi-to-laravel:validate-routes spec.json --report-format=console
 - `--include-pattern=PATTERN`: Route URI patterns to include (supports wildcards, can be used multiple times)
 - `--exclude-middleware=MIDDLEWARE`: Middleware groups to exclude from validation (can be used multiple times)
 - `--ignore-route=PATTERN`: Route names/patterns to ignore (supports wildcards, can be used multiple times)
-- `--report-format=FORMAT`: Report format(s): console, json, html (default: console)
+- `--report-format=FORMAT`: Report format(s): console, json, html, table (default: console)
 - `--output-file=FILE`: Save report to file (extension determined by format)
 - `--strict`: Fail command execution on any mismatches (useful for CI/CD)
 - `--suggestions`: Include actionable fix suggestions in output
@@ -192,6 +192,34 @@ MISSING IMPLEMENTATION (1)
   Method: POST
   Suggestions:
     • Implement route 'POST /api/users/{id}/reset-password' in Laravel
+```
+
+**Table Format:**
+```
+Route Validation Table Report
+Generated: 2024-01-15 10:30:45
+
+┌────────┬─────────────────────────────┬─────────────────┬─────────────────┬──────────────────┐
+│ Method │ Path                        │ Laravel Params  │ OpenAPI Params  │ Status           │
+├────────┼─────────────────────────────┼─────────────────┼─────────────────┼──────────────────┤
+│ GET    │ /api/users                  │ []              │ []              │ ✓ Match          │
+│ POST   │ /api/users                  │ []              │ []              │ ✓ Match          │
+│ GET    │ /api/users/{id}             │ [id]            │ [id]            │ ✓ Match          │
+│ PUT    │ /api/users/{id}             │ [id]            │ [id]            │ ⚠ Param Mismatch │
+│ GET    │ /api/users/{id}/avatar      │ [id]            │ -               │ ✗ Missing Doc    │
+│ POST   │ /api/users/{id}/reset-pass… │ -               │ [id]            │ ✗ Missing Impl   │
+└────────┴─────────────────────────────┴─────────────────┴─────────────────┴──────────────────┘
+
+SUMMARY
+-------
+Total items: 6
+Matched: 3 (50.0%)
+Issues: 3
+
+Issue breakdown:
+  Missing documentation: 1
+  Missing implementation: 1
+  Parameter mismatches: 1
 ```
 
 ### Integration with CI/CD

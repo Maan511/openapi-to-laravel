@@ -220,14 +220,17 @@ describe('ValidateRoutesCommand', function (): void {
             $outputMock->shouldIgnoreMissing();
             $this->validateCommand->setOutput($outputMock);
 
-            $method->invoke($this->validateCommand, $validationResult, $tempFile, 'json');
+            $method->invoke($this->validateCommand, $validationResult, $tempFile, 'json', false);
 
             expect(file_exists($tempFile))->toBeTrue();
             $content = file_get_contents($tempFile);
             expect($content)->not->toBeFalse();
+
+            // Debug: check if content is actually JSON
             $decoded = json_decode((string) $content, true);
-            expect($decoded)->toBeArray();
-            expect($decoded['isValid'])->toBeTrue();
+            expect($decoded)->toBeArray()
+                ->and($decoded)->toHaveKey('validation')
+                ->and($decoded['validation']['status'])->toBe('passed');
 
             unlink($tempFile);
         });
@@ -259,7 +262,7 @@ describe('ValidateRoutesCommand', function (): void {
             $outputMock->shouldIgnoreMissing();
             $this->validateCommand->setOutput($outputMock);
 
-            $method->invoke($this->validateCommand, $validationResult, $tempFile, 'console');
+            $method->invoke($this->validateCommand, $validationResult, $tempFile, 'console', false);
 
             expect(file_exists($tempFile))->toBeTrue();
             $content = file_get_contents($tempFile);

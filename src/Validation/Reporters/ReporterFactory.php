@@ -18,6 +18,8 @@ class ReporterFactory
         'txt' => ConsoleReporter::class,
         'json' => JsonReporter::class,
         'html' => HtmlReporter::class,
+        'table' => TableReporter::class,
+        'tbl' => TableReporter::class,
     ];
 
     /**
