@@ -168,6 +168,20 @@ class EndpointDefinition
     }
 
     /**
+     * Get normalized signature with generic parameter placeholders for matching
+     */
+    public function getNormalizedSignature(): string
+    {
+        // Replace parameter names with generic placeholders
+        $paramCounter = 1;
+        $normalizedPath = preg_replace_callback('/\{[^}]+\}/', function () use (&$paramCounter): string {
+            return '{param' . $paramCounter++ . '}';
+        }, $this->path) ?? $this->path;
+
+        return strtoupper($this->method) . ':' . $normalizedPath;
+    }
+
+    /**
      * Get all tags as comma-separated string
      */
     public function getTagsString(): string
