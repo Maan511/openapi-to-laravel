@@ -237,4 +237,66 @@ describe('RouteValidator', function (): void {
         expect($missingDocs)->toHaveCount(1);
         expect($missingDocs[0]->message)->toContain('api/users');
     });
+
+    it('applies include patterns to both routes and endpoints', function (): void {
+        // Create routes - one matching pattern, one not
+        $matchingRoute = new LaravelRoute(
+            uri: 'api/users',
+            methods: ['GET'],
+            name: 'api.users.index',
+            action: 'App\Http\Controllers\Api\UserController@index',
+            middleware: ['api']
+        );
+
+        $nonMatchingRoute = new LaravelRoute(
+            uri: 'api/posts',
+            methods: ['GET'],
+            name: 'api.posts.index',
+            action: 'App\Http\Controllers\Api\PostController@index',
+            middleware: ['api']
+        );
+
+        // Create endpoints - one matching pattern, one not
+        $matchingEndpoint = new EndpointDefinition(
+            path: '/api/users',
+            method: 'POST',
+            operationId: 'createUser'
+        );
+
+        $nonMatchingEndpoint = new EndpointDefinition(
+            path: '/api/posts',
+            method: 'POST',
+            operationId: 'createPost'
+        );
+
+        // Test with include pattern that should only match /api/users
+        $options = [
+            'include_patterns' => ['/api/users*'],
+        ];
+
+        $result = $this->validator->validateRoutes(
+            [$matchingRoute, $nonMatchingRoute],
+            [$matchingEndpoint, $nonMatchingEndpoint],
+            $options
+        );
+
+        // Should only find mismatches for items matching the pattern
+        $mismatches = $result->mismatches;
+        
+        // We should have:
+        // 1. Missing documentation for matching route (GET /api/users)
+        // 2. Missing implementation for matching endpoint (POST /api/users)
+        // Non-matching items should be filtered out
+        expect($mismatches)->toHaveCount(2);
+
+        $missingDocs = $result->getMismatchesByType(RouteMismatch::TYPE_MISSING_DOCUMENTATION);
+        $missingImpl = $result->getMismatchesByType(RouteMismatch::TYPE_MISSING_IMPLEMENTATION);
+
+        expect($missingDocs)->toHaveCount(1);
+        expect($missingImpl)->toHaveCount(1);
+
+        // Verify that only /api/users related mismatches are present
+        expect($missingDocs[0]->path)->toContain('/api/users');
+        expect($missingImpl[0]->path)->toContain('/api/users');
+    });
 });

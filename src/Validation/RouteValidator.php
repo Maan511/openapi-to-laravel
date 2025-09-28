@@ -44,6 +44,11 @@ class RouteValidator
 
             $endpoints = $this->openApiParser->extractEndpoints($specification, $basePath);
 
+            // Filter endpoints by include patterns if specified
+            if (isset($options['include_patterns']) && !empty($options['include_patterns'])) {
+                $endpoints = $this->filterEndpointsByPatterns($endpoints, $options['include_patterns']);
+            }
+
             // Collect Laravel routes
             $laravelRoutes = $this->routeCollector->collect($options);
 
@@ -65,6 +70,11 @@ class RouteValidator
      */
     public function validateRoutes(array $laravelRoutes, array $endpoints, array $options = []): ValidationResult
     {
+        // Filter endpoints by include patterns if specified
+        if (isset($options['include_patterns']) && !empty($options['include_patterns'])) {
+            $endpoints = $this->filterEndpointsByPatterns($endpoints, $options['include_patterns']);
+        }
+
         return $this->performValidation($laravelRoutes, $endpoints, $options);
     }
 
@@ -397,5 +407,24 @@ class RouteValidator
         }
 
         return $route->isApiRoute();
+    }
+
+    /**
+     * Filter endpoints by include patterns
+     *
+     * @param  array<EndpointDefinition>  $endpoints
+     * @param  array<string>  $includePatterns
+     * @return array<EndpointDefinition>
+     */
+    private function filterEndpointsByPatterns(array $endpoints, array $includePatterns): array
+    {
+        return array_filter($endpoints, function (EndpointDefinition $endpoint) use ($includePatterns) {
+            foreach ($includePatterns as $pattern) {
+                if (fnmatch($pattern, $endpoint->path)) {
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 }
