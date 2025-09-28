@@ -99,20 +99,42 @@ describe('RouteValidator', function (): void {
             ->and($result->getMismatchesByType(RouteMismatch::TYPE_METHOD_MISMATCH))->toHaveCount(1);
     });
 
-    it('validates successfully even with different parameter names when paths differ', function (): void {
-        // Since different parameter names result in different normalized paths,
-        // they would be treated as missing documentation/implementation rather than parameter mismatches
+    it('matches routes with different parameter names correctly', function (): void {
+        // Routes with different parameter names but same structure should now match
         $route = new LaravelRoute(
-            uri: 'api/users/{user_id}/posts/{post_id}',
-            methods: ['GET'],
-            name: 'users.posts.show',
-            action: 'App\Http\Controllers\PostController@show',
+            uri: 'api/pospayments/{id}/articles/{articleid}',
+            methods: ['PUT'],
+            name: 'pospayments.articles.update',
+            action: 'App\Http\Controllers\PosPaymentController@updateArticle',
             middleware: ['api'],
-            pathParameters: ['user_id', 'post_id']
+            pathParameters: ['id', 'articleid']
         );
 
         $endpoint = new EndpointDefinition(
-            path: '/api/users/{user_id}/posts/{article_id}',
+            path: '/api/pospayments/{paymentId}/articles/{paymentArticleId}',
+            method: 'PUT',
+            operationId: 'updatePaymentArticle'
+        );
+
+        $result = $this->validator->validateRoutes([$route], [$endpoint]);
+
+        expect($result->isValid)->toBeTrue()
+            ->and($result->getMismatchCount())->toBe(0);
+    });
+
+    it('still detects actual parameter structure differences', function (): void {
+        // Routes with different parameter counts should still be detected as mismatches
+        $route = new LaravelRoute(
+            uri: 'api/users/{user_id}/posts',
+            methods: ['GET'],
+            name: 'users.posts.index',
+            action: 'App\Http\Controllers\PostController@index',
+            middleware: ['api'],
+            pathParameters: ['user_id']
+        );
+
+        $endpoint = new EndpointDefinition(
+            path: '/api/users/{userId}/posts/{postId}',
             method: 'GET',
             operationId: 'getUserPost'
         );

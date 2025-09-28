@@ -298,6 +298,29 @@ class RouteComparator
     }
 
     /**
+     * Create normalized path with generic parameter placeholders
+     */
+    public function createNormalizedPath(string $path): string
+    {
+        $normalizedPath = $this->normalizePath($path);
+
+        // Extract parameter positions and replace with generic placeholders
+        $paramCounter = 1;
+
+        return preg_replace_callback('/\{[^}]+\}/', function () use (&$paramCounter): string {
+            return '{param' . $paramCounter++ . '}';
+        }, $normalizedPath) ?? $normalizedPath;
+    }
+
+    /**
+     * Create normalized signature with generic parameter placeholders
+     */
+    public function createNormalizedSignature(string $method, string $path): string
+    {
+        return $this->normalizeMethod($method) . ':' . $this->createNormalizedPath($path);
+    }
+
+    /**
      * Batch compare routes and endpoints for exact matches
      *
      * @param  array<LaravelRoute>  $routes
