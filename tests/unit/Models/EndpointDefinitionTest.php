@@ -130,6 +130,30 @@ describe('EndpointDefinition', function (): void {
             expect($endpoint->operationId)->toBe('getUsersId');
         });
 
+        it('should generate operation ID handling hyphens in path segments', function (): void {
+            $operation = [];
+
+            $endpoint = EndpointDefinition::fromOperation(
+                '/close-days',
+                'get',
+                $operation
+            );
+
+            expect($endpoint->operationId)->toBe('getCloseDays');
+        });
+
+        it('should generate operation ID handling underscores and hyphens in path segments', function (): void {
+            $operation = [];
+
+            $endpoint = EndpointDefinition::fromOperation(
+                '/user-profiles/detailed_info/{id}',
+                'post',
+                $operation
+            );
+
+            expect($endpoint->operationId)->toBe('postUserProfilesDetailedInfoId');
+        });
+
         it('should handle malformed operation data gracefully', function (): void {
             $operation = [
                 'summary' => 123, // Invalid type

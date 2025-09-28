@@ -239,7 +239,10 @@ class EndpointDefinition
 
         $operationId = strtolower($method);
         foreach ($parts as $part) {
-            $operationId .= ucfirst(strtolower($part));
+            // Handle hyphens and underscores in path segments
+            $part = preg_replace('/[_\-]/', ' ', $part) ?? $part;
+            $part = ucwords(strtolower($part));
+            $operationId .= str_replace(' ', '', $part);
         }
 
         return $operationId;
