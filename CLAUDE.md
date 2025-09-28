@@ -195,32 +195,45 @@ MISSING IMPLEMENTATION (1)
 ```
 
 **Table Format:**
+
+The table format now uses Laravel's native table output for better terminal compatibility and automatic text overflow handling. The output adapts to your terminal width automatically.
+
 ```
-Route Validation Table Report
+Route Validation Report
 Generated: 2024-01-15 10:30:45
 
-┌────────┬─────────────────────────────┬─────────────────┬─────────────────┬──────────────────┐
-│ Method │ Path                        │ Laravel Params  │ OpenAPI Params  │ Status           │
-├────────┼─────────────────────────────┼─────────────────┼─────────────────┼──────────────────┤
-│ GET    │ /api/users                  │ []              │ []              │ ✓ Match          │
-│ POST   │ /api/users                  │ []              │ []              │ ✓ Match          │
-│ GET    │ /api/users/{id}             │ [id]            │ [id]            │ ✓ Match          │
-│ PUT    │ /api/users/{id}             │ [id]            │ [id]            │ ⚠ Param Mismatch │
-│ GET    │ /api/users/{id}/avatar      │ [id]            │ -               │ ✗ Missing Doc    │
-│ POST   │ /api/users/{id}/reset-pass… │ -               │ [id]            │ ✗ Missing Impl   │
-└────────┴─────────────────────────────┴─────────────────┴─────────────────┴──────────────────┘
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
+| Method | Path                          | Laravel Params  | OpenAPI Params  | Source  | Status           |
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
+| GET    | /api/users                    | []              | []              | Both    | ✓ Match          |
+| POST   | /api/users                    | []              | []              | Both    | ✓ Match          |
+| GET    | /api/users/{id}               | [id]            | [id]            | Both    | ✓ Match          |
+| PUT    | /api/users/{id}               | [id]            | [id]            | Both    | ⚠ Param Mismatch |
+| GET    | /api/users/{id}/avatar        | [id]            | []              | Laravel | ✗ Missing Doc    |
+| POST   | /api/users/{id}/reset-pass... | []              | [id]            | OpenAPI | ✗ Missing Impl   |
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
 
 SUMMARY
 -------
-Total items: 6
-Matched: 3 (50.0%)
-Issues: 3
+Laravel Routes: 5 total, 4 covered (80.0%)
+OpenAPI Endpoints: 4 total, 3 covered (75.0%)
+Overall Coverage: 7/9 (77.8%)
+Total Issues: 3
+
+✗ Found 3 mismatch(es)
 
 Issue breakdown:
   Missing documentation: 1
   Missing implementation: 1
   Parameter mismatches: 1
 ```
+
+**Key Features:**
+- **Automatic text overflow handling**: Laravel's table method automatically wraps long text and adjusts to terminal width
+- **Source column**: Shows whether each route comes from Laravel, OpenAPI, or both
+- **Detailed coverage statistics**: Separate coverage percentages for Laravel routes and OpenAPI endpoints
+- **Better terminal compatibility**: Uses Laravel's native table formatting that works across different terminals
+- **Automatic column sizing**: No manual width calculations needed
 
 ### Integration with CI/CD
 
