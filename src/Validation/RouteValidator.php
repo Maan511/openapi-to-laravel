@@ -15,11 +15,15 @@ use Maan511\OpenapiToLaravel\Parser\ServerPathExtractor;
  */
 class RouteValidator
 {
+    private readonly ServerPathExtractor $serverPathExtractor;
+
     public function __construct(
         private readonly LaravelRouteCollector $routeCollector,
         private readonly OpenApiParser $openApiParser,
-        private readonly ServerPathExtractor $serverPathExtractor = new ServerPathExtractor
-    ) {}
+        ?ServerPathExtractor $serverPathExtractor = null
+    ) {
+        $this->serverPathExtractor = $serverPathExtractor ?? new ServerPathExtractor;
+    }
 
     /**
      * Validate routes against OpenAPI specification

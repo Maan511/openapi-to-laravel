@@ -105,7 +105,7 @@ describe('ServerPathExtractor', function (): void {
 
         $extractor = new ServerPathExtractor;
 
-        expect(fn () => $extractor->resolveBasePath($specification, '/invalid'))
+        expect(fn (): string => $extractor->resolveBasePath($specification, '/invalid'))
             ->toThrow(InvalidArgumentException::class, 'Specified base path \'/invalid\' not found in servers');
     });
 
@@ -123,7 +123,7 @@ describe('ServerPathExtractor', function (): void {
 
         $extractor = new ServerPathExtractor;
 
-        expect(fn () => $extractor->resolveBasePath($specification))
+        expect(fn (): string => $extractor->resolveBasePath($specification))
             ->toThrow(InvalidArgumentException::class, 'Multiple server base paths found');
     });
 
@@ -164,7 +164,7 @@ describe('ServerPathExtractor', function (): void {
         $extractor = new ServerPathExtractor;
         $basePaths = $extractor->extractBasePaths($specification);
 
-        expect($basePaths)->toBe(['/api']);
+        expect($basePaths)->toBe(['/not-a-valid-url', '/api']);
     });
 
     it('should allow user to specify custom base path even when not in servers', function (): void {

@@ -16,7 +16,7 @@ class OpenApiSpecification
         public readonly array $paths,
         /** @var array<string, mixed> */
         public readonly array $components = [],
-        /** @var array<string, mixed> */
+        /** @var array<int, array<string, mixed>> */
         public readonly array $servers = []
     ) {
         // Minimal validation in constructor to allow test scenarios
@@ -36,7 +36,7 @@ class OpenApiSpecification
             info: self::validateArray($spec['info'] ?? []),
             paths: self::validateArray($spec['paths'] ?? []),
             components: self::validateArray($spec['components'] ?? []),
-            servers: self::validateArray($spec['servers'] ?? [])
+            servers: self::validateServersArray($spec['servers'] ?? [])
         );
     }
 
@@ -214,6 +214,28 @@ class OpenApiSpecification
     {
         if (is_array($value)) {
             return $value;
+        }
+
+        return [];
+    }
+
+    /**
+     * Validate and cast servers array
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private static function validateServersArray(mixed $value): array
+    {
+        if (is_array($value)) {
+            // Ensure all elements are arrays and reindex
+            $servers = [];
+            foreach ($value as $server) {
+                if (is_array($server)) {
+                    $servers[] = $server;
+                }
+            }
+
+            return $servers;
         }
 
         return [];
