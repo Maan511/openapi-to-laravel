@@ -149,7 +149,7 @@ php artisan openapi-to-laravel:validate-routes spec.json --include-pattern="api/
 php artisan openapi-to-laravel:validate-routes spec.yaml --exclude-middleware="web" --exclude-middleware="guest"
 
 # Generate multiple report formats
-php artisan openapi-to-laravel:validate-routes spec.json --report-format=console,json,html --output-file=validation-report
+php artisan openapi-to-laravel:validate-routes spec.json --report-format=console,json,html,table --output-file=validation-report
 ```
 
 ### Command Options
@@ -157,7 +157,7 @@ php artisan openapi-to-laravel:validate-routes spec.json --report-format=console
 - `--include-pattern=PATTERN`: Route URI patterns to include (supports wildcards, can be used multiple times)
 - `--exclude-middleware=MIDDLEWARE`: Middleware groups to exclude from validation (can be used multiple times)
 - `--ignore-route=PATTERN`: Route names/patterns to ignore (supports wildcards, can be used multiple times)
-- `--report-format=FORMAT`: Report format(s): console, json, html (default: console)
+- `--report-format=FORMAT`: Report format(s): console, json, html, table (default: console)
 - `--output-file=FILE`: Save report to file (extension determined by format)
 - `--strict`: Fail command execution on any mismatches (useful for CI/CD)
 - `--suggestions`: Include actionable fix suggestions in output
@@ -193,6 +193,47 @@ MISSING IMPLEMENTATION (1)
   Suggestions:
     • Implement route 'POST /api/users/{id}/reset-password' in Laravel
 ```
+
+**Table Format:**
+
+The table format now uses Laravel's native table output for better terminal compatibility and automatic text overflow handling. The output adapts to your terminal width automatically.
+
+```
+Route Validation Report
+Generated: 2024-01-15 10:30:45
+
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
+| Method | Path                          | Laravel Params  | OpenAPI Params  | Source  | Status           |
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
+| GET    | /api/users                    | []              | []              | Both    | ✓ Match          |
+| POST   | /api/users                    | []              | []              | Both    | ✓ Match          |
+| GET    | /api/users/{id}               | [id]            | [id]            | Both    | ✓ Match          |
+| PUT    | /api/users/{id}               | [id]            | [id]            | Both    | ⚠ Param Mismatch |
+| GET    | /api/users/{id}/avatar        | [id]            | []              | Laravel | ✗ Missing Doc    |
+| POST   | /api/users/{id}/reset-pass... | []              | [id]            | OpenAPI | ✗ Missing Impl   |
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
+
+SUMMARY
+-------
+Laravel Routes: 5 total, 4 covered (80.0%)
+OpenAPI Endpoints: 4 total, 3 covered (75.0%)
+Overall Coverage: 7/9 (77.8%)
+Total Issues: 3
+
+✗ Found 3 mismatch(es)
+
+Issue breakdown:
+  Missing documentation: 1
+  Missing implementation: 1
+  Parameter mismatches: 1
+```
+
+**Key Features:**
+- **Automatic text overflow handling**: Laravel's table method automatically wraps long text and adjusts to terminal width
+- **Source column**: Shows whether each route comes from Laravel, OpenAPI, or both
+- **Detailed coverage statistics**: Separate coverage percentages for Laravel routes and OpenAPI endpoints
+- **Better terminal compatibility**: Uses Laravel's native table formatting that works across different terminals
+- **Automatic column sizing**: No manual width calculations needed
 
 ### Integration with CI/CD
 

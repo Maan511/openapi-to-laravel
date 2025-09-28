@@ -7,6 +7,7 @@ use Maan511\OpenapiToLaravel\Validation\Reporters\ConsoleReporter;
 use Maan511\OpenapiToLaravel\Validation\Reporters\HtmlReporter;
 use Maan511\OpenapiToLaravel\Validation\Reporters\JsonReporter;
 use Maan511\OpenapiToLaravel\Validation\Reporters\ReporterFactory;
+use Maan511\OpenapiToLaravel\Validation\Reporters\TableReporter;
 
 describe('Validation Reporters', function (): void {
     beforeEach(function (): void {
@@ -164,10 +165,12 @@ describe('Validation Reporters', function (): void {
             $consoleReporter = ReporterFactory::create('console');
             $jsonReporter = ReporterFactory::create('json');
             $htmlReporter = ReporterFactory::create('html');
+            $tableReporter = ReporterFactory::create('table');
 
             expect($consoleReporter)->toBeInstanceOf(ConsoleReporter::class)
                 ->and($jsonReporter)->toBeInstanceOf(JsonReporter::class)
-                ->and($htmlReporter)->toBeInstanceOf(HtmlReporter::class);
+                ->and($htmlReporter)->toBeInstanceOf(HtmlReporter::class)
+                ->and($tableReporter)->toBeInstanceOf(TableReporter::class);
         });
 
         it('throws exception for unsupported format', function (): void {
@@ -180,11 +183,13 @@ describe('Validation Reporters', function (): void {
 
             expect($formats)->toContain('console')
                 ->and($formats)->toContain('json')
-                ->and($formats)->toContain('html');
+                ->and($formats)->toContain('html')
+                ->and($formats)->toContain('table');
         });
 
         it('checks format support', function (): void {
             expect(ReporterFactory::isSupported('json'))->toBeTrue()
+                ->and(ReporterFactory::isSupported('table'))->toBeTrue()
                 ->and(ReporterFactory::isSupported('xml'))->toBeFalse();
         });
 
@@ -199,13 +204,133 @@ describe('Validation Reporters', function (): void {
         it('returns correct file extensions', function (): void {
             expect(ReporterFactory::getFileExtension('console'))->toBe('txt')
                 ->and(ReporterFactory::getFileExtension('json'))->toBe('json')
-                ->and(ReporterFactory::getFileExtension('html'))->toBe('html');
+                ->and(ReporterFactory::getFileExtension('html'))->toBe('html')
+                ->and(ReporterFactory::getFileExtension('table'))->toBe('txt');
         });
 
         it('returns correct MIME types', function (): void {
             expect(ReporterFactory::getMimeType('console'))->toBe('text/plain')
                 ->and(ReporterFactory::getMimeType('json'))->toBe('application/json')
-                ->and(ReporterFactory::getMimeType('html'))->toBe('text/html');
+                ->and(ReporterFactory::getMimeType('html'))->toBe('text/html')
+                ->and(ReporterFactory::getMimeType('table'))->toBe('text/plain');
+        });
+    });
+
+    describe('TableReporter', function (): void {
+        beforeEach(function (): void {
+            $this->reporter = new TableReporter;
+        });
+
+        it('supports table formats', function (): void {
+            expect($this->reporter->supports('table'))->toBeTrue()
+                ->and($this->reporter->supports('tbl'))->toBeTrue()
+                ->and($this->reporter->supports('json'))->toBeFalse();
+        });
+
+        it('generates table report for failed validation', function (): void {
+            $report = $this->reporter->generateReport($this->result);
+
+            expect($report)->toContain('Route Validation Table Report')
+                ->and($report)->toContain('Generated:')
+                ->and($report)->toContain('Method')
+                ->and($report)->toContain('Path')
+                ->and($report)->toContain('Laravel Params')
+                ->and($report)->toContain('OpenAPI Params')
+                ->and($report)->toContain('Status')
+                ->and($report)->toContain('SUMMARY');
+        });
+
+        it('generates table report for successful validation', function (): void {
+            $report = $this->reporter->generateReport($this->successResult);
+
+            expect($report)->toContain('Route Validation Table Report')
+                ->and($report)->toContain('SUMMARY');
+        });
+
+        it('handles empty results', function (): void {
+            $emptyResult = ValidationResult::success();
+            $report = $this->reporter->generateReport($emptyResult);
+
+            expect($report)->toContain('Route Validation Table Report')
+                ->and($report)->toContain('No routes or endpoints found to validate');
+        });
+
+        it('includes table borders', function (): void {
+            $report = $this->reporter->generateReport($this->result);
+
+            expect($report)->toContain('┌')
+                ->and($report)->toContain('┬')
+                ->and($report)->toContain('┐')
+                ->and($report)->toContain('├')
+                ->and($report)->toContain('┼')
+                ->and($report)->toContain('┤')
+                ->and($report)->toContain('└')
+                ->and($report)->toContain('┴')
+                ->and($report)->toContain('┘')
+                ->and($report)->toContain('│')
+                ->and($report)->toContain('─');
+        });
+
+        it('shows validation status icons', function (): void {
+            $report = $this->reporter->generateReport($this->result);
+
+            // Should contain status indicators
+            expect($report)->toMatch('/[✓✗⚠]/');
+        });
+
+        it('includes summary statistics', function (): void {
+            $report = $this->reporter->generateReport($this->result);
+
+            expect($report)->toContain('SUMMARY')
+                ->and($report)->toContain('Total items:')
+                ->and($report)->toContain('Matched:')
+                ->and($report)->toContain('Issues:');
+        });
+
+        it('supports show_details option', function (): void {
+            $withDetails = $this->reporter->generateReport($this->result, ['show_details' => true]);
+            $withoutDetails = $this->reporter->generateReport($this->result, ['show_details' => false]);
+
+            // With details should have more columns
+            expect($withDetails)->toContain('Route Name')
+                ->and($withDetails)->toContain('Tags');
+
+            // Without details should not have these columns
+            expect($withoutDetails)->not->toContain('Route Name')
+                ->and($withoutDetails)->not->toContain('Tags');
+        });
+
+        it('respects max_width option', function (): void {
+            // Create a validation result with actual mismatches to generate table content
+            $route = new LaravelRoute(
+                uri: 'api/users/{id}',
+                methods: ['GET'],
+                name: 'users.show',
+                action: 'App\Http\Controllers\UserController@show',
+                middleware: ['api'],
+                pathParameters: ['id']
+            );
+
+            $mismatch = RouteMismatch::missingDocumentation($route);
+            $resultWithContent = ValidationResult::failed([$mismatch], [], ['total_routes' => 1, 'total_endpoints' => 0]);
+
+            $narrowReport = $this->reporter->generateReport($resultWithContent, ['max_width' => 60]);
+            $wideReport = $this->reporter->generateReport($resultWithContent, ['max_width' => 150]);
+
+            // Check that different max_width options produce different results
+            expect($narrowReport)->not->toBe($wideReport);
+
+            // Basic check that table content exists in both
+            expect($narrowReport)->toContain('Method')
+                ->and($wideReport)->toContain('Method');
+        });
+
+        it('returns correct file extension', function (): void {
+            expect($this->reporter->getFileExtension())->toBe('txt');
+        });
+
+        it('returns correct MIME type', function (): void {
+            expect($this->reporter->getMimeType())->toBe('text/plain');
         });
     });
 });
