@@ -22,6 +22,23 @@ parameters:
             message: '#Parameter .* expects .*, Mockery\\MockInterface given\.#'
             path: tests/unit/*
         # Nullable property access in tests where we control object creation
-        - 
+        -
             message: '#Cannot access property .* on .+\|null\.#'
             path: tests/unit/Models/*
+        # Laravel framework classes not available during static analysis in library context
+        -
+            message: '#Class Illuminate\\Routing\\Router not found\.#'
+        -
+            message: '#Function app not found\.#'
+        -
+            message: '#Used function app not found\.#'
+        -
+            message: '#Call to method .* on an unknown class Illuminate\\Routing\\Route\.#'
+        -
+            message: '#Parameter .* has invalid type Illuminate\\Routing\\Route\.#'
+        -
+            message: '#Parameter .* has invalid type Illuminate\\Routing\\Router\.#'
+        -
+            message: '#Property .* has unknown class Illuminate\\Routing\\Router as its type\.#'
+        -
+            message: '#Call to method .* on an unknown class Illuminate\\Routing\\Router\.#'

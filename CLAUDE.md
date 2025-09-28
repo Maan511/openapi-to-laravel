@@ -29,9 +29,19 @@ composer test
 # or
 composer format
 
+# Code quality validation (REQUIRED after ALL code changes)
+composer test:format    # Check code formatting
+composer analyse        # Run static analysis
+composer test:refactor  # Run refactoring validation
+composer test          # Run full test suite
+
 # Generate FormRequests from OpenAPI spec
 php artisan openapi-to-laravel:make-requests path/to/openapi.json
 php artisan openapi-to-laravel:make-requests spec.yaml --output=app/Http/Requests/Api --namespace="App\\Http\\Requests\\Api" --force --verbose
+
+# Validate routes against OpenAPI specification
+php artisan openapi-to-laravel:validate-routes path/to/openapi.json
+php artisan openapi-to-laravel:validate-routes spec.yaml --include-pattern="api/*" --exclude-middleware="web" --report-format=console,json --output-file=validation-report --strict --suggestions
 ```
 
 ## Architecture
@@ -58,8 +68,15 @@ The library follows a clean architecture with clear separation of concerns:
    - `ValidationRule`: Represents Laravel validation rules
    - `FormRequestClass`: Represents generated FormRequest class
 
-4. **Console** (`src/Console/`)
-   - `GenerateFormRequestsCommand`: Laravel Artisan command for CLI usage
+4. **Validation Layer** (`src/Validation/`)
+   - `RouteValidator`: Main route validation orchestrator
+   - `LaravelRouteCollector`: Extracts and normalizes Laravel application routes
+   - `RouteComparator`: Implements efficient route comparison logic
+   - `Reporters/`: Multiple output formats (Console, JSON, HTML)
+
+5. **Console** (`src/Console/`)
+   - `GenerateFormRequestsCommand`: Laravel Artisan command for FormRequest generation
+   - `ValidateRoutesCommand`: Laravel Artisan command for route validation
 
 ### Data Flow
 1. OpenAPI spec file → `OpenApiParser` → `OpenApiSpecification`
@@ -92,10 +109,112 @@ The project uses Laravel Pint for code formatting with custom rules defined in `
 - Specific rules for concatenation and method chaining
 
 ## Key Features
+
+### FormRequest Generation
 - Full OpenAPI 3.x specification support
 - Comprehensive validation rule mapping (string formats, constraints, arrays, objects)
 - Reference resolution with circular reference detection
 - Customizable output directories and namespaces
 - Dry-run mode for preview
 - Performance optimized for large specifications (100+ endpoints)
+
+### Route Validation
+- Validate that Laravel routes match OpenAPI specification endpoints
+- Detect missing documentation (routes not in OpenAPI spec)
+- Detect missing implementation (OpenAPI endpoints not in Laravel)
+- Identify method mismatches and parameter differences
+- Multiple output formats: Console, JSON, HTML
+- Configurable filtering by middleware, patterns, and domains
+- Detailed mismatch reporting with actionable suggestions
+- Performance optimized for large applications (100+ routes)
+
+### Testing & Quality Assurance
 - Generate test coverage reports using: ./vendor/bin/pest --coverage (or herd coverage ./vendor/bin/pest --coverage if using Laravel Herd)
+- **CRITICAL**: ALL code changes MUST be validated with: `composer test:format`, `composer analyse`, `composer test:refactor`, and `composer test` before committing
+
+## Route Validation
+
+The route validation feature ensures consistency between your Laravel application routes and OpenAPI specification endpoints. This is essential for API-first development and maintaining accurate documentation.
+
+### Basic Usage
+
+```bash
+# Validate all routes against OpenAPI specification
+php artisan openapi-to-laravel:validate-routes path/to/openapi.yaml
+
+# Validate with specific patterns
+php artisan openapi-to-laravel:validate-routes spec.json --include-pattern="api/*" --include-pattern="admin/api/*"
+
+# Exclude certain middleware groups
+php artisan openapi-to-laravel:validate-routes spec.yaml --exclude-middleware="web" --exclude-middleware="guest"
+
+# Generate multiple report formats
+php artisan openapi-to-laravel:validate-routes spec.json --report-format=console,json,html --output-file=validation-report
+```
+
+### Command Options
+
+- `--include-pattern=PATTERN`: Route URI patterns to include (supports wildcards, can be used multiple times)
+- `--exclude-middleware=MIDDLEWARE`: Middleware groups to exclude from validation (can be used multiple times)
+- `--ignore-route=PATTERN`: Route names/patterns to ignore (supports wildcards, can be used multiple times)
+- `--report-format=FORMAT`: Report format(s): console, json, html (default: console)
+- `--output-file=FILE`: Save report to file (extension determined by format)
+- `--strict`: Fail command execution on any mismatches (useful for CI/CD)
+- `--suggestions`: Include actionable fix suggestions in output
+
+### Validation Types
+
+1. **Missing Documentation**: Laravel routes that aren't documented in the OpenAPI specification
+2. **Missing Implementation**: OpenAPI endpoints that aren't implemented as Laravel routes
+3. **Method Mismatches**: Same path with different HTTP methods between routes and spec
+4. **Parameter Mismatches**: Different parameter requirements or naming
+
+### Example Output
+
+**Console Format:**
+```
+=== Route Validation Report ===
+Status: FAILED
+Total mismatches: 3
+
+=== Mismatches ===
+
+MISSING DOCUMENTATION (2)
+✗ Route 'GET:/api/users/{id}/avatar' is implemented but not documented
+  Path: /api/users/{id}/avatar
+  Method: GET
+  Suggestions:
+    • Add 'GET /api/users/{id}/avatar' to your OpenAPI specification
+
+MISSING IMPLEMENTATION (1)
+✗ Endpoint 'POST:/api/users/{id}/reset-password' is documented but not implemented
+  Path: /api/users/{id}/reset-password
+  Method: POST
+  Suggestions:
+    • Implement route 'POST /api/users/{id}/reset-password' in Laravel
+```
+
+### Integration with CI/CD
+
+Use the `--strict` flag to make validation failures break your CI/CD pipeline:
+
+```yaml
+# GitHub Actions example
+- name: Validate API Routes
+  run: php artisan openapi-to-laravel:validate-routes openapi.yaml --strict --report-format=json --output-file=route-validation.json
+```
+
+### Filtering and Configuration
+
+The validator automatically excludes common framework routes (Telescope, Horizon, Debugbar, etc.) and focuses on API routes. You can customize this behavior:
+
+```bash
+# Only validate specific API routes
+php artisan openapi-to-laravel:validate-routes spec.yaml --include-pattern="api/v1/*"
+
+# Exclude specific middleware
+php artisan openapi-to-laravel:validate-routes spec.yaml --exclude-middleware="web,guest"
+
+# Ignore specific routes
+php artisan openapi-to-laravel:validate-routes spec.yaml --ignore-route="api.health-check" --ignore-route="api.metrics"
+```

@@ -4,6 +4,7 @@ namespace Maan511\OpenapiToLaravel;
 
 use Illuminate\Support\ServiceProvider;
 use Maan511\OpenapiToLaravel\Console\GenerateFormRequestsCommand;
+use Maan511\OpenapiToLaravel\Console\ValidateRoutesCommand;
 use Override;
 
 /**
@@ -29,6 +30,7 @@ class OpenapiToLaravelServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 GenerateFormRequestsCommand::class,
+                ValidateRoutesCommand::class,
             ]);
         }
     }
