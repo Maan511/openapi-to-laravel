@@ -175,9 +175,13 @@ describe('RouteValidator', function (): void {
         $result = $this->validator->validateRoutes($routes, $endpoints);
 
         expect($result->statistics['total_routes'])->toBe(2)
+            ->and($result->statistics['covered_routes'])->toBe(1)
+            ->and($result->statistics['route_coverage_percentage'])->toBe(50.0)
             ->and($result->statistics['total_endpoints'])->toBe(1)
+            ->and($result->statistics['covered_endpoints'])->toBe(1)
+            ->and($result->statistics['endpoint_coverage_percentage'])->toBe(100.0)
             ->and($result->statistics['total_mismatches'])->toBe(1)
-            ->and($result->statistics['coverage_percentage'])->toBe(66.67);
+            ->and($result->statistics['total_coverage_percentage'])->toBe(66.67);
     });
 
     it('filters routes based on options', function (): void {
