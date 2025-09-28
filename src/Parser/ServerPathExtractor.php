@@ -17,10 +17,12 @@ class ServerPathExtractor
         $basePaths = [];
 
         foreach ($specification->servers as $server) {
-            if (! isset($server['url']) || ! is_string($server['url'])) {
+            if (! isset($server['url'])) {
                 continue;
             }
-
+            if (! is_string($server['url'])) {
+                continue;
+            }
             $basePath = $this->extractBasePathFromUrl($server['url']);
             if ($basePath !== '' && ! in_array($basePath, $basePaths)) {
                 $basePaths[] = $basePath;
@@ -84,8 +86,8 @@ class ServerPathExtractor
             return '';
         }
 
-        // Ensure URL has a valid scheme to be considered a proper server URL
-        if (! isset($parsedUrl['scheme']) || ! in_array($parsedUrl['scheme'], ['http', 'https'])) {
+        // Only reject URLs with invalid schemes; allow relative URLs without schemes
+        if (isset($parsedUrl['scheme']) && ! in_array($parsedUrl['scheme'], ['http', 'https'])) {
             return '';
         }
 
