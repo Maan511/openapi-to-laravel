@@ -303,4 +303,69 @@ describe('RouteValidator', function (): void {
         expect($missingDocsList[0]->path)->toContain('/api/users');
         expect($missingImplList[0]->path)->toContain('/api/users');
     });
+
+    it('calculates statistics correctly with filter_types option', function (): void {
+        // Create 2 routes and 1 endpoint - will generate multiple mismatch types
+        $route1 = new LaravelRoute(
+            uri: 'api/users',
+            methods: ['GET'],
+            name: 'api.users.index',
+            action: 'App\Http\Controllers\Api\UserController@index',
+            middleware: ['api']
+        );
+
+        $route2 = new LaravelRoute(
+            uri: 'api/posts',
+            methods: ['GET'],
+            name: 'api.posts.index',
+            action: 'App\Http\Controllers\Api\PostController@index',
+            middleware: ['api']
+        );
+
+        $endpoint = new EndpointDefinition(
+            path: '/api/products',
+            method: 'GET',
+            operationId: 'getProducts'
+        );
+
+        // Without filter - should have all mismatches
+        $resultNoFilter = $this->validator->validateRoutes(
+            [$route1, $route2],
+            [$endpoint],
+            []
+        );
+
+        // Should have 2 missing documentation + 1 missing implementation = 3 total
+        expect($resultNoFilter->getMismatchCount())->toBe(3)
+            ->and($resultNoFilter->statistics['total_mismatches'])->toBe(3)
+            ->and($resultNoFilter->statistics['total_routes'])->toBe(2)
+            ->and($resultNoFilter->statistics['total_endpoints'])->toBe(1)
+            ->and($resultNoFilter->statistics['covered_routes'])->toBe(0)
+            ->and($resultNoFilter->statistics['covered_endpoints'])->toBe(0);
+
+        // With filter for only missing-implementation
+        $resultFiltered = $this->validator->validateRoutes(
+            [$route1, $route2],
+            [$endpoint],
+            ['filter_types' => [RouteMismatch::TYPE_MISSING_IMPLEMENTATION]]
+        );
+
+        // Should have only 1 missing implementation (filtered)
+        expect($resultFiltered->getMismatchCount())->toBe(1)
+            ->and($resultFiltered->mismatches)->toHaveCount(1);
+
+        // Get the first mismatch
+        $firstMismatch = array_values($resultFiltered->mismatches)[0];
+        expect($firstMismatch->type)->toBe(RouteMismatch::TYPE_MISSING_IMPLEMENTATION);
+
+        // Statistics should reflect ONLY the filtered mismatches
+        expect($resultFiltered->statistics['total_mismatches'])->toBe(1)
+            ->and($resultFiltered->statistics['total_routes'])->toBe(2)
+            ->and($resultFiltered->statistics['total_endpoints'])->toBe(1)
+            // With only missing-implementation filtered:
+            // - covered_routes = 2 (no missing_documentation in filtered results)
+            // - covered_endpoints = 0 (1 missing_implementation)
+            ->and($resultFiltered->statistics['covered_routes'])->toBe(2)
+            ->and($resultFiltered->statistics['covered_endpoints'])->toBe(0);
+    });
 });

@@ -116,7 +116,7 @@ class RouteValidator
             $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
         }
 
-        // Generate statistics
+        // Generate statistics based on displayed mismatches
         $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches);
 
         return new ValidationResult(
