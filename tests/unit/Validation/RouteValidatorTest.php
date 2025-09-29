@@ -68,7 +68,7 @@ describe('RouteValidator', function (): void {
             ->and($result->getMismatchesByType(RouteMismatch::TYPE_MISSING_IMPLEMENTATION))->toHaveCount(1);
     });
 
-    it('detects method mismatches', function (): void {
+    it('detects missing documentation and implementation for different methods on same path', function (): void {
         $route1 = new LaravelRoute(
             uri: 'api/users/{id}',
             methods: ['GET'],
@@ -95,8 +95,10 @@ describe('RouteValidator', function (): void {
 
         $result = $this->validator->validateRoutes([$route1, $route2], [$endpoint]);
 
-        expect($result->isValid)->toBeFalse()
-            ->and($result->getMismatchesByType(RouteMismatch::TYPE_METHOD_MISMATCH))->toHaveCount(1);
+        expect($result->isValid)->toBeFalse();
+        // Should have 2 missing documentation (GET and PUT) and 1 missing implementation (POST)
+        expect($result->getMismatchesByType(RouteMismatch::TYPE_MISSING_DOCUMENTATION))->toHaveCount(2);
+        expect($result->getMismatchesByType(RouteMismatch::TYPE_MISSING_IMPLEMENTATION))->toHaveCount(1);
     });
 
     it('matches routes with different parameter names correctly', function (): void {
@@ -282,7 +284,7 @@ describe('RouteValidator', function (): void {
 
         // Should only find mismatches for items matching the pattern
         $mismatches = $result->mismatches;
-        
+
         // We should have:
         // 1. Missing documentation for matching route (GET /api/users)
         // 2. Missing implementation for matching endpoint (POST /api/users)
@@ -296,7 +298,9 @@ describe('RouteValidator', function (): void {
         expect($missingImpl)->toHaveCount(1);
 
         // Verify that only /api/users related mismatches are present
-        expect($missingDocs[0]->path)->toContain('/api/users');
-        expect($missingImpl[0]->path)->toContain('/api/users');
+        $missingDocsList = array_values($missingDocs);
+        $missingImplList = array_values($missingImpl);
+        expect($missingDocsList[0]->path)->toContain('/api/users');
+        expect($missingImplList[0]->path)->toContain('/api/users');
     });
 });

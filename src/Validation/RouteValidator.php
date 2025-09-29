@@ -90,6 +90,11 @@ class RouteValidator
         $mismatches = [];
         $warnings = [];
 
+        // Filter routes by include patterns if specified (before creating route map)
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
+            $laravelRoutes = array_filter($laravelRoutes, fn (LaravelRoute $route): bool => $this->shouldIncludeRoute($route, $options));
+        }
+
         // Create lookup maps for efficient comparison
         $routeMap = $this->createRouteMap($laravelRoutes);
         $endpointMap = $this->createEndpointMap($endpoints);
@@ -102,13 +107,14 @@ class RouteValidator
         $missingImpl = $this->findMissingImplementation($endpointMap, $routeMap);
         $mismatches = array_merge($mismatches, $missingImpl);
 
-        // Find method mismatches
-        $methodMismatches = $this->findMethodMismatches($routeMap, $endpointMap);
-        $mismatches = array_merge($mismatches, $methodMismatches);
-
-        // Find parameter mismatches
+        // Find parameter mismatches (for routes/endpoints that exist in both)
         $paramMismatches = $this->findParameterMismatches($routeMap, $endpointMap);
         $mismatches = array_merge($mismatches, $paramMismatches);
+
+        // Apply filtering if specified
+        if (! empty($options['filter_types'])) {
+            $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
+        }
 
         // Generate statistics
         $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches);
@@ -212,38 +218,6 @@ class RouteValidator
     }
 
     /**
-     * Find method mismatches between routes and endpoints
-     *
-     * @param  array<string, array<LaravelRoute>>  $routeMap
-     * @param  array<string, array<EndpointDefinition>>  $endpointMap
-     * @return array<RouteMismatch>
-     */
-    private function findMethodMismatches(array $routeMap, array $endpointMap): array
-    {
-        $mismatches = [];
-        $pathGroups = $this->groupByPath($routeMap, $endpointMap);
-
-        foreach ($pathGroups as $path => $data) {
-            $routeMethods = $data['route_methods'] ?? [];
-            $endpointMethods = $data['endpoint_methods'] ?? [];
-
-            if (! empty($routeMethods) && ! empty($endpointMethods)) {
-                // Normalize both arrays to handle order differences and duplicates
-                $normalizedRouteMethods = array_values(array_unique(array_map('strtoupper', $routeMethods)));
-                $normalizedEndpointMethods = array_values(array_unique(array_map('strtoupper', $endpointMethods)));
-                sort($normalizedRouteMethods);
-                sort($normalizedEndpointMethods);
-
-                if ($normalizedRouteMethods !== $normalizedEndpointMethods) {
-                    $mismatches[] = RouteMismatch::methodMismatch($path, $routeMethods, $endpointMethods);
-                }
-            }
-        }
-
-        return $mismatches;
-    }
-
-    /**
      * Find parameter mismatches between routes and endpoints
      *
      * @param  array<string, array<LaravelRoute>>  $routeMap
@@ -281,50 +255,6 @@ class RouteValidator
         }
 
         return $mismatches;
-    }
-
-    /**
-     * Group routes and endpoints by path for cross-comparison
-     *
-     * @param  array<string, array<LaravelRoute>>  $routeMap
-     * @param  array<string, array<EndpointDefinition>>  $endpointMap
-     * @return array<string, array{route_methods: array<string>, endpoint_methods: array<string>}>
-     */
-    private function groupByPath(array $routeMap, array $endpointMap): array
-    {
-        $groups = [];
-
-        // Process routes
-        foreach (array_keys($routeMap) as $signature) {
-            $signatureString = (string) $signature;
-            if (! str_contains($signatureString, ':')) {
-                continue; // Skip malformed signatures
-            }
-            [$method, $path] = explode(':', $signatureString, 2);
-            if (! isset($groups[$path])) {
-                $groups[$path] = ['route_methods' => [], 'endpoint_methods' => []];
-            }
-            if (! in_array($method, $groups[$path]['route_methods'])) {
-                $groups[$path]['route_methods'][] = $method;
-            }
-        }
-
-        // Process endpoints
-        foreach (array_keys($endpointMap) as $signature) {
-            $signatureString = (string) $signature;
-            if (! str_contains($signatureString, ':')) {
-                continue; // Skip malformed signatures
-            }
-            [$method, $path] = explode(':', $signatureString, 2);
-            if (! isset($groups[$path])) {
-                $groups[$path] = ['route_methods' => [], 'endpoint_methods' => []];
-            }
-            if (! in_array($method, $groups[$path]['endpoint_methods'])) {
-                $groups[$path]['endpoint_methods'][] = $method;
-            }
-        }
-
-        return $groups;
     }
 
     /**
@@ -406,6 +336,18 @@ class RouteValidator
             }
         }
 
+        // Apply include patterns if specified
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
+            $routePath = '/' . ltrim($route->getNormalizedPath(), '/');
+            foreach ($options['include_patterns'] as $pattern) {
+                if (fnmatch($pattern, $routePath)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         return $route->isApiRoute();
     }
 
@@ -418,13 +360,30 @@ class RouteValidator
      */
     private function filterEndpointsByPatterns(array $endpoints, array $includePatterns): array
     {
-        return array_filter($endpoints, function (EndpointDefinition $endpoint) use ($includePatterns) {
+        return array_filter($endpoints, function (EndpointDefinition $endpoint) use ($includePatterns): bool {
             foreach ($includePatterns as $pattern) {
                 if (fnmatch($pattern, $endpoint->path)) {
                     return true;
                 }
             }
+
             return false;
         });
+    }
+
+    /**
+     * Filter mismatches by specified types
+     *
+     * @param  array<RouteMismatch>  $mismatches
+     * @param  array<string>  $filterTypes
+     * @return array<RouteMismatch>
+     */
+    private function filterMismatchesByType(array $mismatches, array $filterTypes): array
+    {
+        if ($filterTypes === []) {
+            return $mismatches;
+        }
+
+        return array_filter($mismatches, fn (RouteMismatch $mismatch): bool => in_array($mismatch->type, $filterTypes));
     }
 }
