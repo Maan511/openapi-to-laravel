@@ -45,7 +45,7 @@ class RouteValidator
             $endpoints = $this->openApiParser->extractEndpoints($specification, $basePath);
 
             // Filter endpoints by include patterns if specified
-            if (isset($options['include_patterns']) && !empty($options['include_patterns'])) {
+            if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
                 $endpoints = $this->filterEndpointsByPatterns($endpoints, $options['include_patterns']);
             }
 
@@ -71,7 +71,7 @@ class RouteValidator
     public function validateRoutes(array $laravelRoutes, array $endpoints, array $options = []): ValidationResult
     {
         // Filter endpoints by include patterns if specified
-        if (isset($options['include_patterns']) && !empty($options['include_patterns'])) {
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
             $endpoints = $this->filterEndpointsByPatterns($endpoints, $options['include_patterns']);
         }
 
