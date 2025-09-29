@@ -100,6 +100,11 @@ class RouteValidator
         $paramMismatches = $this->findParameterMismatches($routeMap, $endpointMap);
         $mismatches = array_merge($mismatches, $paramMismatches);
 
+        // Apply filtering if specified
+        if (! empty($options['filter_types'])) {
+            $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
+        }
+
         // Generate statistics
         $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches);
 
@@ -397,5 +402,21 @@ class RouteValidator
         }
 
         return $route->isApiRoute();
+    }
+
+    /**
+     * Filter mismatches by specified types
+     *
+     * @param  array<RouteMismatch>  $mismatches
+     * @param  array<string>  $filterTypes
+     * @return array<RouteMismatch>
+     */
+    private function filterMismatchesByType(array $mismatches, array $filterTypes): array
+    {
+        if ($filterTypes === []) {
+            return $mismatches;
+        }
+
+        return array_filter($mismatches, fn (RouteMismatch $mismatch): bool => in_array($mismatch->type, $filterTypes));
     }
 }

@@ -35,7 +35,8 @@ class ValidateRoutesCommand extends Command
                             {--report-format=console : Report format (console, json, html, table)}
                             {--output-file= : Save report to file}
                             {--strict : Fail command on any mismatches}
-                            {--suggestions : Include fix suggestions in output}';
+                            {--suggestions : Include fix suggestions in output}
+                            {--filter-type=* : Filter by error type (missing-documentation, missing-implementation, method-mismatch, parameter-mismatch, path-mismatch, validation-error)}';
 
     /**
      * The console command description.
@@ -58,6 +59,8 @@ class ValidateRoutesCommand extends Command
         $excludeMiddleware = is_array($this->option('exclude-middleware')) ? $this->option('exclude-middleware') : [];
         /** @var array<string> $ignoreRoutes */
         $ignoreRoutes = is_array($this->option('ignore-route')) ? $this->option('ignore-route') : [];
+        /** @var array<string> $filterTypes */
+        $filterTypes = is_array($this->option('filter-type')) ? $this->option('filter-type') : [];
         /** @var string $reportFormat */
         $reportFormat = is_string($this->option('report-format')) ? $this->option('report-format') : 'console';
         /** @var string|null $outputFile */
@@ -89,6 +92,13 @@ class ValidateRoutesCommand extends Command
                 $this->info('Exclude middleware: ' . implode(', ', $excludeMiddleware));
             }
 
+            if (! empty($filterTypes)) {
+                $normalizedTypes = $this->normalizeFilterTypes($filterTypes);
+                if ($normalizedTypes !== []) {
+                    $this->info('Filter by types: ' . implode(', ', $normalizedTypes));
+                }
+            }
+
             // Validate inputs
             $validationResult = $this->validateInputs($specPath);
             if (! $validationResult['success']) {
@@ -103,6 +113,7 @@ class ValidateRoutesCommand extends Command
                 'include_patterns' => $includePatterns,
                 'exclude_middleware' => $excludeMiddleware,
                 'ignore_routes' => $ignoreRoutes,
+                'filter_types' => $this->normalizeFilterTypes($filterTypes),
             ];
 
             // Perform validation
@@ -621,5 +632,38 @@ class ValidateRoutesCommand extends Command
         }
 
         return $report;
+    }
+
+    /**
+     * Normalize filter types from user input to internal constants
+     *
+     * @param  array<string>  $filterTypes
+     * @return array<string>
+     */
+    private function normalizeFilterTypes(array $filterTypes): array
+    {
+        $typeMap = [
+            'missing-documentation' => RouteMismatch::TYPE_MISSING_DOCUMENTATION,
+            'missing-implementation' => RouteMismatch::TYPE_MISSING_IMPLEMENTATION,
+            'method-mismatch' => RouteMismatch::TYPE_METHOD_MISMATCH,
+            'parameter-mismatch' => RouteMismatch::TYPE_PARAMETER_MISMATCH,
+            'path-mismatch' => RouteMismatch::TYPE_PATH_MISMATCH,
+            'validation-error' => RouteMismatch::TYPE_VALIDATION_ERROR,
+        ];
+
+        $normalized = [];
+        foreach ($filterTypes as $type) {
+            $normalizedType = strtolower($type);
+            if (isset($typeMap[$normalizedType])) {
+                $normalized[] = $typeMap[$normalizedType];
+            } elseif (in_array($type, $typeMap)) {
+                // Allow direct usage of internal constants
+                $normalized[] = $type;
+            } else {
+                $this->warn("Invalid filter type: {$type}. Valid types: " . implode(', ', array_keys($typeMap)));
+            }
+        }
+
+        return array_unique($normalized);
     }
 }
