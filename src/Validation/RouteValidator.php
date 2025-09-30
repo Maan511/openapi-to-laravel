@@ -116,8 +116,8 @@ class RouteValidator
             $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
         }
 
-        // Generate statistics based on displayed mismatches
-        $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches);
+        // Generate statistics
+        $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches, ! empty($options['filter_types']));
 
         return new ValidationResult(
             isValid: $mismatches === [],
@@ -263,9 +263,10 @@ class RouteValidator
      * @param  array<LaravelRoute>  $routes
      * @param  array<EndpointDefinition>  $endpoints
      * @param  array<RouteMismatch>  $mismatches
+     * @param  bool  $isFiltered  Whether mismatches have been filtered
      * @return array<string, mixed>
      */
-    private function generateStatistics(array $routes, array $endpoints, array $mismatches): array
+    private function generateStatistics(array $routes, array $endpoints, array $mismatches, bool $isFiltered = false): array
     {
         $mismatchCounts = [];
         foreach ($mismatches as $mismatch) {
@@ -277,10 +278,18 @@ class RouteValidator
         $missingDocs = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_DOCUMENTATION));
         $missingImpl = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_IMPLEMENTATION));
 
-        $totalRoutes = count($routes);
-        $totalEndpoints = count($endpoints);
-        $coveredRoutes = $totalRoutes - $missingDocs;
-        $coveredEndpoints = $totalEndpoints - $missingImpl;
+        // When filtered, count based on filtered mismatches, not all routes/endpoints
+        if ($isFiltered) {
+            $totalRoutes = $missingDocs;
+            $totalEndpoints = $missingImpl;
+            $coveredRoutes = 0; // All filtered mismatches represent uncovered items
+            $coveredEndpoints = 0;
+        } else {
+            $totalRoutes = count($routes);
+            $totalEndpoints = count($endpoints);
+            $coveredRoutes = max(0, $totalRoutes - $missingDocs);
+            $coveredEndpoints = max(0, $totalEndpoints - $missingImpl);
+        }
 
         $routeCoveragePercentage = $totalRoutes > 0 ? round(($coveredRoutes / $totalRoutes) * 100, 2) : 100.0;
         $endpointCoveragePercentage = $totalEndpoints > 0 ? round(($coveredEndpoints / $totalEndpoints) * 100, 2) : 100.0;
@@ -294,28 +303,21 @@ class RouteValidator
             'endpoint_coverage_percentage' => $endpointCoveragePercentage,
             'total_mismatches' => count($mismatches),
             'mismatch_breakdown' => $mismatchCounts,
-            'total_coverage_percentage' => $this->calculateCoverage($routes, $endpoints, $mismatches),
+            'total_coverage_percentage' => $this->calculateCoverage($totalRoutes, $totalEndpoints, $coveredRoutes, $coveredEndpoints),
         ];
     }
 
     /**
      * Calculate coverage percentage
-     *
-     * @param  array<LaravelRoute>  $routes
-     * @param  array<EndpointDefinition>  $endpoints
-     * @param  array<RouteMismatch>  $mismatches
      */
-    private function calculateCoverage(array $routes, array $endpoints, array $mismatches): float
+    private function calculateCoverage(int $totalRoutes, int $totalEndpoints, int $coveredRoutes, int $coveredEndpoints): float
     {
-        $totalItems = count($routes) + count($endpoints);
+        $totalItems = $totalRoutes + $totalEndpoints;
         if ($totalItems === 0) {
             return 100.0;
         }
 
-        $missingDocs = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_DOCUMENTATION));
-        $missingImpl = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_IMPLEMENTATION));
-
-        $coveredItems = $totalItems - $missingDocs - $missingImpl;
+        $coveredItems = $coveredRoutes + $coveredEndpoints;
 
         return round(($coveredItems / $totalItems) * 100, 2);
     }

@@ -359,13 +359,14 @@ describe('RouteValidator', function (): void {
         expect($firstMismatch->type)->toBe(RouteMismatch::TYPE_MISSING_IMPLEMENTATION);
 
         // Statistics should reflect ONLY the filtered mismatches
+        // When filtering by missing-implementation only, statistics are based on filtered mismatches
         expect($resultFiltered->statistics['total_mismatches'])->toBe(1)
-            ->and($resultFiltered->statistics['total_routes'])->toBe(2)
-            ->and($resultFiltered->statistics['total_endpoints'])->toBe(1)
+            ->and($resultFiltered->statistics['total_routes'])->toBe(0) // No missing-documentation in filtered results
+            ->and($resultFiltered->statistics['total_endpoints'])->toBe(1) // 1 missing-implementation
             // With only missing-implementation filtered:
-            // - covered_routes = 2 (no missing_documentation in filtered results)
-            // - covered_endpoints = 0 (1 missing_implementation)
-            ->and($resultFiltered->statistics['covered_routes'])->toBe(2)
+            // - covered_routes = 0 (no routes in filtered results)
+            // - covered_endpoints = 0 (all filtered endpoints are missing implementation)
+            ->and($resultFiltered->statistics['covered_routes'])->toBe(0)
             ->and($resultFiltered->statistics['covered_endpoints'])->toBe(0);
     });
 });
