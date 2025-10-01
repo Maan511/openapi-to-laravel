@@ -369,4 +369,52 @@ describe('RouteValidator', function (): void {
             ->and($resultFiltered->statistics['covered_routes'])->toBe(0)
             ->and($resultFiltered->statistics['covered_endpoints'])->toBe(0);
     });
+
+    it('sorts mismatches by path then by intuitive method order', function (): void {
+        // Create endpoints with different methods for the same path
+        $endpoint1 = new EndpointDefinition(
+            path: '/api/users',
+            method: 'DELETE',
+            operationId: 'deleteUser',
+            summary: 'Delete user'
+        );
+        $endpoint2 = new EndpointDefinition(
+            path: '/api/users',
+            method: 'GET',
+            operationId: 'getUsers',
+            summary: 'Get users'
+        );
+        $endpoint3 = new EndpointDefinition(
+            path: '/api/users',
+            method: 'POST',
+            operationId: 'createUser',
+            summary: 'Create user'
+        );
+        $endpoint4 = new EndpointDefinition(
+            path: '/api/users',
+            method: 'PUT',
+            operationId: 'updateUser',
+            summary: 'Update user'
+        );
+        $endpoint5 = new EndpointDefinition(
+            path: '/api/users',
+            method: 'PATCH',
+            operationId: 'patchUser',
+            summary: 'Patch user'
+        );
+
+        $result = $this->validator->validateRoutes(
+            [],
+            [$endpoint1, $endpoint2, $endpoint3, $endpoint4, $endpoint5]
+        );
+
+        // All endpoints should be missing implementation
+        expect($result->getMismatchCount())->toBe(5);
+
+        // Extract methods from mismatches in order
+        $methods = array_map(fn ($mismatch) => $mismatch->method, array_values($result->mismatches));
+
+        // Should be ordered: GET, POST, PUT, PATCH, DELETE (intuitive order, not alphabetical)
+        expect($methods)->toBe(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
+    });
 });
