@@ -111,17 +111,8 @@ class LaravelRouteCollector
         }
 
         // Apply include patterns
-        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
-            $included = false;
-            foreach ($options['include_patterns'] as $pattern) {
-                if (fnmatch($pattern, $route->uri())) {
-                    $included = true;
-                    break;
-                }
-            }
-            if (! $included) {
-                return false;
-            }
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns']) && ! PatternMatcher::matchesAny($options['include_patterns'], $route->uri())) {
+            return false;
         }
 
         // Apply exclude patterns
