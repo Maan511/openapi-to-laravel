@@ -339,14 +339,7 @@ class RouteValidator
         }
 
         // Apply include patterns if specified
-        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
-            $routePath = '/' . ltrim($route->getNormalizedPath(), '/');
-            foreach ($options['include_patterns'] as $pattern) {
-                if (fnmatch($pattern, $routePath)) {
-                    return true;
-                }
-            }
-
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns']) && ! PatternMatcher::matchesAny($options['include_patterns'], $route->getNormalizedPath())) {
             return false;
         }
 
@@ -362,15 +355,7 @@ class RouteValidator
      */
     private function filterEndpointsByPatterns(array $endpoints, array $includePatterns): array
     {
-        return array_filter($endpoints, function (EndpointDefinition $endpoint) use ($includePatterns): bool {
-            foreach ($includePatterns as $pattern) {
-                if (fnmatch($pattern, $endpoint->path)) {
-                    return true;
-                }
-            }
-
-            return false;
-        });
+        return array_filter($endpoints, fn (EndpointDefinition $endpoint): bool => PatternMatcher::matchesAny($includePatterns, $endpoint->path));
     }
 
     /**

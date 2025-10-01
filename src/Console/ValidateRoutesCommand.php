@@ -637,30 +637,44 @@ class ValidateRoutesCommand extends Command
     /**
      * Normalize filter types from user input to internal constants
      *
+     * Accepts both dash-separated (missing-documentation) and underscore-separated (missing_documentation) formats
+     *
      * @param  array<string>  $filterTypes
      * @return array<string>
      */
     private function normalizeFilterTypes(array $filterTypes): array
     {
+        // Map both dash and underscore formats to internal constants
         $typeMap = [
+            // Dash format (user-facing)
             'missing-documentation' => RouteMismatch::TYPE_MISSING_DOCUMENTATION,
             'missing-implementation' => RouteMismatch::TYPE_MISSING_IMPLEMENTATION,
             'method-mismatch' => RouteMismatch::TYPE_METHOD_MISMATCH,
             'parameter-mismatch' => RouteMismatch::TYPE_PARAMETER_MISMATCH,
             'path-mismatch' => RouteMismatch::TYPE_PATH_MISMATCH,
             'validation-error' => RouteMismatch::TYPE_VALIDATION_ERROR,
+            // Underscore format (internal constants, also accept as input)
+            'missing_documentation' => RouteMismatch::TYPE_MISSING_DOCUMENTATION,
+            'missing_implementation' => RouteMismatch::TYPE_MISSING_IMPLEMENTATION,
+            'method_mismatch' => RouteMismatch::TYPE_METHOD_MISMATCH,
+            'parameter_mismatch' => RouteMismatch::TYPE_PARAMETER_MISMATCH,
+            'path_mismatch' => RouteMismatch::TYPE_PATH_MISMATCH,
+            'validation_error' => RouteMismatch::TYPE_VALIDATION_ERROR,
         ];
 
         $normalized = [];
+        $validDashTypes = ['missing-documentation', 'missing-implementation', 'method-mismatch', 'parameter-mismatch', 'path-mismatch', 'validation-error'];
+
         foreach ($filterTypes as $type) {
-            $normalizedType = strtolower($type);
+            $normalizedType = strtolower(trim($type));
+
             if (isset($typeMap[$normalizedType])) {
                 $normalized[] = $typeMap[$normalizedType];
             } elseif (in_array($type, $typeMap)) {
-                // Allow direct usage of internal constants
+                // Allow direct usage of internal constants (already normalized)
                 $normalized[] = $type;
             } else {
-                $this->warn("Invalid filter type: {$type}. Valid types: " . implode(', ', array_keys($typeMap)));
+                $this->warn("Invalid filter type: {$type}. Valid types: " . implode(', ', $validDashTypes));
             }
         }
 
