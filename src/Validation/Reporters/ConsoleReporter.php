@@ -107,18 +107,7 @@ class ConsoleReporter implements ReporterInterface
             '',
         ];
 
-        // Sort mismatches alphabetically by path then method
-        $sortedMismatches = $result->mismatches;
-        usort($sortedMismatches, function (RouteMismatch $a, RouteMismatch $b): int {
-            $pathCompare = strcmp($a->path, $b->path);
-            if ($pathCompare !== 0) {
-                return $pathCompare;
-            }
-
-            return strcmp($a->method, $b->method);
-        });
-
-        foreach ($sortedMismatches as $mismatch) {
+        foreach ($result->mismatches as $mismatch) {
             $lines[] = $this->formatMismatch($mismatch, $includeSuggestions, $useColors);
         }
 

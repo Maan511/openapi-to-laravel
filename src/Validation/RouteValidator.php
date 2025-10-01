@@ -116,6 +116,16 @@ class RouteValidator
             $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
         }
 
+        // Sort mismatches alphabetically by path then method
+        usort($mismatches, function (RouteMismatch $a, RouteMismatch $b): int {
+            $pathCompare = strcmp($a->path, $b->path);
+            if ($pathCompare !== 0) {
+                return $pathCompare;
+            }
+
+            return strcmp($a->method, $b->method);
+        });
+
         // Generate statistics
         $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches, ! empty($options['filter_types']));
 

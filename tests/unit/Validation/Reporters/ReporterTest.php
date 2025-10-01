@@ -93,9 +93,9 @@ describe('Validation Reporters', function (): void {
             );
 
             $mismatches = [
-                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST - type: missing_documentation
                 RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET - type: parameter_mismatch
                 RouteMismatch::missingDocumentation($route3), // api/users GET - type: missing_documentation
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST - type: missing_documentation
             ];
 
             $result = ValidationResult::failed($mismatches);
@@ -188,9 +188,9 @@ describe('Validation Reporters', function (): void {
             );
 
             $mismatches = [
-                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
                 RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET
                 RouteMismatch::missingDocumentation($route3), // api/users GET
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
             ];
 
             $result = ValidationResult::failed($mismatches);
@@ -280,9 +280,9 @@ describe('Validation Reporters', function (): void {
             );
 
             $mismatches = [
-                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
                 RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET
                 RouteMismatch::missingDocumentation($route3), // api/users GET
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
             ];
 
             $result = ValidationResult::failed($mismatches);
@@ -502,9 +502,9 @@ describe('Validation Reporters', function (): void {
             );
 
             $mismatches = [
-                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
                 RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET
                 RouteMismatch::missingDocumentation($route3), // api/users GET
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
             ];
 
             $result = ValidationResult::failed($mismatches);
