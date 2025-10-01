@@ -104,24 +104,22 @@ class ConsoleReporter implements ReporterInterface
         $lines = [
             'MISMATCHES',
             str_repeat('-', 10),
+            '',
         ];
 
-        $groupedMismatches = $this->groupMismatchesByType($result->mismatches);
-
-        foreach ($groupedMismatches as $type => $mismatches) {
-            $lines[] = '';
-            $typeTitle = strtoupper(str_replace('_', ' ', $type)) . ' (' . count($mismatches) . ')';
-
-            if ($useColors) {
-                $typeTitle = "\033[1;33m{$typeTitle}\033[0m"; // Bold yellow
+        // Sort mismatches alphabetically by path then method
+        $sortedMismatches = $result->mismatches;
+        usort($sortedMismatches, function (RouteMismatch $a, RouteMismatch $b): int {
+            $pathCompare = strcmp($a->path, $b->path);
+            if ($pathCompare !== 0) {
+                return $pathCompare;
             }
 
-            $lines[] = $typeTitle;
-            $lines[] = str_repeat('-', strlen($typeTitle));
+            return strcmp($a->method, $b->method);
+        });
 
-            foreach ($mismatches as $mismatch) {
-                $lines[] = $this->formatMismatch($mismatch, $includeSuggestions, $useColors);
-            }
+        foreach ($sortedMismatches as $mismatch) {
+            $lines[] = $this->formatMismatch($mismatch, $includeSuggestions, $useColors);
         }
 
         return implode("\n", $lines);
@@ -148,8 +146,14 @@ class ConsoleReporter implements ReporterInterface
             };
         }
 
+        // Add type badge
+        $typeBadge = '[' . strtoupper(str_replace('_', ' ', $mismatch->type)) . ']';
+        if ($useColors) {
+            $typeBadge = "\033[1;36m{$typeBadge}\033[0m"; // Bold cyan
+        }
+
         $lines = [
-            "{$icon} {$mismatch->message}",
+            "{$icon} {$typeBadge} {$mismatch->message}",
             "   Path: {$mismatch->path}",
             "   Method: {$mismatch->method}",
         ];
@@ -212,30 +216,6 @@ class ConsoleReporter implements ReporterInterface
         }
 
         return implode("\n", $lines);
-    }
-
-    /**
-     * Group mismatches by type
-     *
-     * @param  array<RouteMismatch>  $mismatches
-     * @return array<string, array<RouteMismatch>>
-     */
-    private function groupMismatchesByType(array $mismatches): array
-    {
-        $grouped = [];
-        foreach ($mismatches as $mismatch) {
-            $grouped[$mismatch->type][] = $mismatch;
-        }
-
-        // Sort by severity (errors first)
-        uasort($grouped, function ($a, $b): int {
-            $severityA = max(array_map(fn ($m): int => $m->getSeverityLevel(), $a));
-            $severityB = max(array_map(fn ($m): int => $m->getSeverityLevel(), $b));
-
-            return $severityB <=> $severityA;
-        });
-
-        return $grouped;
     }
 
     /**

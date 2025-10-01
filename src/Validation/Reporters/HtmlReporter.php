@@ -326,18 +326,20 @@ HTML;
             return '';
         }
 
-        $groupedMismatches = $this->groupMismatchesByType($result->mismatches);
-        $content = '';
-
-        foreach ($groupedMismatches as $type => $mismatches) {
-            $typeTitle = ucwords(str_replace('_', ' ', $type));
-            $count = count($mismatches);
-
-            $content .= "<h3>{$typeTitle} ({$count})</h3>";
-
-            foreach ($mismatches as $mismatch) {
-                $content .= $this->formatMismatchHtml($mismatch, $includeSuggestions);
+        // Sort mismatches alphabetically by path then method
+        $sortedMismatches = $result->mismatches;
+        usort($sortedMismatches, function (RouteMismatch $a, RouteMismatch $b): int {
+            $pathCompare = strcmp($a->path, $b->path);
+            if ($pathCompare !== 0) {
+                return $pathCompare;
             }
+
+            return strcmp($a->method, $b->method);
+        });
+
+        $content = '';
+        foreach ($sortedMismatches as $mismatch) {
+            $content .= $this->formatMismatchHtml($mismatch, $includeSuggestions);
         }
 
         return <<<HTML
@@ -459,22 +461,6 @@ HTML;
     </div>
 </div>
 HTML;
-    }
-
-    /**
-     * Group mismatches by type
-     *
-     * @param  array<RouteMismatch>  $mismatches
-     * @return array<string, array<RouteMismatch>>
-     */
-    private function groupMismatchesByType(array $mismatches): array
-    {
-        $grouped = [];
-        foreach ($mismatches as $mismatch) {
-            $grouped[$mismatch->type][] = $mismatch;
-        }
-
-        return $grouped;
     }
 
     /**
