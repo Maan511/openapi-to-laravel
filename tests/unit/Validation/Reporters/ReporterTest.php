@@ -67,6 +67,55 @@ describe('Validation Reporters', function (): void {
         it('returns correct file extension', function (): void {
             expect($this->reporter->getFileExtension())->toBe('txt');
         });
+
+        it('sorts all mismatches alphabetically regardless of type', function (): void {
+            $route1 = new LaravelRoute(
+                uri: 'api/users/{id}',
+                methods: ['POST'],
+                name: 'users.update',
+                action: 'App\Http\Controllers\UserController@update',
+                middleware: ['api'],
+                pathParameters: ['id']
+            );
+            $route2 = new LaravelRoute(
+                uri: 'api/posts',
+                methods: ['GET'],
+                name: 'posts.index',
+                action: 'App\Http\Controllers\PostController@index',
+                middleware: ['api']
+            );
+            $route3 = new LaravelRoute(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: 'App\Http\Controllers\UserController@index',
+                middleware: ['api']
+            );
+
+            $mismatches = [
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST - type: missing_documentation
+                RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET - type: parameter_mismatch
+                RouteMismatch::missingDocumentation($route3), // api/users GET - type: missing_documentation
+            ];
+
+            $result = ValidationResult::failed($mismatches);
+            $report = $this->reporter->generateReport($result);
+
+            // Extract the paths in order they appear
+            preg_match_all('/Path: ([^\n]+)/', $report, $matches);
+            $paths = $matches[1];
+
+            // Should be sorted alphabetically: /api/posts, /api/users, /api/users/{id}
+            // Not grouped by type - all mixed together alphabetically
+            expect($paths)->toHaveCount(3)
+                ->and($paths[0])->toBe('/api/posts') // parameter_mismatch type
+                ->and($paths[1])->toBe('/api/users') // missing_documentation type
+                ->and($paths[2])->toBe('/api/users/{id}'); // missing_documentation type
+
+            // Verify type badges are present in output
+            expect($report)->toContain('[PARAMETER MISMATCH]')
+                ->and($report)->toContain('[MISSING DOCUMENTATION]');
+        });
     });
 
     describe('JsonReporter', function (): void {
@@ -113,6 +162,53 @@ describe('Validation Reporters', function (): void {
         it('returns correct file extension', function (): void {
             expect($this->reporter->getFileExtension())->toBe('json');
         });
+
+        it('sorts all mismatches alphabetically regardless of type', function (): void {
+            $route1 = new LaravelRoute(
+                uri: 'api/users/{id}',
+                methods: ['POST'],
+                name: 'users.update',
+                action: 'App\Http\Controllers\UserController@update',
+                middleware: ['api'],
+                pathParameters: ['id']
+            );
+            $route2 = new LaravelRoute(
+                uri: 'api/posts',
+                methods: ['GET'],
+                name: 'posts.index',
+                action: 'App\Http\Controllers\PostController@index',
+                middleware: ['api']
+            );
+            $route3 = new LaravelRoute(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: 'App\Http\Controllers\UserController@index',
+                middleware: ['api']
+            );
+
+            $mismatches = [
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
+                RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET
+                RouteMismatch::missingDocumentation($route3), // api/users GET
+            ];
+
+            $result = ValidationResult::failed($mismatches);
+            $report = $this->reporter->generateReport($result);
+            $data = json_decode($report, true);
+
+            // Verify mismatches are sorted alphabetically, not grouped by type
+            expect($data['mismatches'])->toHaveCount(3)
+                ->and($data['mismatches'][0]['path'])->toBe('/api/posts')
+                ->and($data['mismatches'][0]['method'])->toBe('GET')
+                ->and($data['mismatches'][0]['type'])->toBe('parameter_mismatch')
+                ->and($data['mismatches'][1]['path'])->toBe('/api/users')
+                ->and($data['mismatches'][1]['method'])->toBe('GET')
+                ->and($data['mismatches'][1]['type'])->toBe('missing_documentation')
+                ->and($data['mismatches'][2]['path'])->toBe('/api/users/{id}')
+                ->and($data['mismatches'][2]['method'])->toBe('POST')
+                ->and($data['mismatches'][2]['type'])->toBe('missing_documentation');
+        });
     });
 
     describe('HtmlReporter', function (): void {
@@ -157,6 +253,54 @@ describe('Validation Reporters', function (): void {
 
         it('returns correct file extension', function (): void {
             expect($this->reporter->getFileExtension())->toBe('html');
+        });
+
+        it('sorts all mismatches alphabetically regardless of type', function (): void {
+            $route1 = new LaravelRoute(
+                uri: 'api/users/{id}',
+                methods: ['POST'],
+                name: 'users.update',
+                action: 'App\Http\Controllers\UserController@update',
+                middleware: ['api'],
+                pathParameters: ['id']
+            );
+            $route2 = new LaravelRoute(
+                uri: 'api/posts',
+                methods: ['GET'],
+                name: 'posts.index',
+                action: 'App\Http\Controllers\PostController@index',
+                middleware: ['api']
+            );
+            $route3 = new LaravelRoute(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: 'App\Http\Controllers\UserController@index',
+                middleware: ['api']
+            );
+
+            $mismatches = [
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
+                RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET
+                RouteMismatch::missingDocumentation($route3), // api/users GET
+            ];
+
+            $result = ValidationResult::failed($mismatches);
+            $report = $this->reporter->generateReport($result);
+
+            // Extract paths from HTML output
+            preg_match_all('/<strong>Path:<\/strong> ([^<]+)/', $report, $matches);
+            $paths = $matches[1];
+
+            // Verify paths are sorted alphabetically, not grouped by type
+            expect($paths)->toHaveCount(3)
+                ->and($paths[0])->toBe('/api/posts') // parameter_mismatch
+                ->and($paths[1])->toBe('/api/users') // missing_documentation
+                ->and($paths[2])->toBe('/api/users/{id}'); // missing_documentation
+
+            // Verify type badges are present in the HTML
+            expect($report)->toContain('Parameter Mismatch')
+                ->and($report)->toContain('Missing Documentation');
         });
     });
 
