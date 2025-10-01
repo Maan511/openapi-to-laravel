@@ -56,23 +56,12 @@ class JsonReporter implements ReporterInterface
      */
     private function prepareData(ValidationResult $result, bool $includeMetadata): array
     {
-        // Sort mismatches alphabetically by path then method
-        $sortedMismatches = $result->mismatches;
-        usort($sortedMismatches, function (\Maan511\OpenapiToLaravel\Models\RouteMismatch $a, \Maan511\OpenapiToLaravel\Models\RouteMismatch $b): int {
-            $pathCompare = strcmp($a->path, $b->path);
-            if ($pathCompare !== 0) {
-                return $pathCompare;
-            }
-
-            return strcmp($a->method, $b->method);
-        });
-
         $data = [
             'validation' => [
                 'status' => $result->isValid ? 'passed' : 'failed',
                 'summary' => $result->getSummary(),
             ],
-            'mismatches' => array_map(fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): array => $m->toArray(), $sortedMismatches),
+            'mismatches' => array_map(fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): array => $m->toArray(), $result->mismatches),
             'warnings' => $result->warnings,
             'statistics' => $result->statistics,
         ];
