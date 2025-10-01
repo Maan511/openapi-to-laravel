@@ -476,5 +476,63 @@ describe('Validation Reporters', function (): void {
         it('returns correct MIME type', function (): void {
             expect($this->reporter->getMimeType())->toBe('text/plain');
         });
+
+        it('sorts all routes alphabetically by path regardless of method or type', function (): void {
+            $route1 = new LaravelRoute(
+                uri: 'api/users/{id}',
+                methods: ['POST'],
+                name: 'users.update',
+                action: 'App\Http\Controllers\UserController@update',
+                middleware: ['api'],
+                pathParameters: ['id']
+            );
+            $route2 = new LaravelRoute(
+                uri: 'api/posts',
+                methods: ['GET'],
+                name: 'posts.index',
+                action: 'App\Http\Controllers\PostController@index',
+                middleware: ['api']
+            );
+            $route3 = new LaravelRoute(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: 'App\Http\Controllers\UserController@index',
+                middleware: ['api']
+            );
+
+            $mismatches = [
+                RouteMismatch::missingDocumentation($route1), // api/users/{id} POST
+                RouteMismatch::parameterMismatch('/api/posts', 'GET', ['id'], ['postId']), // api/posts GET
+                RouteMismatch::missingDocumentation($route3), // api/users GET
+            ];
+
+            $result = ValidationResult::failed($mismatches);
+            $report = $this->reporter->generateReport($result);
+
+            // Extract paths from table rows - looking for path column content
+            preg_match_all('/\│\s*(?:GET|POST|PUT|DELETE|PATCH)\s*\│\s*([^\│]+)\s*\│/', $report, $matches);
+            $paths = array_map('trim', $matches[1]);
+
+            // Verify paths are sorted alphabetically, not grouped by method or type
+            expect($paths)->toHaveCount(3)
+                ->and($paths[0])->toBe('/api/posts') // parameter_mismatch, GET
+                ->and($paths[1])->toBe('/api/users') // missing_documentation, GET
+                ->and($paths[2])->toBe('/api/users/{id}'); // missing_documentation, POST
+
+            // Verify the rows appear in the correct order in the output
+            $positionPosts = strpos($report, '/api/posts');
+            $positionUsers = strpos($report, '/api/users');
+            $positionUsersId = strpos($report, '/api/users/{id}');
+
+            // Verify all paths exist in the report
+            expect($positionPosts)->not->toBeFalse()
+                ->and($positionUsers)->not->toBeFalse()
+                ->and($positionUsersId)->not->toBeFalse();
+
+            // Cast to int for comparison (safe because we verified they're not false)
+            expect((int) $positionPosts)->toBeLessThan((int) $positionUsers)
+                ->and((int) $positionUsers)->toBeLessThan((int) $positionUsersId);
+        });
     });
 });

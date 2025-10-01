@@ -71,7 +71,18 @@ class TableReporter implements ReporterInterface
             array_keys($endpointMap)
         ));
 
-        sort($allSignatures);
+        // Sort by path first, then by method
+        usort($allSignatures, function (string $a, string $b): int {
+            [$methodA, $pathA] = explode(':', $a, 2);
+            [$methodB, $pathB] = explode(':', $b, 2);
+
+            $pathCompare = strcmp($pathA, $pathB);
+            if ($pathCompare !== 0) {
+                return $pathCompare;
+            }
+
+            return strcmp($methodA, $methodB);
+        });
 
         foreach ($allSignatures as $signature) {
             [$method, $path] = explode(':', $signature, 2);
