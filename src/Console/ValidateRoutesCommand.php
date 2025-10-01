@@ -260,8 +260,6 @@ class ValidateRoutesCommand extends Command
             array_keys($endpointMap)
         ));
 
-        sort($allSignatures);
-
         foreach ($allSignatures as $signature) {
             [$method, $path] = explode(':', $signature, 2);
 
@@ -573,7 +571,7 @@ class ValidateRoutesCommand extends Command
     private function saveReport(ValidationResult $result, string $filename, string $format, bool $includeSuggestions): void
     {
         try {
-            // For file output, always use the reporter factory (including TableReporter for table format)
+            // For file output, always use the reporter factory
             $reporter = ReporterFactory::create($format);
             $reportOptions = [
                 'include_suggestions' => $includeSuggestions,
