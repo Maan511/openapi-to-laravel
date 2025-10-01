@@ -68,7 +68,7 @@ describe('RouteValidator', function (): void {
             ->and($result->getMismatchesByType(RouteMismatch::TYPE_MISSING_IMPLEMENTATION))->toHaveCount(1);
     });
 
-    it('detects method mismatches', function (): void {
+    it('detects missing documentation and implementation for different methods on same path', function (): void {
         $route1 = new LaravelRoute(
             uri: 'api/users/{id}',
             methods: ['GET'],
@@ -95,8 +95,10 @@ describe('RouteValidator', function (): void {
 
         $result = $this->validator->validateRoutes([$route1, $route2], [$endpoint]);
 
-        expect($result->isValid)->toBeFalse()
-            ->and($result->getMismatchesByType(RouteMismatch::TYPE_METHOD_MISMATCH))->toHaveCount(1);
+        expect($result->isValid)->toBeFalse();
+        // Should have 2 missing documentation (GET and PUT) and 1 missing implementation (POST)
+        expect($result->getMismatchesByType(RouteMismatch::TYPE_MISSING_DOCUMENTATION))->toHaveCount(2);
+        expect($result->getMismatchesByType(RouteMismatch::TYPE_MISSING_IMPLEMENTATION))->toHaveCount(1);
     });
 
     it('matches routes with different parameter names correctly', function (): void {
@@ -236,5 +238,135 @@ describe('RouteValidator', function (): void {
         $missingDocs = $result->getMismatchesByType(RouteMismatch::TYPE_MISSING_DOCUMENTATION);
         expect($missingDocs)->toHaveCount(1);
         expect($missingDocs[0]->message)->toContain('api/users');
+    });
+
+    it('applies include patterns to both routes and endpoints', function (): void {
+        // Create routes - one matching pattern, one not
+        $matchingRoute = new LaravelRoute(
+            uri: 'api/users',
+            methods: ['GET'],
+            name: 'api.users.index',
+            action: 'App\Http\Controllers\Api\UserController@index',
+            middleware: ['api']
+        );
+
+        $nonMatchingRoute = new LaravelRoute(
+            uri: 'api/posts',
+            methods: ['GET'],
+            name: 'api.posts.index',
+            action: 'App\Http\Controllers\Api\PostController@index',
+            middleware: ['api']
+        );
+
+        // Create endpoints - one matching pattern, one not
+        $matchingEndpoint = new EndpointDefinition(
+            path: '/api/users',
+            method: 'POST',
+            operationId: 'createUser'
+        );
+
+        $nonMatchingEndpoint = new EndpointDefinition(
+            path: '/api/posts',
+            method: 'POST',
+            operationId: 'createPost'
+        );
+
+        // Test with include pattern that should only match /api/users
+        $options = [
+            'include_patterns' => ['/api/users*'],
+        ];
+
+        $result = $this->validator->validateRoutes(
+            [$matchingRoute, $nonMatchingRoute],
+            [$matchingEndpoint, $nonMatchingEndpoint],
+            $options
+        );
+
+        // Should only find mismatches for items matching the pattern
+        $mismatches = $result->mismatches;
+
+        // We should have:
+        // 1. Missing documentation for matching route (GET /api/users)
+        // 2. Missing implementation for matching endpoint (POST /api/users)
+        // Non-matching items should be filtered out
+        expect($mismatches)->toHaveCount(2);
+
+        $missingDocs = $result->getMismatchesByType(RouteMismatch::TYPE_MISSING_DOCUMENTATION);
+        $missingImpl = $result->getMismatchesByType(RouteMismatch::TYPE_MISSING_IMPLEMENTATION);
+
+        expect($missingDocs)->toHaveCount(1);
+        expect($missingImpl)->toHaveCount(1);
+
+        // Verify that only /api/users related mismatches are present
+        $missingDocsList = array_values($missingDocs);
+        $missingImplList = array_values($missingImpl);
+        expect($missingDocsList[0]->path)->toContain('/api/users');
+        expect($missingImplList[0]->path)->toContain('/api/users');
+    });
+
+    it('calculates statistics correctly with filter_types option', function (): void {
+        // Create 2 routes and 1 endpoint - will generate multiple mismatch types
+        $route1 = new LaravelRoute(
+            uri: 'api/users',
+            methods: ['GET'],
+            name: 'api.users.index',
+            action: 'App\Http\Controllers\Api\UserController@index',
+            middleware: ['api']
+        );
+
+        $route2 = new LaravelRoute(
+            uri: 'api/posts',
+            methods: ['GET'],
+            name: 'api.posts.index',
+            action: 'App\Http\Controllers\Api\PostController@index',
+            middleware: ['api']
+        );
+
+        $endpoint = new EndpointDefinition(
+            path: '/api/products',
+            method: 'GET',
+            operationId: 'getProducts'
+        );
+
+        // Without filter - should have all mismatches
+        $resultNoFilter = $this->validator->validateRoutes(
+            [$route1, $route2],
+            [$endpoint],
+            []
+        );
+
+        // Should have 2 missing documentation + 1 missing implementation = 3 total
+        expect($resultNoFilter->getMismatchCount())->toBe(3)
+            ->and($resultNoFilter->statistics['total_mismatches'])->toBe(3)
+            ->and($resultNoFilter->statistics['total_routes'])->toBe(2)
+            ->and($resultNoFilter->statistics['total_endpoints'])->toBe(1)
+            ->and($resultNoFilter->statistics['covered_routes'])->toBe(0)
+            ->and($resultNoFilter->statistics['covered_endpoints'])->toBe(0);
+
+        // With filter for only missing-implementation
+        $resultFiltered = $this->validator->validateRoutes(
+            [$route1, $route2],
+            [$endpoint],
+            ['filter_types' => [RouteMismatch::TYPE_MISSING_IMPLEMENTATION]]
+        );
+
+        // Should have only 1 missing implementation (filtered)
+        expect($resultFiltered->getMismatchCount())->toBe(1)
+            ->and($resultFiltered->mismatches)->toHaveCount(1);
+
+        // Get the first mismatch
+        $firstMismatch = array_values($resultFiltered->mismatches)[0];
+        expect($firstMismatch->type)->toBe(RouteMismatch::TYPE_MISSING_IMPLEMENTATION);
+
+        // Statistics should reflect ONLY the filtered mismatches
+        // When filtering by missing-implementation only, statistics are based on filtered mismatches
+        expect($resultFiltered->statistics['total_mismatches'])->toBe(1)
+            ->and($resultFiltered->statistics['total_routes'])->toBe(0) // No missing-documentation in filtered results
+            ->and($resultFiltered->statistics['total_endpoints'])->toBe(1) // 1 missing-implementation
+            // With only missing-implementation filtered:
+            // - covered_routes = 0 (no routes in filtered results)
+            // - covered_endpoints = 0 (all filtered endpoints are missing implementation)
+            ->and($resultFiltered->statistics['covered_routes'])->toBe(0)
+            ->and($resultFiltered->statistics['covered_endpoints'])->toBe(0);
     });
 });

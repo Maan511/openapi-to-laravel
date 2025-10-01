@@ -44,6 +44,11 @@ class RouteValidator
 
             $endpoints = $this->openApiParser->extractEndpoints($specification, $basePath);
 
+            // Filter endpoints by include patterns if specified
+            if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
+                $endpoints = $this->filterEndpointsByPatterns($endpoints, $options['include_patterns']);
+            }
+
             // Collect Laravel routes
             $laravelRoutes = $this->routeCollector->collect($options);
 
@@ -65,6 +70,11 @@ class RouteValidator
      */
     public function validateRoutes(array $laravelRoutes, array $endpoints, array $options = []): ValidationResult
     {
+        // Filter endpoints by include patterns if specified
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
+            $endpoints = $this->filterEndpointsByPatterns($endpoints, $options['include_patterns']);
+        }
+
         return $this->performValidation($laravelRoutes, $endpoints, $options);
     }
 
@@ -80,6 +90,11 @@ class RouteValidator
         $mismatches = [];
         $warnings = [];
 
+        // Filter routes by include patterns if specified (before creating route map)
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
+            $laravelRoutes = array_filter($laravelRoutes, fn (LaravelRoute $route): bool => $this->shouldIncludeRoute($route, $options));
+        }
+
         // Create lookup maps for efficient comparison
         $routeMap = $this->createRouteMap($laravelRoutes);
         $endpointMap = $this->createEndpointMap($endpoints);
@@ -92,11 +107,7 @@ class RouteValidator
         $missingImpl = $this->findMissingImplementation($endpointMap, $routeMap);
         $mismatches = array_merge($mismatches, $missingImpl);
 
-        // Find method mismatches
-        $methodMismatches = $this->findMethodMismatches($routeMap, $endpointMap);
-        $mismatches = array_merge($mismatches, $methodMismatches);
-
-        // Find parameter mismatches
+        // Find parameter mismatches (for routes/endpoints that exist in both)
         $paramMismatches = $this->findParameterMismatches($routeMap, $endpointMap);
         $mismatches = array_merge($mismatches, $paramMismatches);
 
@@ -106,7 +117,7 @@ class RouteValidator
         }
 
         // Generate statistics
-        $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches);
+        $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches, ! empty($options['filter_types']));
 
         return new ValidationResult(
             isValid: $mismatches === [],
@@ -207,38 +218,6 @@ class RouteValidator
     }
 
     /**
-     * Find method mismatches between routes and endpoints
-     *
-     * @param  array<string, array<LaravelRoute>>  $routeMap
-     * @param  array<string, array<EndpointDefinition>>  $endpointMap
-     * @return array<RouteMismatch>
-     */
-    private function findMethodMismatches(array $routeMap, array $endpointMap): array
-    {
-        $mismatches = [];
-        $pathGroups = $this->groupByPath($routeMap, $endpointMap);
-
-        foreach ($pathGroups as $path => $data) {
-            $routeMethods = $data['route_methods'] ?? [];
-            $endpointMethods = $data['endpoint_methods'] ?? [];
-
-            if (! empty($routeMethods) && ! empty($endpointMethods)) {
-                // Normalize both arrays to handle order differences and duplicates
-                $normalizedRouteMethods = array_values(array_unique(array_map('strtoupper', $routeMethods)));
-                $normalizedEndpointMethods = array_values(array_unique(array_map('strtoupper', $endpointMethods)));
-                sort($normalizedRouteMethods);
-                sort($normalizedEndpointMethods);
-
-                if ($normalizedRouteMethods !== $normalizedEndpointMethods) {
-                    $mismatches[] = RouteMismatch::methodMismatch($path, $routeMethods, $endpointMethods);
-                }
-            }
-        }
-
-        return $mismatches;
-    }
-
-    /**
      * Find parameter mismatches between routes and endpoints
      *
      * @param  array<string, array<LaravelRoute>>  $routeMap
@@ -279,58 +258,15 @@ class RouteValidator
     }
 
     /**
-     * Group routes and endpoints by path for cross-comparison
-     *
-     * @param  array<string, array<LaravelRoute>>  $routeMap
-     * @param  array<string, array<EndpointDefinition>>  $endpointMap
-     * @return array<string, array{route_methods: array<string>, endpoint_methods: array<string>}>
-     */
-    private function groupByPath(array $routeMap, array $endpointMap): array
-    {
-        $groups = [];
-
-        // Process routes
-        foreach (array_keys($routeMap) as $signature) {
-            $signatureString = (string) $signature;
-            if (! str_contains($signatureString, ':')) {
-                continue; // Skip malformed signatures
-            }
-            [$method, $path] = explode(':', $signatureString, 2);
-            if (! isset($groups[$path])) {
-                $groups[$path] = ['route_methods' => [], 'endpoint_methods' => []];
-            }
-            if (! in_array($method, $groups[$path]['route_methods'])) {
-                $groups[$path]['route_methods'][] = $method;
-            }
-        }
-
-        // Process endpoints
-        foreach (array_keys($endpointMap) as $signature) {
-            $signatureString = (string) $signature;
-            if (! str_contains($signatureString, ':')) {
-                continue; // Skip malformed signatures
-            }
-            [$method, $path] = explode(':', $signatureString, 2);
-            if (! isset($groups[$path])) {
-                $groups[$path] = ['route_methods' => [], 'endpoint_methods' => []];
-            }
-            if (! in_array($method, $groups[$path]['endpoint_methods'])) {
-                $groups[$path]['endpoint_methods'][] = $method;
-            }
-        }
-
-        return $groups;
-    }
-
-    /**
      * Generate validation statistics
      *
      * @param  array<LaravelRoute>  $routes
      * @param  array<EndpointDefinition>  $endpoints
      * @param  array<RouteMismatch>  $mismatches
+     * @param  bool  $isFiltered  Whether mismatches have been filtered
      * @return array<string, mixed>
      */
-    private function generateStatistics(array $routes, array $endpoints, array $mismatches): array
+    private function generateStatistics(array $routes, array $endpoints, array $mismatches, bool $isFiltered = false): array
     {
         $mismatchCounts = [];
         foreach ($mismatches as $mismatch) {
@@ -342,10 +278,18 @@ class RouteValidator
         $missingDocs = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_DOCUMENTATION));
         $missingImpl = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_IMPLEMENTATION));
 
-        $totalRoutes = count($routes);
-        $totalEndpoints = count($endpoints);
-        $coveredRoutes = $totalRoutes - $missingDocs;
-        $coveredEndpoints = $totalEndpoints - $missingImpl;
+        // When filtered, count based on filtered mismatches, not all routes/endpoints
+        if ($isFiltered) {
+            $totalRoutes = $missingDocs;
+            $totalEndpoints = $missingImpl;
+            $coveredRoutes = 0; // All filtered mismatches represent uncovered items
+            $coveredEndpoints = 0;
+        } else {
+            $totalRoutes = count($routes);
+            $totalEndpoints = count($endpoints);
+            $coveredRoutes = max(0, $totalRoutes - $missingDocs);
+            $coveredEndpoints = max(0, $totalEndpoints - $missingImpl);
+        }
 
         $routeCoveragePercentage = $totalRoutes > 0 ? round(($coveredRoutes / $totalRoutes) * 100, 2) : 100.0;
         $endpointCoveragePercentage = $totalEndpoints > 0 ? round(($coveredEndpoints / $totalEndpoints) * 100, 2) : 100.0;
@@ -359,28 +303,21 @@ class RouteValidator
             'endpoint_coverage_percentage' => $endpointCoveragePercentage,
             'total_mismatches' => count($mismatches),
             'mismatch_breakdown' => $mismatchCounts,
-            'total_coverage_percentage' => $this->calculateCoverage($routes, $endpoints, $mismatches),
+            'total_coverage_percentage' => $this->calculateCoverage($totalRoutes, $totalEndpoints, $coveredRoutes, $coveredEndpoints),
         ];
     }
 
     /**
      * Calculate coverage percentage
-     *
-     * @param  array<LaravelRoute>  $routes
-     * @param  array<EndpointDefinition>  $endpoints
-     * @param  array<RouteMismatch>  $mismatches
      */
-    private function calculateCoverage(array $routes, array $endpoints, array $mismatches): float
+    private function calculateCoverage(int $totalRoutes, int $totalEndpoints, int $coveredRoutes, int $coveredEndpoints): float
     {
-        $totalItems = count($routes) + count($endpoints);
+        $totalItems = $totalRoutes + $totalEndpoints;
         if ($totalItems === 0) {
             return 100.0;
         }
 
-        $missingDocs = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_DOCUMENTATION));
-        $missingImpl = count(array_filter($mismatches, fn (\Maan511\OpenapiToLaravel\Models\RouteMismatch $m): bool => $m->type === RouteMismatch::TYPE_MISSING_IMPLEMENTATION));
-
-        $coveredItems = $totalItems - $missingDocs - $missingImpl;
+        $coveredItems = $coveredRoutes + $coveredEndpoints;
 
         return round(($coveredItems / $totalItems) * 100, 2);
     }
@@ -401,7 +338,39 @@ class RouteValidator
             }
         }
 
+        // Apply include patterns if specified
+        if (isset($options['include_patterns']) && ! empty($options['include_patterns'])) {
+            $routePath = '/' . ltrim($route->getNormalizedPath(), '/');
+            foreach ($options['include_patterns'] as $pattern) {
+                if (fnmatch($pattern, $routePath)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         return $route->isApiRoute();
+    }
+
+    /**
+     * Filter endpoints by include patterns
+     *
+     * @param  array<EndpointDefinition>  $endpoints
+     * @param  array<string>  $includePatterns
+     * @return array<EndpointDefinition>
+     */
+    private function filterEndpointsByPatterns(array $endpoints, array $includePatterns): array
+    {
+        return array_filter($endpoints, function (EndpointDefinition $endpoint) use ($includePatterns): bool {
+            foreach ($includePatterns as $pattern) {
+                if (fnmatch($pattern, $endpoint->path)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
     }
 
     /**
