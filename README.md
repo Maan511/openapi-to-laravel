@@ -86,7 +86,7 @@ php artisan openapi-to-laravel:validate-routes path/to/your/openapi.json
 
 **Common options:**
 - `--strict` - Fail on any mismatches (perfect for CI/CD)
-- `--report-format=console,json,html` - Choose output format
+- `--report-format=console,json,html,table` - Choose output format (default: table)
 - `--include-pattern="api/*"` - Only validate specific routes
 
 **Next Steps:** Use your generated FormRequest classes in your Laravel controllers for automatic validation and run route validation in your CI/CD pipeline.

@@ -32,7 +32,7 @@ class ValidateRoutesCommand extends Command
                             {--include-pattern=* : Route URI patterns to include (supports wildcards)}
                             {--exclude-middleware=* : Middleware groups to exclude}
                             {--ignore-route=* : Route names/patterns to ignore}
-                            {--report-format=console : Report format (console, json, html, table)}
+                            {--report-format=table : Report format (console, json, html, table)}
                             {--output-file= : Save report to file}
                             {--strict : Fail command on any mismatches}
                             {--suggestions : Include fix suggestions in output}
