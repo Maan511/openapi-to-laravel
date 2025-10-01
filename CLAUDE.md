@@ -157,7 +157,7 @@ php artisan openapi-to-laravel:validate-routes spec.json --report-format=console
 - `--include-pattern=PATTERN`: Route URI patterns to include (supports wildcards, can be used multiple times)
 - `--exclude-middleware=MIDDLEWARE`: Middleware groups to exclude from validation (can be used multiple times)
 - `--ignore-route=PATTERN`: Route names/patterns to ignore (supports wildcards, can be used multiple times)
-- `--report-format=FORMAT`: Report format(s): console, json, html, table (default: console)
+- `--report-format=FORMAT`: Report format(s): console, json, html, table (default: table)
 - `--output-file=FILE`: Save report to file (extension determined by format)
 - `--strict`: Fail command execution on any mismatches (useful for CI/CD)
 - `--suggestions`: Include actionable fix suggestions in output
