@@ -415,7 +415,7 @@ describe('RouteValidator', function (): void {
         $methods = array_map(fn ($mismatch) => $mismatch->method, array_values($result->mismatches));
 
         // Methods are sorted by intuitive HTTP method order within each path
-        // Since all these are on different paths, they're sorted by path first
-        expect($methods)->toBe(['DELETE', 'GET', 'POST', 'PUT', 'PATCH']);
+        // Since all these are on the same path, they're sorted by method order
+        expect($methods)->toBe(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
     });
 });

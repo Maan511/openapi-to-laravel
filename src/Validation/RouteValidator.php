@@ -104,16 +104,8 @@ class RouteValidator
         // Build matches for all routes and endpoints
         $matches = $this->buildMatches($routeMap, $endpointMap, $options);
 
-        // Extract mismatches from matches
-        foreach ($matches as $match) {
-            if ($match->mismatch) {
-                $mismatches[] = $match->mismatch;
-            }
-        }
-
         // Apply filtering if specified
         if (! empty($options['filter_types'])) {
-            $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
             $matches = $this->filterMatchesByMismatchType($matches, $options['filter_types']);
         }
 
@@ -126,6 +118,13 @@ class RouteValidator
 
             return $this->compareHttpMethods($a->method, $b->method);
         });
+
+        // Extract mismatches from matches (after sorting to preserve order)
+        foreach ($matches as $match) {
+            if ($match->mismatch) {
+                $mismatches[] = $match->mismatch;
+            }
+        }
 
         // Generate statistics
         $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches, ! empty($options['filter_types']));
@@ -391,22 +390,6 @@ class RouteValidator
     private function filterEndpointsByPatterns(array $endpoints, array $includePatterns): array
     {
         return array_filter($endpoints, fn (EndpointDefinition $endpoint): bool => PatternMatcher::matchesAny($includePatterns, $endpoint->path));
-    }
-
-    /**
-     * Filter mismatches by specified types
-     *
-     * @param  array<RouteMismatch>  $mismatches
-     * @param  array<string>  $filterTypes
-     * @return array<RouteMismatch>
-     */
-    private function filterMismatchesByType(array $mismatches, array $filterTypes): array
-    {
-        if ($filterTypes === []) {
-            return $mismatches;
-        }
-
-        return array_filter($mismatches, fn (RouteMismatch $mismatch): bool => in_array($mismatch->type, $filterTypes));
     }
 
     /**
