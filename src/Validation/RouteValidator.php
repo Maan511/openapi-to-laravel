@@ -129,11 +129,17 @@ class RouteValidator
         // Generate statistics
         $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches, ! empty($options['filter_types']));
 
+        // Include all routes and endpoints when no filter is applied (for table display)
+        $allRoutes = empty($options['filter_types']) ? $laravelRoutes : null;
+        $allEndpoints = empty($options['filter_types']) ? $endpoints : null;
+
         return new ValidationResult(
             isValid: $mismatches === [],
             mismatches: $mismatches,
             warnings: $warnings,
-            statistics: $statistics
+            statistics: $statistics,
+            allRoutes: $allRoutes,
+            allEndpoints: $allEndpoints
         );
     }
 

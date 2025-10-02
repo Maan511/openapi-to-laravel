@@ -250,6 +250,135 @@ class ValidateRoutesCommand extends Command
      */
     private function buildTableData(ValidationResult $result): array
     {
+        // If we have all routes/endpoints data (no filter applied), show everything
+        if ($result->allRoutes !== null && $result->allEndpoints !== null) {
+            return $this->buildCompleteTableData($result);
+        }
+
+        // Fallback to mismatch-only data (filtered results)
+        return $this->buildMismatchTableData($result);
+    }
+
+    /**
+     * Build table data showing all routes and endpoints (when no filter is applied)
+     *
+     * @return array<array<string>>
+     */
+    private function buildCompleteTableData(ValidationResult $result): array
+    {
+        $rows = [];
+        $processedSignatures = [];
+
+        // Create mismatch lookup for quick status determination
+        $mismatchMap = [];
+        foreach ($result->mismatches as $mismatch) {
+            if ($mismatch->type === RouteMismatch::TYPE_METHOD_MISMATCH) {
+                $methods = array_unique(array_merge(
+                    $mismatch->details['laravel_methods'] ?? [],
+                    $mismatch->details['openapi_methods'] ?? []
+                ));
+                foreach ($methods as $m) {
+                    $mismatchMap[strtoupper((string) $m) . ':' . $mismatch->path] = $mismatch;
+                }
+
+                continue;
+            }
+            $signature = $mismatch->method . ':' . $mismatch->path;
+            $mismatchMap[$signature] = $mismatch;
+        }
+
+        // Process all routes
+        if ($result->allRoutes !== null) {
+            foreach ($result->allRoutes as $route) {
+                foreach ($route->methods as $method) {
+                    $method = strtoupper($method);
+                    if ($method === 'HEAD') {
+                        continue;
+                    }
+
+                    $signature = $method . ':' . $route->getNormalizedPath();
+                    if (isset($processedSignatures[$signature])) {
+                        continue;
+                    }
+                    $processedSignatures[$signature] = true;
+
+                    $status = isset($mismatchMap[$signature])
+                        ? $this->getStatusFromMismatch($mismatchMap[$signature])
+                        : '✓ Match';
+
+                    $rows[] = [
+                        $method,
+                        $route->getNormalizedPath(),
+                        $this->formatParameters($route->pathParameters),
+                        '', // Will be filled if matching endpoint exists
+                        'Laravel',
+                        $status,
+                    ];
+                }
+            }
+        }
+
+        // Process all endpoints and update existing rows or add new ones
+        if ($result->allEndpoints !== null) {
+            foreach ($result->allEndpoints as $endpoint) {
+                $signature = $endpoint->method . ':' . $endpoint->path;
+
+                // Find existing row for this signature
+                $rowIndex = null;
+                foreach ($rows as $index => $row) {
+                    if ($row[0] === $endpoint->method && $row[1] === $endpoint->path) {
+                        $rowIndex = $index;
+                        break;
+                    }
+                }
+
+                if ($rowIndex !== null) {
+                    // Update existing row with endpoint parameters and source
+                    $rows[$rowIndex][3] = $this->formatParameters($this->extractPathParameters($endpoint->path));
+                    $rows[$rowIndex][4] = 'Both';
+                } else {
+                    // Add new row for endpoint-only item
+                    if (isset($processedSignatures[$signature])) {
+                        continue;
+                    }
+                    $processedSignatures[$signature] = true;
+
+                    $status = isset($mismatchMap[$signature])
+                        ? $this->getStatusFromMismatch($mismatchMap[$signature])
+                        : '✓ Match';
+
+                    $rows[] = [
+                        $endpoint->method,
+                        $endpoint->path,
+                        '', // No Laravel parameters
+                        $this->formatParameters($this->extractPathParameters($endpoint->path)),
+                        'OpenAPI',
+                        $status,
+                    ];
+                }
+            }
+        }
+
+        // Sort rows by method and path
+        usort($rows, function (array $a, array $b): int {
+            $pathCompare = strcmp($a[1], $b[1]);
+            if ($pathCompare !== 0) {
+                return $pathCompare;
+            }
+
+            return strcmp($a[0], $b[0]);
+        });
+
+        return $rows;
+    }
+
+    /**
+     * Build table data from mismatches only (filtered results)
+     *
+     * @return array<array<string>>
+     */
+    private function buildMismatchTableData(ValidationResult $result): array
+    {
         $rows = [];
         $routeMap = $this->buildRouteMap($result);
         $endpointMap = $this->buildEndpointMap($result);
@@ -279,6 +408,20 @@ class ValidateRoutesCommand extends Command
         }
 
         return $rows;
+    }
+
+    /**
+     * Get status from mismatch object
+     */
+    private function getStatusFromMismatch(RouteMismatch $mismatch): string
+    {
+        return match ($mismatch->type) {
+            RouteMismatch::TYPE_MISSING_DOCUMENTATION => '✗ Missing Doc',
+            RouteMismatch::TYPE_MISSING_IMPLEMENTATION => '✗ Missing Impl',
+            RouteMismatch::TYPE_METHOD_MISMATCH => '⚠ Method Mismatch',
+            RouteMismatch::TYPE_PARAMETER_MISMATCH => '⚠ Param Mismatch',
+            default => '⚠ Other Issue',
+        };
     }
 
     /**

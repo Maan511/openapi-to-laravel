@@ -11,24 +11,32 @@ class ValidationResult
      * @param  array<RouteMismatch>  $mismatches
      * @param  array<string>  $warnings
      * @param  array<string, mixed>  $statistics
+     * @param  array<\Maan511\OpenapiToLaravel\Models\LaravelRoute>|null  $allRoutes  All routes when no filter is applied
+     * @param  array<\Maan511\OpenapiToLaravel\Models\EndpointDefinition>|null  $allEndpoints  All endpoints when no filter is applied
      */
     public function __construct(
         public readonly bool $isValid,
         public readonly array $mismatches = [],
         public readonly array $warnings = [],
-        public readonly array $statistics = []
+        public readonly array $statistics = [],
+        public readonly ?array $allRoutes = null,
+        public readonly ?array $allEndpoints = null
     ) {}
 
     /**
      * Create a successful validation result
      *
      * @param  array<string, mixed>  $statistics
+     * @param  array<\Maan511\OpenapiToLaravel\Models\LaravelRoute>|null  $allRoutes
+     * @param  array<\Maan511\OpenapiToLaravel\Models\EndpointDefinition>|null  $allEndpoints
      */
-    public static function success(array $statistics = []): self
+    public static function success(array $statistics = [], ?array $allRoutes = null, ?array $allEndpoints = null): self
     {
         return new self(
             isValid: true,
-            statistics: $statistics
+            statistics: $statistics,
+            allRoutes: $allRoutes,
+            allEndpoints: $allEndpoints
         );
     }
 
@@ -38,14 +46,18 @@ class ValidationResult
      * @param  array<RouteMismatch>  $mismatches
      * @param  array<string>  $warnings
      * @param  array<string, mixed>  $statistics
+     * @param  array<\Maan511\OpenapiToLaravel\Models\LaravelRoute>|null  $allRoutes
+     * @param  array<\Maan511\OpenapiToLaravel\Models\EndpointDefinition>|null  $allEndpoints
      */
-    public static function failed(array $mismatches, array $warnings = [], array $statistics = []): self
+    public static function failed(array $mismatches, array $warnings = [], array $statistics = [], ?array $allRoutes = null, ?array $allEndpoints = null): self
     {
         return new self(
             isValid: false,
             mismatches: $mismatches,
             warnings: $warnings,
-            statistics: $statistics
+            statistics: $statistics,
+            allRoutes: $allRoutes,
+            allEndpoints: $allEndpoints
         );
     }
 
@@ -137,7 +149,9 @@ class ValidationResult
             isValid: $this->isValid && $other->isValid,
             mismatches: array_merge($this->mismatches, $other->mismatches),
             warnings: array_merge($this->warnings, $other->warnings),
-            statistics: array_merge($this->statistics, $other->statistics)
+            statistics: array_merge($this->statistics, $other->statistics),
+            allRoutes: $this->allRoutes ?? $other->allRoutes,
+            allEndpoints: $this->allEndpoints ?? $other->allEndpoints
         );
     }
 }
