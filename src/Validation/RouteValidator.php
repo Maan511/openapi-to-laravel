@@ -116,14 +116,14 @@ class RouteValidator
             $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
         }
 
-        // Sort mismatches alphabetically by path then method
+        // Sort mismatches alphabetically by path then by intuitive method order
         usort($mismatches, function (RouteMismatch $a, RouteMismatch $b): int {
             $pathCompare = strcmp($a->path, $b->path);
             if ($pathCompare !== 0) {
                 return $pathCompare;
             }
 
-            return strcmp($a->method, $b->method);
+            return $this->compareHttpMethods($a->method, $b->method);
         });
 
         // Generate statistics
@@ -382,5 +382,33 @@ class RouteValidator
         }
 
         return array_filter($mismatches, fn (RouteMismatch $mismatch): bool => in_array($mismatch->type, $filterTypes));
+    }
+
+    /**
+     * Compare HTTP methods for intuitive sorting
+     *
+     * Orders methods in a logical progression: GET, POST, PUT, PATCH, DELETE, then others alphabetically
+     */
+    private function compareHttpMethods(string $methodA, string $methodB): int
+    {
+        $methodOrder = [
+            'GET' => 1,
+            'POST' => 2,
+            'PUT' => 3,
+            'PATCH' => 4,
+            'DELETE' => 5,
+            'HEAD' => 6,
+            'OPTIONS' => 7,
+        ];
+
+        $orderA = $methodOrder[$methodA] ?? 99;
+        $orderB = $methodOrder[$methodB] ?? 99;
+
+        if ($orderA !== $orderB) {
+            return $orderA <=> $orderB;
+        }
+
+        // If both methods are not in the predefined order, sort alphabetically
+        return strcmp($methodA, $methodB);
     }
 }
