@@ -107,7 +107,7 @@ class RouteMatch
     public function getDisplayStatus(): string
     {
         return match ($this->status) {
-            self::STATUS_MATCH => '✓ Match',
+            self::STATUS_MATCH => '',
             self::STATUS_MISSING_DOCUMENTATION => '✗ Missing Doc',
             self::STATUS_MISSING_IMPLEMENTATION => '✗ Missing Impl',
             self::STATUS_PARAMETER_MISMATCH => '⚠ Param Mismatch',

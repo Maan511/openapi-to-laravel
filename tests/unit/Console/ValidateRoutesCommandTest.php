@@ -315,7 +315,7 @@ describe('ValidateRoutesCommand', function (): void {
             $outputMock->shouldReceive('write')->with(Mockery::any());
 
             // The table method should be called since we have mismatches that will produce table rows
-            $expectedHeaders = ['Method', 'Path', 'Laravel Params', 'OpenAPI Params', 'Source', 'Status'];
+            $expectedHeaders = ['Method', 'Path', 'Laravel', 'OpenAPI', 'Status'];
             $outputMock->shouldReceive('table')->with($expectedHeaders, Mockery::on(fn ($data): bool => is_array($data) && count($data) > 0))->atLeast(0); // Make this optional for now since the test data might not produce rows
 
             $outputMock->shouldIgnoreMissing();
@@ -394,13 +394,12 @@ describe('ValidateRoutesCommand', function (): void {
 
             expect($tableData)->toBeArray()
                 ->and($tableData)->toHaveCount(1)
-                ->and($tableData[0])->toHaveCount(6) // Method, Path, Laravel Params, OpenAPI Params, Source, Status
+                ->and($tableData[0])->toHaveCount(5) // Method, Path, Laravel, OpenAPI, Status
                 ->and($tableData[0][0])->toBe('GET') // Method
                 ->and($tableData[0][1])->toBe('/api/users/{id}') // Path
-                ->and($tableData[0][2])->toBe('[id]') // Laravel Params (extracted from path)
-                ->and($tableData[0][3])->toBe('[]') // OpenAPI Params (empty)
-                ->and($tableData[0][4])->toBe('Laravel') // Source
-                ->and($tableData[0][5])->toBe('✗ Missing Doc'); // Status
+                ->and($tableData[0][2])->toBe('✓') // Laravel (checkmark)
+                ->and($tableData[0][3])->toBe('') // OpenAPI (empty)
+                ->and($tableData[0][4])->toBe('✗ Missing Doc'); // Status
         });
     });
 

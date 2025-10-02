@@ -230,7 +230,7 @@ class ValidateRoutesCommand extends Command
         if ($tableData === []) {
             $this->warn('No routes or endpoints found to validate.');
         } else {
-            $headers = ['Method', 'Path', 'Laravel Params', 'OpenAPI Params', 'Source', 'Status'];
+            $headers = ['Method', 'Path', 'Laravel', 'OpenAPI', 'Status'];
             $this->table($headers, $tableData);
         }
 
@@ -256,28 +256,13 @@ class ValidateRoutesCommand extends Command
             $rows[] = [
                 $match->method,
                 $match->path,
-                $this->formatParameters($match->getLaravelParameters()),
-                $this->formatParameters($match->getOpenApiParameters()),
-                $match->getSource(),
+                $match->route ? '✓' : '',
+                $match->endpoint ? '✓' : '',
                 $match->getDisplayStatus(),
             ];
         }
 
         return $rows;
-    }
-
-    /**
-     * Format parameter array for display
-     *
-     * @param  array<string>  $parameters
-     */
-    private function formatParameters(array $parameters): string
-    {
-        if ($parameters === []) {
-            return '[]';
-        }
-
-        return '[' . implode(', ', $parameters) . ']';
     }
 
     /**

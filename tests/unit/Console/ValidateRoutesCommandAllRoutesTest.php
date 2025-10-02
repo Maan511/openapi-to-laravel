@@ -89,9 +89,9 @@ describe('ValidateRoutesCommand All Routes Display', function (): void {
             ->and($signatures)->toContain('POST:/api/posts')   // Missing doc
             ->and($signatures)->toContain('GET:/api/comments'); // Missing impl
 
-        // Check status indicators
-        $statuses = array_column($tableData, 5);
-        expect($statuses)->toContain('✓ Match')               // Successful route
+        // Check status indicators (column 4 now, was 5)
+        $statuses = array_column($tableData, 4);
+        expect($statuses)->toContain('')                      // Successful match (empty status)
             ->and($statuses)->toContain('✗ Missing Doc')      // Missing documentation
             ->and($statuses)->toContain('✗ Missing Impl');    // Missing implementation
     });
@@ -129,7 +129,7 @@ describe('ValidateRoutesCommand All Routes Display', function (): void {
         expect($tableData)->toHaveCount(1);
         expect($tableData[0][0])->toBe('GET');
         expect($tableData[0][1])->toBe('/api/users');
-        expect($tableData[0][5])->toBe('✗ Missing Doc');
+        expect($tableData[0][4])->toBe('✗ Missing Doc'); // Status is now column 4
     });
 
     it('should show proper source indicators', function (): void {
@@ -192,13 +192,20 @@ describe('ValidateRoutesCommand All Routes Display', function (): void {
 
         expect($tableData)->toHaveCount(3);
 
-        // Find each row by signature and check source
+        // Find each row by signature and check Laravel/OpenAPI columns
+        // Columns are now: Method(0), Path(1), Laravel(2), OpenAPI(3), Status(4)
         foreach ($tableData as $row) {
             $signature = $row[0] . ':' . $row[1];
             match ($signature) {
-                'GET:/api/users' => expect($row[4])->toBe('Both'),     // Both route and endpoint
-                'POST:/api/posts' => expect($row[4])->toBe('Laravel'), // Route only
-                'GET:/api/comments' => expect($row[4])->toBe('OpenAPI'), // Endpoint only
+                'GET:/api/users' => expect($row[2])->toBe('✓')      // Both route and endpoint
+                    ->and($row[3])->toBe('✓')
+                    ->and($row[4])->toBe(''),                       // Empty status for match
+                'POST:/api/posts' => expect($row[2])->toBe('✓')     // Route only
+                    ->and($row[3])->toBe('')
+                    ->and($row[4])->toBe('✗ Missing Doc'),
+                'GET:/api/comments' => expect($row[2])->toBe('')    // Endpoint only
+                    ->and($row[3])->toBe('✓')
+                    ->and($row[4])->toBe('✗ Missing Impl'),
                 default => null, // For any unexpected signatures
             };
         }

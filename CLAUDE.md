@@ -202,16 +202,16 @@ The table format now uses Laravel's native table output for better terminal comp
 Route Validation Report
 Generated: 2024-01-15 10:30:45
 
-+--------+-------------------------------+-----------------+-----------------+---------+------------------+
-| Method | Path                          | Laravel Params  | OpenAPI Params  | Source  | Status           |
-+--------+-------------------------------+-----------------+-----------------+---------+------------------+
-| GET    | /api/users                    | []              | []              | Both    | ✓ Match          |
-| POST   | /api/users                    | []              | []              | Both    | ✓ Match          |
-| GET    | /api/users/{id}               | [id]            | [id]            | Both    | ✓ Match          |
-| PUT    | /api/users/{id}               | [id]            | [id]            | Both    | ⚠ Param Mismatch |
-| GET    | /api/users/{id}/avatar        | [id]            | []              | Laravel | ✗ Missing Doc    |
-| POST   | /api/users/{id}/reset-pass... | []              | [id]            | OpenAPI | ✗ Missing Impl   |
-+--------+-------------------------------+-----------------+-----------------+---------+------------------+
++--------+-------------------------------+---------+---------+------------------+
+| Method | Path                          | Laravel | OpenAPI | Status           |
++--------+-------------------------------+---------+---------+------------------+
+| GET    | /api/users                    | ✓       | ✓       |                  |
+| POST   | /api/users                    | ✓       | ✓       |                  |
+| GET    | /api/users/{id}               | ✓       | ✓       |                  |
+| PUT    | /api/users/{id}               | ✓       | ✓       | ⚠ Param Mismatch |
+| GET    | /api/users/{id}/avatar        | ✓       |         | ✗ Missing Doc    |
+| POST   | /api/users/{id}/reset-pass... |         | ✓       | ✗ Missing Impl   |
++--------+-------------------------------+---------+---------+------------------+
 
 SUMMARY
 -------
@@ -229,8 +229,9 @@ Issue breakdown:
 ```
 
 **Key Features:**
+- **Clean, minimal output**: Only shows issues in the Status column; matches are indicated by checkmarks in source columns
 - **Automatic text overflow handling**: Laravel's table method automatically wraps long text and adjusts to terminal width
-- **Source column**: Shows whether each route comes from Laravel, OpenAPI, or both
+- **Source indicators**: Checkmarks (✓) show whether each route exists in Laravel and/or OpenAPI
 - **Detailed coverage statistics**: Separate coverage percentages for Laravel routes and OpenAPI endpoints
 - **Better terminal compatibility**: Uses Laravel's native table formatting that works across different terminals
 - **Automatic column sizing**: No manual width calculations needed
