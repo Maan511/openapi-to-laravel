@@ -272,6 +272,17 @@ class ValidateRoutesCommand extends Command
         // Create mismatch lookup for quick status determination
         $mismatchMap = [];
         foreach ($result->mismatches as $mismatch) {
+            if ($mismatch->type === RouteMismatch::TYPE_METHOD_MISMATCH) {
+                $methods = array_unique(array_merge(
+                    $mismatch->details['laravel_methods'] ?? [],
+                    $mismatch->details['openapi_methods'] ?? []
+                ));
+                foreach ($methods as $m) {
+                    $mismatchMap[strtoupper((string) $m) . ':' . $mismatch->path] = $mismatch;
+                }
+
+                continue;
+            }
             $signature = $mismatch->method . ':' . $mismatch->path;
             $mismatchMap[$signature] = $mismatch;
         }
@@ -280,6 +291,11 @@ class ValidateRoutesCommand extends Command
         if ($result->allRoutes !== null) {
             foreach ($result->allRoutes as $route) {
                 foreach ($route->methods as $method) {
+                    $method = strtoupper($method);
+                    if ($method === 'HEAD') {
+                        continue;
+                    }
+
                     $signature = $method . ':' . $route->getNormalizedPath();
                     if (isset($processedSignatures[$signature])) {
                         continue;
