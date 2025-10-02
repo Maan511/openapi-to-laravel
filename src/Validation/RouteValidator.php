@@ -5,6 +5,7 @@ namespace Maan511\OpenapiToLaravel\Validation;
 use Exception;
 use Maan511\OpenapiToLaravel\Models\EndpointDefinition;
 use Maan511\OpenapiToLaravel\Models\LaravelRoute;
+use Maan511\OpenapiToLaravel\Models\RouteMatch;
 use Maan511\OpenapiToLaravel\Models\RouteMismatch;
 use Maan511\OpenapiToLaravel\Models\ValidationResult;
 use Maan511\OpenapiToLaravel\Parser\OpenApiParser;
@@ -88,6 +89,7 @@ class RouteValidator
     private function performValidation(array $laravelRoutes, array $endpoints, array $options): ValidationResult
     {
         $mismatches = [];
+        $matches = [];
         $warnings = [];
 
         // Filter routes by include patterns if specified (before creating route map)
@@ -99,25 +101,16 @@ class RouteValidator
         $routeMap = $this->createRouteMap($laravelRoutes);
         $endpointMap = $this->createEndpointMap($endpoints);
 
-        // Find missing documentation (routes not in OpenAPI)
-        $missingDocs = $this->findMissingDocumentation($routeMap, $endpointMap, $options);
-        $mismatches = array_merge($mismatches, $missingDocs);
-
-        // Find missing implementation (OpenAPI endpoints not in routes)
-        $missingImpl = $this->findMissingImplementation($endpointMap, $routeMap);
-        $mismatches = array_merge($mismatches, $missingImpl);
-
-        // Find parameter mismatches (for routes/endpoints that exist in both)
-        $paramMismatches = $this->findParameterMismatches($routeMap, $endpointMap);
-        $mismatches = array_merge($mismatches, $paramMismatches);
+        // Build matches for all routes and endpoints
+        $matches = $this->buildMatches($routeMap, $endpointMap, $options);
 
         // Apply filtering if specified
         if (! empty($options['filter_types'])) {
-            $mismatches = $this->filterMismatchesByType($mismatches, $options['filter_types']);
+            $matches = $this->filterMatchesByMismatchType($matches, $options['filter_types']);
         }
 
-        // Sort mismatches alphabetically by path then by intuitive method order
-        usort($mismatches, function (RouteMismatch $a, RouteMismatch $b): int {
+        // Sort matches alphabetically by path then by intuitive method order
+        usort($matches, function (RouteMatch $a, RouteMatch $b): int {
             $pathCompare = strcmp($a->path, $b->path);
             if ($pathCompare !== 0) {
                 return $pathCompare;
@@ -126,25 +119,29 @@ class RouteValidator
             return $this->compareHttpMethods($a->method, $b->method);
         });
 
+        // Extract mismatches from matches (after sorting to preserve order)
+        foreach ($matches as $match) {
+            if ($match->mismatch) {
+                $mismatches[] = $match->mismatch;
+            }
+        }
+
         // Generate statistics
         $statistics = $this->generateStatistics($laravelRoutes, $endpoints, $mismatches, ! empty($options['filter_types']));
-
-        // Include all routes and endpoints when no filter is applied (for table display)
-        $allRoutes = empty($options['filter_types']) ? $laravelRoutes : null;
-        $allEndpoints = empty($options['filter_types']) ? $endpoints : null;
 
         return new ValidationResult(
             isValid: $mismatches === [],
             mismatches: $mismatches,
             warnings: $warnings,
             statistics: $statistics,
-            allRoutes: $allRoutes,
-            allEndpoints: $allEndpoints
+            matches: $matches
         );
     }
 
     /**
      * Create route signature map for efficient lookup
+     *
+     * Uses normalized signature to match routes with different parameter names
      *
      * @param  array<LaravelRoute>  $routes
      * @return array<string, array<LaravelRoute>>
@@ -153,11 +150,12 @@ class RouteValidator
     {
         $map = [];
         foreach ($routes as $route) {
-            $normalizedSignature = $route->getNormalizedSignature();
-            if (! isset($map[$normalizedSignature])) {
-                $map[$normalizedSignature] = [];
+            // Use normalized signature to match routes regardless of parameter names
+            $signature = $route->getNormalizedSignature();
+            if (! isset($map[$signature])) {
+                $map[$signature] = [];
             }
-            $map[$normalizedSignature][] = $route;
+            $map[$signature][] = $route;
         }
 
         return $map;
@@ -166,6 +164,8 @@ class RouteValidator
     /**
      * Create endpoint signature map for efficient lookup
      *
+     * Uses normalized signature to match routes with different parameter names
+     *
      * @param  array<EndpointDefinition>  $endpoints
      * @return array<string, array<EndpointDefinition>>
      */
@@ -173,104 +173,117 @@ class RouteValidator
     {
         $map = [];
         foreach ($endpoints as $endpoint) {
-            $normalizedSignature = $endpoint->getNormalizedSignature();
-            if (! isset($map[$normalizedSignature])) {
-                $map[$normalizedSignature] = [];
+            // Use normalized signature to match routes regardless of parameter names
+            $signature = $endpoint->getNormalizedSignature();
+            if (! isset($map[$signature])) {
+                $map[$signature] = [];
             }
-            $map[$normalizedSignature][] = $endpoint;
+            $map[$signature][] = $endpoint;
         }
 
         return $map;
     }
 
     /**
-     * Find routes that are missing documentation
+     * Build route matches from route and endpoint maps
      *
      * @param  array<string, array<LaravelRoute>>  $routeMap
      * @param  array<string, array<EndpointDefinition>>  $endpointMap
      * @param  array<string, mixed>  $options
-     * @return array<RouteMismatch>
+     * @return array<RouteMatch>
      */
-    private function findMissingDocumentation(array $routeMap, array $endpointMap, array $options): array
+    private function buildMatches(array $routeMap, array $endpointMap, array $options): array
     {
-        $mismatches = [];
+        $matches = [];
+        $processedSignatures = [];
 
+        // Process routes that match with endpoints
         foreach ($routeMap as $signature => $routes) {
-            if (! isset($endpointMap[$signature])) {
-                foreach ($routes as $route) {
-                    // Skip routes that should be excluded
-                    if (! $this->shouldIncludeRoute($route, $options)) {
-                        continue;
-                    }
+            $processedSignatures[$signature] = true;
 
-                    $mismatches[] = RouteMismatch::missingDocumentation($route);
-                }
-            }
-        }
-
-        return $mismatches;
-    }
-
-    /**
-     * Find endpoints that are missing implementation
-     *
-     * @param  array<string, array<EndpointDefinition>>  $endpointMap
-     * @param  array<string, array<LaravelRoute>>  $routeMap
-     * @return array<RouteMismatch>
-     */
-    private function findMissingImplementation(array $endpointMap, array $routeMap): array
-    {
-        $mismatches = [];
-
-        foreach ($endpointMap as $signature => $endpoints) {
-            if (! isset($routeMap[$signature])) {
-                foreach ($endpoints as $endpoint) {
-                    $mismatches[] = RouteMismatch::missingImplementation($endpoint);
-                }
-            }
-        }
-
-        return $mismatches;
-    }
-
-    /**
-     * Find parameter mismatches between routes and endpoints
-     *
-     * @param  array<string, array<LaravelRoute>>  $routeMap
-     * @param  array<string, array<EndpointDefinition>>  $endpointMap
-     * @return array<RouteMismatch>
-     */
-    private function findParameterMismatches(array $routeMap, array $endpointMap): array
-    {
-        $mismatches = [];
-
-        foreach ($routeMap as $signature => $routes) {
             if (isset($endpointMap[$signature])) {
-                $route = $routes[0]; // Take first route for comparison
-                $endpoint = $endpointMap[$signature][0]; // Take first endpoint for comparison
+                // Match found - create match with possible parameter mismatch
+                $route = $routes[0];
+                $endpoint = $endpointMap[$signature][0];
 
-                $routeParams = $route->pathParameters;
-                $endpointParams = $endpoint->getPathParameters();
-
-                // Normalize parameter lists to handle order differences
-                $normalizedRouteParams = is_array($routeParams) ? $routeParams : [];
-                $normalizedEndpointParams = is_array($endpointParams) ? $endpointParams : [];
-
-                // Only check for mismatches if parameter counts differ
-                // Since we're using normalized signatures for matching,
-                // routes with same parameter structure should not be flagged as mismatches
-                if (count($normalizedRouteParams) !== count($normalizedEndpointParams)) {
-                    $mismatches[] = RouteMismatch::parameterMismatch(
-                        $route->getNormalizedPath(),
-                        $route->getPrimaryMethod(),
-                        $routeParams,
-                        $endpointParams
-                    );
+                $mismatch = $this->checkParameterMismatch($route, $endpoint);
+                $matches[] = RouteMatch::createMatch($route, $endpoint, $mismatch);
+            } else {
+                // Route without endpoint - missing documentation
+                foreach ($routes as $route) {
+                    if ($this->shouldIncludeRoute($route, $options)) {
+                        $match = RouteMatch::createMissingDocumentation($route);
+                        $match->mismatch = RouteMismatch::missingDocumentation($route);
+                        $matches[] = $match;
+                    }
                 }
             }
         }
 
-        return $mismatches;
+        // Process endpoints without routes - missing implementation
+        foreach ($endpointMap as $signature => $endpoints) {
+            if (! isset($processedSignatures[$signature])) {
+                foreach ($endpoints as $endpoint) {
+                    $match = RouteMatch::createMissingImplementation($endpoint);
+                    $match->mismatch = RouteMismatch::missingImplementation($endpoint);
+                    $matches[] = $match;
+                }
+            }
+        }
+
+        return $matches;
+    }
+
+    /**
+     * Check for parameter mismatch between route and endpoint
+     */
+    private function checkParameterMismatch(LaravelRoute $route, EndpointDefinition $endpoint): ?RouteMismatch
+    {
+        $routeParams = $route->pathParameters;
+        $endpointParams = $endpoint->getPathParameters();
+
+        // Different parameter names are acceptable if same count
+        if (! $this->parametersMatch($routeParams, $endpointParams)) {
+            return RouteMismatch::parameterMismatch(
+                $route->getNormalizedPath(),
+                $route->getPrimaryMethod(),
+                $routeParams,
+                $endpointParams
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * Filter matches by mismatch type
+     *
+     * @param  array<RouteMatch>  $matches
+     * @param  array<string>  $filterTypes
+     * @return array<RouteMatch>
+     */
+    private function filterMatchesByMismatchType(array $matches, array $filterTypes): array
+    {
+        if ($filterTypes === []) {
+            return $matches;
+        }
+
+        return array_filter($matches, fn (RouteMatch $match): bool => $match->mismatch && in_array($match->mismatch->type, $filterTypes));
+    }
+
+    /**
+     * Check if parameter arrays match (allowing for naming variations)
+     *
+     * Different parameter names are acceptable as long as they're in the same positions
+     *
+     * @param  array<string>  $params1
+     * @param  array<string>  $params2
+     */
+    private function parametersMatch(array $params1, array $params2): bool
+    {
+        // Parameter names can differ between Laravel and OpenAPI
+        // We only care that they have the same count and structure
+        return count($params1) === count($params2);
     }
 
     /**
@@ -325,6 +338,8 @@ class RouteValidator
 
     /**
      * Calculate coverage percentage
+     *
+     * Coverage represents bidirectional matching: routes/endpoints that exist in both sources
      */
     private function calculateCoverage(int $totalRoutes, int $totalEndpoints, int $coveredRoutes, int $coveredEndpoints): float
     {
@@ -333,7 +348,10 @@ class RouteValidator
             return 100.0;
         }
 
-        $coveredItems = $coveredRoutes + $coveredEndpoints;
+        // Coverage is based on items that exist in BOTH sources
+        // Each bidirectional match counts as 2 (one route + one endpoint)
+        $bidirectionalMatches = min($coveredRoutes, $coveredEndpoints);
+        $coveredItems = $bidirectionalMatches * 2;
 
         return round(($coveredItems / $totalItems) * 100, 2);
     }
@@ -372,22 +390,6 @@ class RouteValidator
     private function filterEndpointsByPatterns(array $endpoints, array $includePatterns): array
     {
         return array_filter($endpoints, fn (EndpointDefinition $endpoint): bool => PatternMatcher::matchesAny($includePatterns, $endpoint->path));
-    }
-
-    /**
-     * Filter mismatches by specified types
-     *
-     * @param  array<RouteMismatch>  $mismatches
-     * @param  array<string>  $filterTypes
-     * @return array<RouteMismatch>
-     */
-    private function filterMismatchesByType(array $mismatches, array $filterTypes): array
-    {
-        if ($filterTypes === []) {
-            return $mismatches;
-        }
-
-        return array_filter($mismatches, fn (RouteMismatch $mismatch): bool => in_array($mismatch->type, $filterTypes));
     }
 
     /**
