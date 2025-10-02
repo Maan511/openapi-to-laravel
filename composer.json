@@ -44,7 +44,8 @@
     "analyse": "./vendor/bin/phpstan analyse --memory-limit=2G",
     "refactor": "./vendor/bin/rector process",
     "test:format": "./vendor/bin/pint --test",
-    "test:refactor": "./vendor/bin/rector process --dry-run"
+    "test:refactor": "./vendor/bin/rector process --dry-run",
+    "test:all": "composer test && composer test:format && composer test:refactor && composer analyse"
   },
   "extra": {
     "laravel": {

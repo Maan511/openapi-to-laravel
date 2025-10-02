@@ -178,7 +178,7 @@ class LaravelRoute
      */
     private static function extractPathParameters(string $uri): array
     {
-        preg_match_all('/\{([^}?]+)\?\??\}/', $uri, $matches);
+        preg_match_all('/\{([^}?]+)\??\}/', $uri, $matches);
 
         return $matches[1];
     }
