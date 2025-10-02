@@ -4,6 +4,7 @@ use Illuminate\Console\OutputStyle;
 use Illuminate\Contracts\Foundation\Application;
 use Maan511\OpenapiToLaravel\Console\ValidateRoutesCommand;
 use Maan511\OpenapiToLaravel\Models\LaravelRoute;
+use Maan511\OpenapiToLaravel\Models\RouteMatch;
 use Maan511\OpenapiToLaravel\Models\RouteMismatch;
 use Maan511\OpenapiToLaravel\Models\ValidationResult;
 use Symfony\Component\Console\Formatter\OutputFormatterInterface;
@@ -374,13 +375,16 @@ describe('ValidateRoutesCommand', function (): void {
                 pathParameters: ['id']
             );
 
+            $mismatch = RouteMismatch::missingDocumentation($testRoute);
+            $match = RouteMatch::createMissingDocumentation($testRoute);
+            $match->mismatch = $mismatch;
+
             $validationResult = new ValidationResult(
                 isValid: false,
-                mismatches: [
-                    RouteMismatch::missingDocumentation($testRoute),
-                ],
+                mismatches: [$mismatch],
                 warnings: [],
-                statistics: []
+                statistics: [],
+                matches: [$match]
             );
 
             $reflection = new ReflectionClass($this->validateCommand);

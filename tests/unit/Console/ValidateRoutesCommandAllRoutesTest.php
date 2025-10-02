@@ -3,6 +3,7 @@
 use Maan511\OpenapiToLaravel\Console\ValidateRoutesCommand;
 use Maan511\OpenapiToLaravel\Models\EndpointDefinition;
 use Maan511\OpenapiToLaravel\Models\LaravelRoute;
+use Maan511\OpenapiToLaravel\Models\RouteMatch;
 use Maan511\OpenapiToLaravel\Models\RouteMismatch;
 use Maan511\OpenapiToLaravel\Models\ValidationResult;
 
@@ -41,12 +42,22 @@ describe('ValidateRoutesCommand All Routes Display', function (): void {
             operationId: 'getComments'
         );
 
+        // Create matches with assigned mismatches
+        $missingDocMismatch = RouteMismatch::missingDocumentation($missingDocRoute);
+        $missingImplMismatch = RouteMismatch::missingImplementation($missingImplEndpoint);
+
+        $missingDocMatch = RouteMatch::createMissingDocumentation($missingDocRoute);
+        $missingDocMatch->mismatch = $missingDocMismatch;
+
+        $missingImplMatch = RouteMatch::createMissingImplementation($missingImplEndpoint);
+        $missingImplMatch->mismatch = $missingImplMismatch;
+
         // Create validation result with all routes/endpoints (no filter applied)
         $validationResult = new ValidationResult(
             isValid: false,
             mismatches: [
-                RouteMismatch::missingDocumentation($missingDocRoute),
-                RouteMismatch::missingImplementation($missingImplEndpoint),
+                $missingDocMismatch,
+                $missingImplMismatch,
             ],
             warnings: [],
             statistics: [
@@ -55,8 +66,11 @@ describe('ValidateRoutesCommand All Routes Display', function (): void {
                 'covered_routes' => 1,
                 'covered_endpoints' => 1,
             ],
-            allRoutes: [$successfulRoute, $missingDocRoute],
-            allEndpoints: [$successfulEndpoint, $missingImplEndpoint]
+            matches: [
+                RouteMatch::createMatch($successfulRoute, $successfulEndpoint),
+                $missingDocMatch,
+                $missingImplMatch,
+            ]
         );
 
         // Use reflection to access private method
@@ -92,16 +106,17 @@ describe('ValidateRoutesCommand All Routes Display', function (): void {
             middleware: ['api']
         );
 
-        // Create validation result without allRoutes/allEndpoints (filter applied)
+        // Create validation result with filtered matches
+        $mismatch = RouteMismatch::missingDocumentation($route);
+        $match = RouteMatch::createMissingDocumentation($route);
+        $match->mismatch = $mismatch;
+
         $validationResult = new ValidationResult(
             isValid: false,
-            mismatches: [
-                RouteMismatch::missingDocumentation($route),
-            ],
+            mismatches: [$mismatch],
             warnings: [],
             statistics: ['total_routes' => 1],
-            allRoutes: null,  // No complete data when filtered
-            allEndpoints: null
+            matches: [$match]
         );
 
         // Use reflection to access private method
@@ -146,16 +161,28 @@ describe('ValidateRoutesCommand All Routes Display', function (): void {
             operationId: 'getComments'
         );
 
+        $missingDocMismatch = RouteMismatch::missingDocumentation($routeOnlyRoute);
+        $missingImplMismatch = RouteMismatch::missingImplementation($endpointOnlyEndpoint);
+
+        $missingDocMatch = RouteMatch::createMissingDocumentation($routeOnlyRoute);
+        $missingDocMatch->mismatch = $missingDocMismatch;
+
+        $missingImplMatch = RouteMatch::createMissingImplementation($endpointOnlyEndpoint);
+        $missingImplMatch->mismatch = $missingImplMismatch;
+
         $validationResult = new ValidationResult(
             isValid: false,
             mismatches: [
-                RouteMismatch::missingDocumentation($routeOnlyRoute),
-                RouteMismatch::missingImplementation($endpointOnlyEndpoint),
+                $missingDocMismatch,
+                $missingImplMismatch,
             ],
             warnings: [],
             statistics: [],
-            allRoutes: [$route, $routeOnlyRoute],
-            allEndpoints: [$endpoint, $endpointOnlyEndpoint]
+            matches: [
+                RouteMatch::createMatch($route, $endpoint),
+                $missingDocMatch,
+                $missingImplMatch,
+            ]
         );
 
         $reflection = new ReflectionClass($this->validateCommand);

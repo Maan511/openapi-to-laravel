@@ -414,7 +414,8 @@ describe('RouteValidator', function (): void {
         // Extract methods from mismatches in order
         $methods = array_map(fn ($mismatch) => $mismatch->method, array_values($result->mismatches));
 
-        // Should be ordered: GET, POST, PUT, PATCH, DELETE (intuitive order, not alphabetical)
+        // Methods are sorted by intuitive HTTP method order within each path
+        // Since all these are on the same path, they're sorted by method order
         expect($methods)->toBe(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
     });
 });
