@@ -1,10 +1,10 @@
-# OpenAPI to Laravel FormRequest Generator
+# OpenAPI to Laravel
 
 [![PHP Version](https://img.shields.io/badge/php-%5E8.3-blue)](https://www.php.net/releases/8.3/en.php)
 [![Laravel](https://img.shields.io/badge/laravel-%5E11.0-red)](https://laravel.com)
 [![Tests](https://img.shields.io/badge/tests-passing-green)](https://github.com/maan511/openapi-to-laravel)
 
-Stop writing Laravel FormRequest validation rules by hand and manually checking route consistency. Automatically generate FormRequests and validate route compliance from your OpenAPI specification, keeping your API documentation, validation logic, and routes perfectly synchronized.
+Build Laravel APIs that stay perfectly synchronized with your OpenAPI specification. Automatically generate FormRequest validation and verify route compliance, ensuring your implementation always matches your API contract.
 
 ## The Problem
 
@@ -22,20 +22,27 @@ Two powerful commands that keep your Laravel application and OpenAPI specificati
 ```bash
 php artisan openapi-to-laravel:make-requests api-spec.yaml
 ```
+Automatically generates complete Laravel FormRequest classes with comprehensive validation rules from your OpenAPI specification. Supports all OpenAPI 3.x schema types, formats, constraints, nested objects, arrays, and reference resolution.
 
 **2. Validate route consistency:**
 ```bash
 php artisan openapi-to-laravel:validate-routes api-spec.yaml
 ```
+Validates that your Laravel routes match your OpenAPI specification endpoints. Detects missing documentation, missing implementations, method mismatches, parameter differences, and provides detailed coverage statistics.
 
-**Result:** Transform 50+ endpoints into perfectly validated FormRequest classes AND ensure your routes match your documentation - all in seconds, not hours.
+**Result:** Transform 100+ endpoints into perfectly validated FormRequest classes AND ensure your routes match your documentation - all in seconds, not hours.
 
 ## Key Benefits
 
-- **Save hours of development time**: Generate comprehensive FormRequest classes instantly
+- **Save hours of development time**: Generate comprehensive FormRequest classes with complex validation rules instantly
 - **Maintain perfect sync**: Your validation rules and routes automatically match your API documentation
-- **Eliminate human error**: Consistent, accurate validation rules and route validation generated from your source of truth
+- **Eliminate human error**: Consistent, accurate validation rules generated from your source of truth
 - **Catch API drift early**: Validate that your Laravel routes match your OpenAPI specification before deployment
+- **Comprehensive validation support**: All OpenAPI 3.x types, formats, and constraints mapped to Laravel validation
+- **Multiple output formats**: Table, console, JSON, and HTML reports for route validation
+- **CI/CD ready**: Strict mode and JSON output perfect for automated pipelines
+- **Performance optimized**: Handles 100+ endpoints efficiently with caching and optimized parsing
+- **Smart filtering**: Filter routes by pattern, middleware, or error type for targeted validation
 
 ## Why Use This?
 
@@ -73,10 +80,12 @@ The package will automatically register the command with Laravel using auto-disc
 php artisan openapi-to-laravel:make-requests path/to/your/openapi.json
 ```
 
-**Common options:**
-- `--dry-run` - Preview without creating files
-- `--output=path` - Custom output directory
+**All options:**
+- `--output=path` - Custom output directory (default: `./app/Http/Requests`)
+- `--namespace=Namespace` - Custom namespace (default: `App\Http\Requests`)
 - `--force` - Overwrite existing files
+- `--dry-run` - Preview without creating files (shows detailed table with class names, paths, and sizes)
+- `-v|--verbose` - Show detailed output including statistics and generation progress
 
 **2. Validate that your Laravel routes match your OpenAPI specification:**
 
@@ -84,36 +93,86 @@ php artisan openapi-to-laravel:make-requests path/to/your/openapi.json
 php artisan openapi-to-laravel:validate-routes path/to/your/openapi.json
 ```
 
-**Common options:**
-- `--strict` - Fail on any mismatches (perfect for CI/CD)
-- `--report-format=console,json,html,table` - Choose output format (default: table)
-- `--include-pattern="api/*"` - Only validate specific routes
+**All options:**
+- `--base-path=/api` - Override server base path
+- `--include-pattern="api/*"` - Only validate specific routes (can be used multiple times)
+- `--exclude-middleware=web` - Exclude routes with specific middleware (can be used multiple times)
+- `--ignore-route="api.health"` - Ignore specific route names/patterns (can be used multiple times)
+- `--report-format=table` - Choose output format: `console`, `json`, `html`, or `table` (default: `table`)
+- `--output-file=report` - Save report to file (extension auto-added based on format)
+- `--strict` - Fail command on any mismatches (perfect for CI/CD)
+- `--suggestions` - Include actionable fix suggestions in output
+- `--filter-type=missing-documentation` - Filter by specific mismatch types (can be used multiple times)
+
+**Available filter types:**
+- `missing-documentation` - Routes implemented but not in OpenAPI spec
+- `missing-implementation` - OpenAPI endpoints not implemented in Laravel
+- `method-mismatch` - Same path with different HTTP methods
+- `parameter-mismatch` - Different parameter requirements
+- `path-mismatch` - Path pattern differences
+- `validation-error` - Schema validation errors
 
 **Next Steps:** Use your generated FormRequest classes in your Laravel controllers for automatic validation and run route validation in your CI/CD pipeline.
 
 ## Supported OpenAPI Features
 
 ### Schema Types
-- ✅ `object` - Generated as FormRequest with property validation
-- ✅ `array` - Generates array validation with item rules
-- ✅ `string` - Maps to Laravel string validation
+- ✅ `object` - Generated as FormRequest with property validation (mapped to Laravel `array`)
+- ✅ `array` - Generates array validation with item rules and constraints
+- ✅ `string` - Maps to Laravel string validation with format support
 - ✅ `integer` - Maps to Laravel integer validation
 - ✅ `number` - Maps to Laravel numeric validation
 - ✅ `boolean` - Maps to Laravel boolean validation
 
 ### String Formats
-- ✅ `email` - Laravel email validation
-- ✅ `date` - Laravel date validation
-- ✅ `date-time` - Laravel date_format validation
-- ✅ `uri` - Laravel url validation
-- ✅ `uuid` - Laravel uuid validation
+All OpenAPI 3.x string formats are fully supported:
+
+- ✅ `email` → `email` validation
+- ✅ `uri`, `url` → `url` validation
+- ✅ `date` → `date_format:Y-m-d` validation
+- ✅ `date-time` → `date` validation
+- ✅ `time` → `date_format:H:i:s` validation
+- ✅ `uuid` → `uuid` validation
+- ✅ `ipv4` → `ipv4` validation
+- ✅ `ipv6` → `ipv6` validation
+- ✅ `hostname` → Custom regex validation
+- ✅ `byte` → Base64 regex validation
+- ✅ `binary` → `file` validation
+
+### Validation Constraints
+All OpenAPI validation keywords are mapped to Laravel rules:
+
+**String Constraints:**
+- `minLength` → `min:n`
+- `maxLength` → `max:n`
+- `pattern` → `regex:pattern`
+
+**Numeric Constraints:**
+- `minimum` → `min:n`
+- `maximum` → `max:n`
+- `multipleOf` → Custom validation
+
+**Array Constraints:**
+- `minItems` → `min:n`
+- `maxItems` → `max:n`
+- `uniqueItems` → `distinct`
+
+**Object Constraints:**
+- `required` → `required` validation
+- `nullable` → `nullable` validation
+- `minProperties` / `maxProperties` → Handled during validation
 
 ### Advanced Features
-- ✅ **Reference Resolution**: `$ref` objects are automatically resolved
-- ✅ **Nested Objects**: Deep nesting support with dot notation
-- ✅ **Array Items**: Array item validation with `.*` notation
-- ✅ **Circular Reference Detection**: Prevents infinite loops
-- ✅ **Content Type Detection**: Supports JSON, form-data, and URL-encoded
+- ✅ **Reference Resolution**: `$ref` objects are automatically resolved from `#/components/schemas`
+- ✅ **Nested Objects**: Deep nesting support with Laravel dot notation (`user.address.city`)
+- ✅ **Array Items**: Array item validation with `.*` notation (`tags.*`)
+- ✅ **Nested Arrays**: Support for arrays of objects (`items.*.properties`)
+- ✅ **Circular Reference Detection**: Prevents infinite loops during schema resolution
+- ✅ **Content Type Detection**: Supports `application/json`, `multipart/form-data`, and `application/x-www-form-urlencoded`
+- ✅ **OpenAPI 3.0 & 3.1**: Compatible with both OpenAPI versions
+- ✅ **Nullable Handling**: Supports both OpenAPI 3.0 `nullable: true` and 3.1 type unions
+- ✅ **Required Fields**: Automatically maps to Laravel `required` vs `nullable` rules
+- ✅ **Multiple Schemas per Endpoint**: Handles different content types for the same endpoint
 
 ## See It In Action
 
@@ -201,6 +260,54 @@ class CreateUserRequest extends FormRequest
 
 **⏱️ Time Saved:** This FormRequest would take 10-15 minutes to write manually with careful validation rule mapping. Generated in seconds with perfect accuracy.
 
+### Advanced Usage Examples
+
+**Preview generation with dry run:**
+```bash
+php artisan openapi-to-laravel:make-requests api-spec.yaml --dry-run -v
+```
+
+**Output:**
+```
+Starting generation process...
+Spec file: api-spec.yaml
+Output directory: ./app/Http/Requests
+Namespace: App\Http\Requests
+Parsing OpenAPI specification...
+Found 15 endpoints with request bodies
+
+Dry run mode - showing what would be generated:
+
++------------------+----------------------------------------+-------------------+-------+--------+--------------+
+| Class Name       | File Path                              | Source Endpoint   | Rules | Exists | Size (bytes) |
++------------------+----------------------------------------+-------------------+-------+--------+--------------+
+| CreateUserReq... | ./app/Http/Requests/CreateUserRequ...  | POST /users       | 5     | No     | 1,247        |
+| UpdateUserReq... | ./app/Http/Requests/UpdateUserRequ...  | PUT /users/{id}   | 5     | No     | 1,312        |
+| CreatePostReq... | ./app/Http/Requests/CreatePostRequ...  | POST /posts       | 8     | No     | 1,689        |
++------------------+----------------------------------------+-------------------+-------+--------+--------------+
+
+Summary:
+Total classes: 15
+Existing files: 0
+Total estimated size: 18,945 bytes
+```
+
+**Generate to custom location with verbose output:**
+```bash
+php artisan openapi-to-laravel:make-requests openapi.json \
+  --output=app/Http/Requests/Api/V1 \
+  --namespace="App\\Http\\Requests\\Api\\V1" \
+  --force \
+  -v
+```
+
+**Verbose output includes:**
+- Specification validation warnings
+- Detailed generation progress
+- Statistics: total classes, rules, complexity scores, namespaces
+- Most complex class identification
+- Success/failure details for each file
+
 ## Route Validation in Action
 
 Ensure your Laravel routes match your OpenAPI specification:
@@ -209,27 +316,98 @@ Ensure your Laravel routes match your OpenAPI specification:
 php artisan openapi-to-laravel:validate-routes api-spec.yaml
 ```
 
-**Example output when mismatches are found:**
+**Example output (table format - default):**
 
 ```
-=== Route Validation Report ===
-Status: FAILED
-Total mismatches: 2
+Route Validation Report
+Generated: 2024-01-15 10:30:45
 
-=== Mismatches ===
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
+| Method | Path                          | Laravel Params  | OpenAPI Params  | Source  | Status           |
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
+| GET    | /api/users                    | []              | []              | Both    | ✓ Match          |
+| POST   | /api/users                    | []              | []              | Both    | ✓ Match          |
+| GET    | /api/users/{id}               | [id]            | [id]            | Both    | ✓ Match          |
+| PUT    | /api/users/{id}               | [id]            | [id]            | Both    | ⚠ Param Mismatch |
+| GET    | /api/users/{id}/avatar        | [id]            | []              | Laravel | ✗ Missing Doc    |
+| POST   | /api/users/{id}/reset-pass... | []              | [id]            | OpenAPI | ✗ Missing Impl   |
++--------+-------------------------------+-----------------+-----------------+---------+------------------+
 
-MISSING DOCUMENTATION (1)
-✗ Route 'GET:/api/users/{id}/avatar' is implemented but not documented
-  Suggestions: Add 'GET /api/users/{id}/avatar' to your OpenAPI specification
+SUMMARY
+-------
+Laravel Routes: 5 total, 4 covered (80.0%)
+OpenAPI Endpoints: 4 total, 3 covered (75.0%)
+Overall Coverage: 7/9 (77.8%)
+Total Issues: 3
 
-MISSING IMPLEMENTATION (1)
-✗ Endpoint 'DELETE:/api/users/{id}' is documented but not implemented
-  Suggestions: Implement route 'DELETE /api/users/{id}' in Laravel
+✗ Found 3 mismatch(es)
+
+Issue breakdown:
+  Missing documentation: 1
+  Missing implementation: 1
+  Parameter mismatches: 1
+```
+
+**Advanced validation with filtering:**
+
+```bash
+# Filter specific routes and show suggestions
+php artisan openapi-to-laravel:validate-routes api-spec.yaml \
+  --include-pattern="api/v1/*" \
+  --exclude-middleware=web \
+  --suggestions
+
+# Filter by specific error types
+php artisan openapi-to-laravel:validate-routes api-spec.yaml \
+  --filter-type=missing-documentation \
+  --filter-type=missing-implementation \
+  --suggestions
+
+# Generate multiple report formats
+php artisan openapi-to-laravel:validate-routes api-spec.yaml \
+  --report-format=html \
+  --output-file=validation-report \
+  --suggestions
 ```
 
 **⚡ CI/CD Integration:** Use `--strict` flag to fail builds when routes don't match your specification, ensuring your API documentation stays accurate.
 
+```yaml
+# GitHub Actions example
+- name: Validate API Routes
+  run: |
+    php artisan openapi-to-laravel:validate-routes openapi.yaml \
+      --strict \
+      --report-format=json \
+      --output-file=route-validation.json
+```
+
 ## Advanced Configuration
+
+### Report Formats
+
+The route validation command supports multiple output formats:
+
+1. **Table Format** (default) - Clean tabular output using Laravel's native table renderer
+   - Automatically adapts to terminal width
+   - Shows route comparison with parameters, source, and status
+   - Includes detailed coverage statistics
+   - Best for interactive terminal use
+
+2. **Console Format** - Detailed text output with sections
+   - Comprehensive mismatch details
+   - Structured sections for summary, mismatches, warnings, and statistics
+   - Human-readable format
+
+3. **JSON Format** - Machine-readable structured data
+   - Complete validation results in JSON format
+   - Perfect for programmatic processing
+   - CI/CD pipeline integration
+
+4. **HTML Format** - Browser-friendly report
+   - Styled HTML output
+   - Shareable reports
+   - Visual presentation
 
 ### Custom Templates
 
@@ -241,6 +419,24 @@ use Maan511\OpenapiToLaravel\Generator\TemplateEngine;
 $templateEngine = new TemplateEngine();
 $templateEngine->addTemplate('custom_request', $yourCustomTemplate);
 ```
+
+### Validation Features
+
+The library includes comprehensive validation at multiple levels:
+
+1. **Input Validation** - Validates specification file existence and readability
+2. **Specification Validation** - Checks OpenAPI spec structure and reports errors/warnings
+3. **Rule Validation** - Ensures generated Laravel validation rules are syntactically correct
+4. **Route Validation** - Compares Laravel routes with OpenAPI endpoints
+
+### Coverage Statistics
+
+Route validation provides detailed coverage metrics:
+
+- **Laravel Routes Coverage** - Percentage of routes documented in OpenAPI spec
+- **OpenAPI Endpoints Coverage** - Percentage of endpoints implemented in Laravel
+- **Overall Coverage** - Combined coverage across both dimensions
+- **Mismatch Breakdown** - Count by error type (missing docs, missing impl, parameter mismatches, etc.)
 
 ## Testing
 
